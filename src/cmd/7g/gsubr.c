@@ -647,6 +647,8 @@ gmove(Node *f, Node *t)
 	Node r1, r2, r3, con;
 	Prog *p1, *p2;
 
+	USED(r3);USED(r2);USED(p2);USED(p1);
+
 	if(debug['M'])
 		print("gmove %lN -> %lN\n", f, t);
 
