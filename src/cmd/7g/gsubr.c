@@ -265,11 +265,14 @@ static	int	resvd[] =
 	REGSP,	// reserved for SP, XXX: not reserved in 9c.
 	30,	// for g
 	REGTMP,	// REGTMP
+
+#if HAVEFLOAT	// TODO(aram): enable
 	FREGCVI+NREG,
 	FREGZERO+NREG,
 	FREGHALF+NREG,
 	FREGONE+NREG,
 	FREGTWO+NREG,
+#endif
 };
 
 void
@@ -375,6 +378,7 @@ regalloc(Node *n, Type *t, Node *o)
 			print("R%d %p\n", i, regpc[i]);
 		fatal("out of fixed registers");
 
+#if HAVEFLOAT	// TODO(aram)
 	case TFLOAT32:
 	case TFLOAT64:
 		if(o != N && o->op == OREGISTER) {
@@ -396,6 +400,7 @@ regalloc(Node *n, Type *t, Node *o)
 	case TCOMPLEX128:
 		tempname(n, t);
 		return;
+#endif
 	}
 	fatal("regalloc: unknown type %T", t);
 	return;
@@ -836,6 +841,8 @@ gmove(Node *f, Node *t)
 		a = AMOVWZ;
 		goto rdst;
 
+#if HAVEFLOAT	// TODO(aram)
+
 	/*
 	* float to integer
 	*/
@@ -976,6 +983,8 @@ gmove(Node *f, Node *t)
 
 	gins(a, f, t);
 	return;
+
+#endif // HAVEFLOAT
 
 rdst:
 	// requires register destination
