@@ -570,6 +570,14 @@ static struct {
 		"../gc/popt.h",
 		"$GOROOT/pkg/obj/$GOHOSTOS_$GOHOSTARCH/libgc.a",
 	}},
+	{"cmd/7g", {
+		"../gc/cplx.c",
+		"../gc/pgen.c",
+		"../gc/plive.c",
+		"../gc/popt.c",
+		"../gc/popt.h",
+		"$GOROOT/pkg/obj/$GOHOSTOS_$GOHOSTARCH/libgc.a",
+	}},
 	{"cmd/8g", {
 		"../gc/cplx.c",
 		"../gc/pgen.c",
