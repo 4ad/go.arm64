@@ -6,18 +6,13 @@
 #include <libc.h>
 #include "gg.h"
 
-int	thechar	= '9';
-char*	thestring = "ppc64";
-LinkArch*	thelinkarch;
+int	thechar	= '7';
+char*	thestring = "arm64";
+LinkArch*	thelinkarch = &linkarm64;
 
 void
 linkarchinit(void)
 {
-	thestring = getgoarch();
-	if(strcmp(thestring, "ppc64le") == 0)
-		thelinkarch = &linkppc64le;
-	else
-		thelinkarch = &linkppc64;
 }
 
 vlong MAXWIDTH = 1LL<<50;
@@ -50,5 +45,5 @@ betypeinit(void)
 	zprog.to = zprog.from;
 	zprog.from3 = zprog.from;
 
-	listinit9();
+	listinit7();
 }
