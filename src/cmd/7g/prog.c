@@ -81,7 +81,7 @@ static ProgInfo progtable[ALAST] = {
 	// there is no AMOVWU.
 	[AMOVWZU]=	{SizeL | LeftRead | RightWrite | Move | Conv | PostInc},
 	[AMOVWZ]=	{SizeL | LeftRead | RightWrite | Move | Conv},
-	[AMOVD]=	{SizeQ | LeftRead | RightWrite | Move},
+	[AMOV]=	{SizeQ | LeftRead | RightWrite | Move},
 	[AMOVDU]=	{SizeQ | LeftRead | RightWrite | Move | PostInc},
 	[AFMOVS]=	{SizeF | LeftRead | RightWrite | Move | Conv},
 	[AFMOVD]=	{SizeD | LeftRead | RightWrite | Move},

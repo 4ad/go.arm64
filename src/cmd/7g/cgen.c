@@ -328,7 +328,7 @@ cgen(Node *n, Node *res)
 		// pointer is the first word of string or slice.
 		if(isconst(nl, CTSTR)) {
 			regalloc(&n1, types[tptr], res);
-			p1 = gins(AMOVD, N, &n1);
+			p1 = gins(AMOV, N, &n1);
 			datastring(nl->val.u.sval->s, nl->val.u.sval->len, &p1->from);
 			gmove(&n1, res);
 			regfree(&n1);
@@ -730,7 +730,7 @@ agenr(Node *n, Node *a, Node *res)
 					nodconst(&n4, types[TUINT64], nl->type->bound);
 				else {
 					regalloc(&n4, types[TUINT64], N);
-					p1 = gins(AMOVD, N, &n4);
+					p1 = gins(AMOV, N, &n4);
 					p1->from.type = D_CONST;
 					p1->from.offset = nl->type->bound;
 				}
@@ -747,7 +747,7 @@ agenr(Node *n, Node *a, Node *res)
 		
 		if(isconst(nl, CTSTR)) {
 			regalloc(&n3, types[tptr], res);
-			p1 = gins(AMOVD, N, &n3);
+			p1 = gins(AMOV, N, &n3);
 			datastring(nl->val.u.sval->s, nl->val.u.sval->len, &p1->from);
 			p1->from.type = D_CONST;
 		} else if(isslice(nl->type) || nl->type->etype == TSTRING) {
@@ -830,7 +830,7 @@ agen(Node *n, Node *res)
 		memset(&n3, 0, sizeof n3);
 		n3.op = OADDR;
 		n3.left = &n1;
-		gins(AMOVD, &n3, &n2);
+		gins(AMOV, &n3, &n2);
 		gmove(&n2, res);
 		regfree(&n2);
 		goto ret;
@@ -841,7 +841,7 @@ agen(Node *n, Node *res)
 		n1.op = OADDR;
 		n1.left = n;
 		regalloc(&n2, types[tptr], res);
-		gins(AMOVD, &n1, &n2);
+		gins(AMOV, &n1, &n2);
 		gmove(&n2, res);
 		regfree(&n2);
 		goto ret;
@@ -1441,7 +1441,7 @@ sgen(Node *n, Node *ns, int64 w)
 	if(n->ullman >= res->ullman) {
 		agenr(n, &dst, res);	// temporarily use dst
 		regalloc(&src, types[tptr], N);
-		gins(AMOVD, &dst, &src);
+		gins(AMOV, &dst, &src);
 		if(res->op == ONAME)
 			gvardef(res);
 		agen(res, &dst);
@@ -1461,7 +1461,7 @@ sgen(Node *n, Node *ns, int64 w)
 	if(dir < 0) {
 		if(c >= 4) {
 			regalloc(&nend, types[tptr], N);
-			p = gins(AMOVD, &src, &nend);
+			p = gins(AMOV, &src, &nend);
 		}
 
 		p = gins(AADD, N, &src);
@@ -1482,7 +1482,7 @@ sgen(Node *n, Node *ns, int64 w)
 
 		if(c >= 4) {
 			regalloc(&nend, types[tptr], N);
-			p = gins(AMOVD, &src, &nend);
+			p = gins(AMOV, &src, &nend);
 			p->from.type = D_CONST;
 			p->from.offset = w;
 		}

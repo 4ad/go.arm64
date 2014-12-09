@@ -72,7 +72,7 @@ zerorange(Prog *p, vlong frame, vlong lo, vlong hi)
 		return p;
 	if(cnt < 4*widthptr) {
 		for(i = 0; i < cnt; i += widthptr)
-			p = appendpp(p, AMOVD, D_REG, REGZERO, 0, D_OREG, REGSP, 8+frame+lo+i);
+			p = appendpp(p, AMOV, D_REG, REGZERO, 0, D_OREG, REGSP, 8+frame+lo+i);
 	} else if(cnt <= 128*widthptr) {
 		p = appendpp(p, AADD, D_CONST, NREG, 8+frame+lo-8, D_REG, REGRT1, 0);
 		p->reg = REGSP;
@@ -82,10 +82,10 @@ zerorange(Prog *p, vlong frame, vlong lo, vlong hi)
 		afunclit(&p->to, f);
 		p->to.offset = 4*(128-cnt/widthptr);
 	} else {
-		p = appendpp(p, AMOVD, D_CONST, NREG, 8+frame+lo-8, D_REG, REGTMP, 0);
+		p = appendpp(p, AMOV, D_CONST, NREG, 8+frame+lo-8, D_REG, REGTMP, 0);
 		p = appendpp(p, AADD, D_REG, REGTMP, 0, D_REG, REGRT1, 0);
 		p->reg = REGSP;
-		p = appendpp(p, AMOVD, D_CONST, NREG, cnt, D_REG, REGTMP, 0);
+		p = appendpp(p, AMOV, D_CONST, NREG, cnt, D_REG, REGTMP, 0);
 		p = appendpp(p, AADD, D_REG, REGTMP, 0, D_REG, REGRT2, 0);
 		p->reg = REGRT1;
 		p1 = p = appendpp(p, AMOVDU, D_REG, REGZERO, 0, D_OREG, REGRT1, widthptr);
@@ -171,7 +171,7 @@ static void
 ginsBL(Node *reg, Node *f)
 {
 	Prog *p;
-	p = gins(AMOVD, f, N);
+	p = gins(AMOV, f, N);
 	p->to.type = D_SPR;
 	p->to.offset = D_CTR;
 	p = gins(ABL, reg, N);
@@ -257,7 +257,7 @@ ginscall(Node *f, int proc)
 		p->to.reg = REGSP;
 		p->to.offset = 8;
 
-		p = gins(AMOVD, &reg, N);
+		p = gins(AMOV, &reg, N);
 		p->to.type = D_OREG;
 		p->to.reg = REGSP;
 		p->to.offset = 16;
@@ -346,7 +346,7 @@ cgen_callinter(Node *n, Node *res, int proc)
 		proc = 3;
 	} else {
 		// go/defer. generate go func value.
-		p = gins(AMOVD, &nodo, &nodr);	// REG = &(32+offset(REG)) -- i.tab->fun[f]
+		p = gins(AMOV, &nodo, &nodr);	// REG = &(32+offset(REG)) -- i.tab->fun[f]
 		p->from.type = D_CONST;
 	}
 
@@ -468,7 +468,7 @@ cgen_aret(Node *n, Node *res)
 	if(res->op != OREGISTER) {
 		regalloc(&nod2, types[tptr], res);
 		agen(&nod1, &nod2);
-		gins(AMOVD, &nod2, res);
+		gins(AMOV, &nod2, res);
 		regfree(&nod2);
 	} else
 		agen(&nod1, res);
@@ -931,7 +931,7 @@ clearfat(Node *nl)
 		p->from.offset = 8;
 
 		regalloc(&end, types[tptr], N);
-		p = gins(AMOVD, &dst, &end);
+		p = gins(AMOV, &dst, &end);
 		p->from.type = D_CONST;
 		p->from.offset = q*8;
 
@@ -959,7 +959,7 @@ clearfat(Node *nl)
 		boff = 8;
 	} else {
 		for(t = 0; t < q; t++) {
-			p = gins(AMOVD, &r0, &dst);
+			p = gins(AMOV, &r0, &dst);
 			p->to.type = D_OREG;
 			p->to.offset = 8*t;
 		}
@@ -1030,7 +1030,7 @@ expandchecks(Prog *firstp)
 		p1->to.type = D_BRANCH;
 		p1->to.u.branch = p2->link;
 		// crash by write to memory address 0.
-		p2->as = AMOVD;
+		p2->as = AMOV;
 		p2->from.type = D_REG;
 		p2->from.reg = 0;
 		p2->to.type = D_OREG;

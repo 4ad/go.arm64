@@ -540,11 +540,11 @@ ginscon(int as, vlong c, Node *n2)
 
 	nodconst(&n1, types[TINT64], c);
 
-	if(as != AMOVD && (c < -BIG || c > BIG)) {
+	if(as != AMOV && (c < -BIG || c > BIG)) {
 		// cannot have more than 16-bit of immediate in ADD, etc.
 		// instead, MOV into register first.
 		regalloc(&ntmp, types[TINT64], N);
-		gins(AMOVD, &n1, &ntmp);
+		gins(AMOV, &n1, &ntmp);
 		gins(as, &ntmp, n2);
 		regfree(&ntmp);
 		return;
@@ -581,7 +581,7 @@ ginscon2(int as, Node *n2, vlong c)
 	}
 	// MOV n1 into register first
 	regalloc(&ntmp, types[TINT64], N);
-	gins(AMOVD, &n1, &ntmp);
+	gins(AMOV, &n1, &ntmp);
 	gins(as, n2, &ntmp);
 	regfree(&ntmp);
 }
@@ -676,7 +676,7 @@ gmove(Node *f, Node *t)
 		case TINT8:
 			convconst(&con, types[TINT64], &f->val);
 			regalloc(&r1, con.type, t);
-			gins(AMOVD, &con, &r1);
+			gins(AMOV, &con, &r1);
 			gmove(&r1, t);
 			regfree(&r1);
 			return;
@@ -686,7 +686,7 @@ gmove(Node *f, Node *t)
 		case TUINT8:
 			convconst(&con, types[TUINT64], &f->val);
 			regalloc(&r1, con.type, t);
-			gins(AMOVD, &con, &r1);
+			gins(AMOV, &con, &r1);
 			gmove(&r1, t);
 			regfree(&r1);
 			return;
@@ -788,7 +788,7 @@ gmove(Node *f, Node *t)
 	case CASE(TINT64, TUINT64):
 	case CASE(TUINT64, TINT64):
 	case CASE(TUINT64, TUINT64):
-		a = AMOVD;
+		a = AMOV;
 		break;
 
 	/*
@@ -879,7 +879,7 @@ gmove(Node *f, Node *t)
 		p1->to.type = D_OREG;
 		p1->to.reg = REGSP;
 		p1->to.offset = -8;
-		p1 = gins(AMOVD, N, &r3);
+		p1 = gins(AMOV, N, &r3);
 		p1->from.type = D_OREG;
 		p1->from.reg = REGSP;
 		p1->from.offset = -8;
@@ -888,7 +888,7 @@ gmove(Node *f, Node *t)
 		if(tt == TUINT64) {
 			p1 = gbranch(optoas(OLT, types[TFLOAT64]), T, +1); // use CR0 here again
 			nodreg(&r1, types[TINT64], D_R0+REGTMP);
-			gins(AMOVD, &bigi, &r1);
+			gins(AMOV, &bigi, &r1);
 			gins(AADD, &r1, &r3);
 			patch(p1, pc);
 		}
@@ -934,7 +934,7 @@ gmove(Node *f, Node *t)
 			patch(p1, pc);
 		}
 		regalloc(&r2, types[TFLOAT64], t);
-		p1 = gins(AMOVD, &r1, N);
+		p1 = gins(AMOV, &r1, N);
 		p1->to.type = D_OREG;
 		p1->to.reg = REGSP;
 		p1->to.offset = -8;
@@ -1044,7 +1044,7 @@ gins(int as, Node *f, Node *t)
 	case AMOVWZU:
 		w = 4;
 		break;
-	case AMOVD:
+	case AMOV:
 	case AMOVDU:
 		if(af.type == D_CONST)
 			break;
@@ -1445,7 +1445,7 @@ optoas(int op, Type *t)
 	case CASE(OAS, TINT64):
 	case CASE(OAS, TUINT64):
 	case CASE(OAS, TPTR64):
-		a = AMOVD;
+		a = AMOV;
 		break;
 
 	case CASE(OAS, TFLOAT32):

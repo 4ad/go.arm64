@@ -606,7 +606,7 @@ addmove(Reg *r, int bn, int rn, int f)
 	case TINT64:
 	case TUINT64:
 	case TPTR64:
-		p1->as = AMOVD;
+		p1->as = AMOV;
 		break;
 	case TFLOAT32:
 		p1->as = AFMOVS;

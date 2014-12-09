@@ -71,7 +71,7 @@ loop1:
 		// can eliminate moves that don't care without
 		// breaking moves that do care.  This might let us
 		// simplify or remove the next peep loop, too.
-		if(p->as == AMOVD || p->as == AFMOVD)
+		if(p->as == AMOV || p->as == AFMOVD)
 		if(regtyp(&p->to)) {
 			// Try to eliminate reg->reg moves
 			if(regtyp(&p->from))
@@ -193,7 +193,7 @@ loop1:
 			default:
 				continue;
 			case AMOVW:
-			case AMOVD:
+			case AMOV:
 				if(p1->from.type != D_REG)
 					continue;
 				continue;
@@ -598,7 +598,7 @@ copyu(Prog *p, Addr *v, Addr *s)
 	case AMOVBZ:
 	case AMOVW:
 	case AMOVWZ:
-	case AMOVD:
+	case AMOV:
 
 	case ANEG:
 	case ANEGCC:
