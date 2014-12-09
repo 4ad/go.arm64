@@ -73,7 +73,7 @@ xatoi(char *s, char **end)
 	return val;
 }
 
-// mkanames reads [5689].out.h and writes anames[5689].c
+// mkanames reads [56789].out.h and writes anames[56789].c
 // The format is much the same as the Go opcodes above.
 // It also writes out cnames array for C_* constants and the dnames
 // array for D_* constants.
