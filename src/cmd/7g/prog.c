@@ -73,14 +73,14 @@ static ProgInfo progtable[ALAST] = {
 	// Moves
 	[AMOVB]=	{SizeB | LeftRead | RightWrite | Move | Conv},
 	[AMOVBU]=	{SizeB | LeftRead | RightWrite | Move | Conv | PostInc},
-	[AMOVBZ]=	{SizeB | LeftRead | RightWrite | Move | Conv},
+	[AMOVBU]=	{SizeB | LeftRead | RightWrite | Move | Conv},
 	[AMOVH]=	{SizeW | LeftRead | RightWrite | Move | Conv},
 	[AMOVHU]=	{SizeW | LeftRead | RightWrite | Move | Conv | PostInc},
-	[AMOVHZ]=	{SizeW | LeftRead | RightWrite | Move | Conv},
+	[AMOVHU]=	{SizeW | LeftRead | RightWrite | Move | Conv},
 	[AMOVW]=	{SizeL | LeftRead | RightWrite | Move | Conv},
 	// there is no AMOVWU.
-	[AMOVWZU]=	{SizeL | LeftRead | RightWrite | Move | Conv | PostInc},
-	[AMOVWZ]=	{SizeL | LeftRead | RightWrite | Move | Conv},
+	[AMOVWUU]=	{SizeL | LeftRead | RightWrite | Move | Conv | PostInc},
+	[AMOVWU]=	{SizeL | LeftRead | RightWrite | Move | Conv},
 	[AMOV]=	{SizeQ | LeftRead | RightWrite | Move},
 	[AMOVDU]=	{SizeQ | LeftRead | RightWrite | Move | PostInc},
 	[AFMOVS]=	{SizeF | LeftRead | RightWrite | Move | Conv},

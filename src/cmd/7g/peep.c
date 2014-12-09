@@ -114,11 +114,11 @@ loop1:
 		default:
 			continue;
 		case AMOVH:
-		case AMOVHZ:
+		case AMOVHU:
 		case AMOVB:
-		case AMOVBZ:
+		case AMOVBU:
 		case AMOVW:
-		case AMOVWZ:
+		case AMOVWU:
 			if(p->to.type != D_REG)
 				continue;
 			break;
@@ -593,11 +593,11 @@ copyu(Prog *p, Addr *v, Addr *s)
 
 	case ANOP:	/* read p->from, write p->to */
 	case AMOVH:
-	case AMOVHZ:
+	case AMOVHU:
 	case AMOVB:
-	case AMOVBZ:
+	case AMOVBU:
 	case AMOVW:
-	case AMOVWZ:
+	case AMOVWU:
 	case AMOV:
 
 	case ANEG:
@@ -647,10 +647,8 @@ copyu(Prog *p, Addr *v, Addr *s)
 		return 0;
 
 	case AMOVBU:	/* rar p->from, write p->to or read p->from, rar p->to */
-	case AMOVBZU:
 	case AMOVHU:
-	case AMOVHZU:
-	case AMOVWZU:
+	case AMOVWUU:
 	case AMOVDU:
 		if(p->from.type == D_OREG) {
 			if(copyas(&p->from, v))

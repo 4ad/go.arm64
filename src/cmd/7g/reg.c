@@ -588,20 +588,20 @@ addmove(Reg *r, int bn, int rn, int f)
 	case TBOOL:
 	case TUINT8:
 //print("movbu %E %d %S\n", v->etype, bn, v->sym);
-		p1->as = AMOVBZ;
+		p1->as = AMOVBU;
 		break;
 	case TINT16:
 		p1->as = AMOVH;
 		break;
 	case TUINT16:
-		p1->as = AMOVHZ;
+		p1->as = AMOVHU;
 		break;
 	case TINT32:
 		p1->as = AMOVW;
 		break;
 	case TUINT32:
 	case TPTR32:
-		p1->as = AMOVWZ;
+		p1->as = AMOVWU;
 		break;
 	case TINT64:
 	case TUINT64:
@@ -632,9 +632,9 @@ addmove(Reg *r, int bn, int rn, int f)
 			a->reg = rn-NREG;
 		}
 		if(v->etype == TUINT8 || v->etype == TBOOL)
-			p1->as = AMOVBZ;
+			p1->as = AMOVBU;
 		if(v->etype == TUINT16)
-			p1->as = AMOVHZ;
+			p1->as = AMOVHU;
 	}
 	if(debug['R'])
 		print("%P\t.a%P\n", p, p1);

@@ -1418,7 +1418,7 @@ optoas(int op, Type *t)
 		break;
 
 	case CASE(OAS, TUINT8):
-		a = AMOVBZ;
+		a = AMOVBU;
 		break;
 
 	case CASE(OAS, TINT16):
@@ -1426,7 +1426,7 @@ optoas(int op, Type *t)
 		break;
 
 	case CASE(OAS, TUINT16):
-		a = AMOVHZ;
+		a = AMOVHU;
 		break;
 
 	case CASE(OAS, TINT32):
@@ -1435,7 +1435,7 @@ optoas(int op, Type *t)
 
 	case CASE(OAS, TUINT32):
 	case CASE(OAS, TPTR32):
-		a = AMOVWZ;
+		a = AMOVWU;
 		break;
 
 	case CASE(OAS, TINT64):
