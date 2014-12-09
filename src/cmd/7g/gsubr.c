@@ -1631,6 +1631,7 @@ optoas(int op, Type *t)
 		a = AUMULL; // for 64-bit multiplies, signedness doesn't matter.
 		break;
 
+#if HAVEFLOAT	// TODO(aram)
 	case CASE(OMUL, TFLOAT32):
 		a = AFMULS;
 		break;
@@ -1638,6 +1639,7 @@ optoas(int op, Type *t)
 	case CASE(OMUL, TFLOAT64):
 		a = AFMUL;
 		break;
+#endif // HAVEFLOAT
 
 	case CASE(ODIV, TINT8):
 	case CASE(ODIV, TINT16):
