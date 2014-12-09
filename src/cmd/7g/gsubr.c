@@ -1606,18 +1606,18 @@ optoas(int op, Type *t)
 	//	break;
 
 	case CASE(OHMUL, TINT64):
-		a = AMULHD;
+		a = ASMULH;
 		break;
 	case CASE(OHMUL, TUINT64):
 	case CASE(OHMUL, TPTR64):
-		a = AMULHDU;
+		a = AUMULH;
 		break;
 
 	case CASE(OMUL, TINT8):
 	case CASE(OMUL, TINT16):
 	case CASE(OMUL, TINT32):
 	case CASE(OMUL, TINT64):
-		a = AMULLD;
+		a = ASMULL;
 		break;
 
 	case CASE(OMUL, TUINT8):
@@ -1628,7 +1628,7 @@ optoas(int op, Type *t)
 		// fallthrough
 	case CASE(OMUL, TUINT64):
 	case CASE(OMUL, TPTR64):
-		a = AMULLD; // for 64-bit multiplies, signedness doesn't matter.
+		a = AUMULL; // for 64-bit multiplies, signedness doesn't matter.
 		break;
 
 	case CASE(OMUL, TFLOAT32):
