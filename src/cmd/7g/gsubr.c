@@ -1464,6 +1464,7 @@ optoas(int op, Type *t)
 	case CASE(OADD, TPTR64):
 		a = AADD;
 		break;
+#if HAVEFLOAT	// TODO(aram)
 
 	case CASE(OADD, TFLOAT32):
 		a = AFADDS;
@@ -1472,6 +1473,7 @@ optoas(int op, Type *t)
 	case CASE(OADD, TFLOAT64):
 		a = AFADD;
 		break;
+#endif // HAVEFLOAT
 
 	case CASE(OSUB, TINT8):
 	case CASE(OSUB, TUINT8):
@@ -1486,6 +1488,7 @@ optoas(int op, Type *t)
 		a = ASUB;
 		break;
 
+#if HAVEFLOAT	// TODO(aram)
 	case CASE(OSUB, TFLOAT32):
 		a = AFSUBS;
 		break;
@@ -1493,6 +1496,7 @@ optoas(int op, Type *t)
 	case CASE(OSUB, TFLOAT64):
 		a = AFSUB;
 		break;
+#endif // HAVEFLOAT
 
 	case CASE(OMINUS, TINT8):
 	case CASE(OMINUS, TUINT8):
