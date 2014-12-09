@@ -1032,24 +1032,17 @@ gins(int as, Node *f, Node *t)
 	switch(as) {
 	case AMOVB:
 	case AMOVBU:
-	case AMOVBZ:
-	case AMOVBZU:
 		w = 1;
 		break;
 	case AMOVH:
 	case AMOVHU:
-	case AMOVHZ:
-	case AMOVHZU:
 		w = 2;
 		break;
 	case AMOVW:
 	case AMOVWU:
-	case AMOVWZ:
-	case AMOVWZU:
 		w = 4;
 		break;
 	case AMOV:
-	case AMOVDU:
 		if(af.type == D_CONST)
 			break;
 		w = 8;
@@ -1404,21 +1397,20 @@ optoas(int op, Type *t)
 	case CASE(OCMP, TINT32):
 	case CASE(OCMP, TPTR32):
 	case CASE(OCMP, TINT64):
-		a = ACMP;
-		break;
-
 	case CASE(OCMP, TUINT8):
 	case CASE(OCMP, TUINT16):
 	case CASE(OCMP, TUINT32):
 	case CASE(OCMP, TUINT64):
 	case CASE(OCMP, TPTR64):
-		a = ACMPU;
+		a = ACMP;
 		break;
 
+#if HAVEFLOAT	// TODO(aram)
 	case CASE(OCMP, TFLOAT32):
 	case CASE(OCMP, TFLOAT64):
 		a = AFCMPU;
 		break;
+#endif // HAVEFLOAT
 
 	case CASE(OAS, TBOOL):
 	case CASE(OAS, TINT8):
