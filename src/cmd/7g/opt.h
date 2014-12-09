@@ -238,7 +238,7 @@ int variant2as(int, int);
 // To allow use of AJMP, ACALL, ARET in ../gc/popt.c.
 enum
 {
-	AJMP = ABR,
+	AJMP = AB,
 	ACALL = ABL,
 	ARET = ARETURN,
 };

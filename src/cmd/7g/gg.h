@@ -7,7 +7,7 @@
 #endif
 
 #include "../gc/go.h"
-#include "../9l/9.out.h"
+#include "../7l/7.out.h"
 
 // TODO(minux): Remove when no longer used.
 #define noimpl sysfatal("%s not implemented (%s:%d).", __func__, __FILE__, __LINE__)
