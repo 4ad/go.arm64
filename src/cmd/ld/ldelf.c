@@ -72,7 +72,8 @@ enum
 	ElfMachAlpha,		/* Digital Alpha */
 	ElfMachSH,		/* Hitachi SH */
 	ElfMachSparc9,		/* SPARC V9 */
-	ElfMachAmd64 = 62,
+	ElfMachAmd64 = 62,	/* Intel x86_64 */
+	ElfMachArm64 = 183,	/* ARM AArch64 */
 	/* and the list goes on... */
 
 	ElfAbiNone = 0,
@@ -427,6 +428,12 @@ ldelf(Biobuf *f, char *pkg, int64 len, char *pn)
 	case '6':
 		if(e != &le || obj->machine != ElfMachAmd64 || hdr->ident[4] != ElfClass64) {
 			diag("%s: elf object but not amd64", pn);
+			return;
+		}
+		break;
+	case '7':
+		if(e != &le || obj->machine != ElfMachArm64 || hdr->ident[4] != ElfClass64) {
+			diag("%s: elf object but not arm64", pn);
 			return;
 		}
 		break;

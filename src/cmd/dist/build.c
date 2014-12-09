@@ -364,6 +364,7 @@ done:
 static char *oldtool[] = {
 	"5a", "5c", "5g", "5l",
 	"6a", "6c", "6g", "6l",
+	"7a", "7c", "7g", "7l",
 	"8a", "8c", "8g", "8l",
 	"9a", "9c", "9g", "9l",
 	"6cov",
@@ -589,6 +590,9 @@ static struct {
 		"../ld/*",
 	}},
 	{"cmd/6l", {
+		"../ld/*",
+	}},
+	{"cmd/7l", {
 		"../ld/*",
 	}},
 	{"cmd/8l", {
@@ -1351,6 +1355,7 @@ static char *cleantab[] = {
 	"cmd/6a",
 	"cmd/6g",
 	"cmd/6l",
+	"cmd/7l",
 	"cmd/8a",
 	"cmd/8g",
 	"cmd/8l",

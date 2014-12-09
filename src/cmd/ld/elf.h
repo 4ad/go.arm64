@@ -175,7 +175,8 @@ typedef struct {
 #define EM_ME16		59	/* Toyota ME16 processor. */
 #define EM_ST100	60	/* STMicroelectronics ST100 processor. */
 #define EM_TINYJ	61	/* Advanced Logic Corp. TinyJ processor. */
-#define EM_X86_64	62	/* Advanced Micro Devices x86-64 */
+#define EM_X86_64	62	/* Advanced Micro Devices x86-64. */
+#define EM_AARCH64	183	/* ARM 64 bit. */
 
 /* Non-standard or deprecated. */
 #define EM_486		6	/* Intel i486. */

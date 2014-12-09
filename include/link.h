@@ -62,13 +62,13 @@ struct	Addr
 	short	type;
 	uint8	index;
 	int8	scale;
-	int8	reg;	// for 5l, 9l; GPRs and FPRs both start at 0
-	int8	name; // for 5l, 9l
+	int8	reg;	// for 5l, 7l, 9l; GPRs and FPRs both start at 0
+	int8	name; // for  5l, 9l
 	int8	class;	// for 5l, 9l
-	uint8	etype; // for 5g, 6g, 8g
+	uint8	etype; // for 5g, 6g, 7g, 8g
 	int32	offset2;	// for 5l, 8l
 	struct Node*	node; // for 5g, 6g, 8g
-	int64	width; // for 5g, 6g, 8g
+	int64	width; // for 5g, 6g, 7g, 8g
 };
 
 struct	Reloc
@@ -93,10 +93,10 @@ struct	Prog
 
 	// operands
 	Addr	from;
-	uchar	reg; // arm, ppc64 only (e.g., ADD from, reg, to);
+	uchar	reg; // arm, arm64, ppc64 only (e.g., ADD from, reg, to);
 		     // starts at 0 for both GPRs and FPRs;
 		     // also used for ADATA width on arm, ppc64
-	Addr	from3; // ppc64 only (e.g., RLWM/FMADD from, reg, from3, to)
+	Addr	from3; // arm64, ppc64 only (e.g., RLWM/FMADD from, reg, from3, to)
 	Addr	to;
 	
 	// for 5g, 6g, 8g internal use
@@ -238,10 +238,12 @@ enum
 enum
 {
 	R_ADDR = 1,
+	R_ADDRARM64, // TODO(aram)
 	R_ADDRPOWER, // relocation for loading 31-bit address using addis and addi/ld/st for Power
 	R_SIZE,
 	R_CALL, // relocation for direct PC-relative call
 	R_CALLARM, // relocation for ARM direct call
+	R_CALLARM64, // relocation for ARM64 direct call
 	R_CALLIND, // marker for indirect call (no actual relocating necessary)
 	R_CALLPOWER, // relocation for Power direct call
 	R_CONST,
@@ -533,6 +535,9 @@ int	chipzero5(Link *ctxt, float64 e);
 // asm6.c
 void	span6(Link *ctxt, LSym *s);
 
+// asm7.c
+void	span7(Link *ctxt, LSym *s);
+
 // asm8.c
 void	span8(Link *ctxt, LSym *s);
 
@@ -586,9 +591,10 @@ Prog*	copyp(Link*, Prog*);
 Prog*	appendp(Link*, Prog*);
 vlong	atolwhex(char*);
 
-// list[5689].c
+// list[56789].c
 void	listinit5(void);
 void	listinit6(void);
+void	listinit7(void);
 void	listinit8(void);
 void	listinit9(void);
 
@@ -621,6 +627,7 @@ char*	headstr(int);
 
 extern	char*	anames5[];
 extern	char*	anames6[];
+extern	char*	anames7[];
 extern	char*	anames8[];
 extern	char*	anames9[];
 
@@ -636,6 +643,7 @@ extern	LinkArch	link386;
 extern	LinkArch	linkamd64;
 extern	LinkArch	linkamd64p32;
 extern	LinkArch	linkarm;
+extern	LinkArch	linkarm64;
 extern	LinkArch	linkppc64;
 extern	LinkArch	linkppc64le;
 

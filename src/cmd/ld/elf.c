@@ -45,6 +45,7 @@ elfinit(void)
 	switch(thechar) {
 	// 64-bit architectures
 	case '6':
+	case '7':
 	case '9':
 		elf64 = 1;
 		hdr.phoff = ELF64HDRSIZE;	/* Must be be ELF64HDRSIZE: first PHdr must follow ELF header */
@@ -679,7 +680,7 @@ elfdynhash(void)
 		elfwritedynentsym(s, DT_VERSYM, linklookup(ctxt, ".gnu.version", 0));
 	}
 
-	if(thechar == '6' || thechar == '9') {
+	if(thechar == '6' || thechar == '7' || thechar == '9') {
 		sy = linklookup(ctxt, ".rela.plt", 0);
 		if(sy->size > 0) {
 			elfwritedynent(s, DT_PLTREL, DT_RELA);
@@ -805,7 +806,7 @@ elfshreloc(Section *sect)
 	if(strcmp(sect->name, ".shstrtab") == 0 || strcmp(sect->name, ".tbss") == 0)
 		return nil;
 
-	if(thechar == '6' || thechar == '9') {
+	if(thechar == '6' || thechar == '7' || thechar == '9') {
 		prefix = ".rela";
 		typ = SHT_RELA;
 	} else {
@@ -932,7 +933,7 @@ doelf(void)
 		debug['s'] = 0;
 		debug['d'] = 1;
 
-		if(thechar == '6' || thechar == '9') {
+		if(thechar == '6' || thechar == '7' || thechar == '9') {
 			addstring(shstrtab, ".rela.text");
 			addstring(shstrtab, ".rela.rodata");
 			addstring(shstrtab, ".rela.typelink");
@@ -955,7 +956,7 @@ doelf(void)
 
 	if(flag_shared) {
 		addstring(shstrtab, ".init_array");
-		if(thechar == '6' || thechar == '9')
+		if(thechar == '6' || thechar == '7' || thechar == '9')
 			addstring(shstrtab, ".rela.init_array");
 		else
 			addstring(shstrtab, ".rel.init_array");
@@ -976,7 +977,7 @@ doelf(void)
 		addstring(shstrtab, ".dynamic");
 		addstring(shstrtab, ".dynsym");
 		addstring(shstrtab, ".dynstr");
-		if(thechar == '6' || thechar == '9') {
+		if(thechar == '6' || thechar == '7' || thechar == '9') {
 			addstring(shstrtab, ".rela");
 			addstring(shstrtab, ".rela.plt");
 		} else {
@@ -991,7 +992,7 @@ doelf(void)
 		s = linklookup(ctxt, ".dynsym", 0);
 		s->type = SELFROSECT;
 		s->reachable = 1;
-		if(thechar == '6' || thechar == '9')
+		if(thechar == '6' || thechar == '7' || thechar == '9')
 			s->size += ELF64SYMSIZE;
 		else
 			s->size += ELF32SYMSIZE;
@@ -1005,7 +1006,7 @@ doelf(void)
 		dynstr = s;
 
 		/* relocation table */
-		if(thechar == '6' || thechar == '9')
+		if(thechar == '6' || thechar == '7' || thechar == '9')
 			s = linklookup(ctxt, ".rela", 0);
 		else
 			s = linklookup(ctxt, ".rel", 0);
@@ -1032,7 +1033,7 @@ doelf(void)
 		
 		elfsetupplt();
 		
-		if(thechar == '6' || thechar == '9')
+		if(thechar == '6' || thechar == '7' || thechar == '9')
 			s = linklookup(ctxt, ".rela.plt", 0);
 		else
 			s = linklookup(ctxt, ".rel.plt", 0);
@@ -1057,13 +1058,13 @@ doelf(void)
 		 */
 		elfwritedynentsym(s, DT_HASH, linklookup(ctxt, ".hash", 0));
 		elfwritedynentsym(s, DT_SYMTAB, linklookup(ctxt, ".dynsym", 0));
-		if(thechar == '6' || thechar == '9')
+		if(thechar == '6' || thechar == '7' || thechar == '9')
 			elfwritedynent(s, DT_SYMENT, ELF64SYMSIZE);
 		else
 			elfwritedynent(s, DT_SYMENT, ELF32SYMSIZE);
 		elfwritedynentsym(s, DT_STRTAB, linklookup(ctxt, ".dynstr", 0));
 		elfwritedynentsymsize(s, DT_STRSZ, linklookup(ctxt, ".dynstr", 0));
-		if(thechar == '6' || thechar == '9') {
+		if(thechar == '6' || thechar == '7' || thechar == '9') {
 			elfwritedynentsym(s, DT_RELA, linklookup(ctxt, ".rela", 0));
 			elfwritedynentsymsize(s, DT_RELASZ, linklookup(ctxt, ".rela", 0));
 			elfwritedynent(s, DT_RELAENT, ELF64RELASIZE);
@@ -1145,6 +1146,9 @@ asmbelf(vlong symo)
 		break;
 	case '6':
 		eh->machine = EM_X86_64;
+		break;
+	case '7':
+		eh->machine = EM_AARCH64;
 		break;
 	case '8':
 		eh->machine = EM_386;

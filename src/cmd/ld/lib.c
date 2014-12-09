@@ -594,6 +594,7 @@ hostlink(void)
 		argv[argc++] = "-m32";
 		break;
 	case '6':
+	case '7':
 	case '9':
 		argv[argc++] = "-m64";
 		break;
@@ -1034,7 +1035,7 @@ static LSym *newstack;
 
 enum
 {
-	HasLinkRegister = (thechar == '5' || thechar == '9'),
+	HasLinkRegister = (thechar == '5' || thechar == '7' || thechar == '9'),
 };
 
 // TODO: Record enough information in new object files to
@@ -1155,6 +1156,7 @@ stkcheck(Chain *up, int depth)
 			switch(r->type) {
 			case R_CALL:
 			case R_CALLARM:
+			case R_CALLARM64:
 			case R_CALLPOWER:
 				// Direct call.
 				ch.limit = limit - pcsp.value - callsize();
@@ -1535,7 +1537,7 @@ callgraph(void)
 			r = &s->r[i];
 			if(r->sym == nil)
 				continue;
-			if((r->type == R_CALL || r->type == R_CALLARM || r->type == R_CALLPOWER) && r->sym->type == STEXT)
+			if((r->type == R_CALL || r->type == R_CALLARM || r->type == R_CALLARM64 || r->type == R_CALLPOWER) && r->sym->type == STEXT)
 				Bprint(&bso, "%s calls %s\n", s->name, r->sym->name);
 		}
 	}
