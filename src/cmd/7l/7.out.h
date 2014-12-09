@@ -567,6 +567,10 @@ enum
 	D_COND,		/* condition EQ, NE, etc */
 	D_VLANE,		/* Vn lane */
 	D_VSET,		/* set of Vn */
+	
+/* reg names for 7g OREGISTER */
+	D_R0 = 0, // type is D_REG
+	D_F0 = D_R0+NREG, // type is D_FREG
 
 	/* offset iff type is D_SPR */
 	D_DAIF	= SYSARG5(3,3,4,2,1),
@@ -591,7 +595,6 @@ enum
 //	D_SPSR_und = SYSARG5(3,x,4,x,x),
 	D_DAIFSet = (1<<30)|0,
 	D_DAIFClr = (1<<30)|1
-
 };
 
 /*
