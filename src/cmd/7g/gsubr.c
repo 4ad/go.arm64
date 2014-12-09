@@ -1657,6 +1657,7 @@ optoas(int op, Type *t)
 		a = AUDIV;
 		break;
 
+#if HAVEFLOAT	// TODO(aram)
 	case CASE(ODIV, TFLOAT32):
 		a = AFDIVS;
 		break;
@@ -1664,6 +1665,7 @@ optoas(int op, Type *t)
 	case CASE(ODIV, TFLOAT64):
 		a = AFDIV;
 		break;
+#endif // HAVEFLOAT
 
 	}
 	return a;
