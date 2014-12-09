@@ -1645,7 +1645,7 @@ optoas(int op, Type *t)
 	case CASE(ODIV, TINT16):
 	case CASE(ODIV, TINT32):
 	case CASE(ODIV, TINT64):
-		a = ADIVD;
+		a = ASDIV;
 		break;
 
 	case CASE(ODIV, TUINT8):
@@ -1654,7 +1654,7 @@ optoas(int op, Type *t)
 	case CASE(ODIV, TPTR32):
 	case CASE(ODIV, TUINT64):
 	case CASE(ODIV, TPTR64):
-		a = ADIVDU;
+		a = AUDIV;
 		break;
 
 	case CASE(ODIV, TFLOAT32):
