@@ -1355,6 +1355,7 @@ static char *cleantab[] = {
 	"cmd/6a",
 	"cmd/6g",
 	"cmd/6l",
+	"cmd/7a",
 	"cmd/7l",
 	"cmd/8a",
 	"cmd/8g",
