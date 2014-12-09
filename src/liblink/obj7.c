@@ -219,7 +219,7 @@ loop:
 				i--;
 				continue;
 			}
-			if(a == AB || a == ARETURN || a == ARET || a == AERET)
+			if(a == AB || a == ARETURN || a == AERET)
 				goto copy;
 			if(q->pcond == nil || ((q->pcond->mark & FOLL)))
 				continue;
@@ -240,7 +240,7 @@ loop:
 				}
 				(*last)->link = r;
 				*last = r;
-				if(a == AB || a == ARETURN || a == ARET || a == AERET)
+				if(a == AB || a == ARETURN || a == AERET)
 					return;
 				r->as = a == ABNE ? ABEQ : ABNE;
 				r->pcond = p->link;
@@ -264,7 +264,7 @@ loop:
 	p->mark |= FOLL;
 	(*last)->link = p;
 	*last = p;
-	if(a == AB || a == ARETURN || a == ARET || a == AERET)
+	if(a == AB || a == ARETURN || a == AERET)
 		return;
 	if(p->pcond != nil)
 		if(a != ABL && p->link != nil) {
@@ -494,7 +494,7 @@ addstacksplit(Link *ctxt, LSym *cursym)
 				p->link = q;
 				p = q;
 			}
-			p->as = ARET;
+			p->as = ARETURN;
 			p->lineno = p->lineno;
 			p->to.type = D_OREG;
 			p->to.offset = 0;
