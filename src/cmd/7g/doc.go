@@ -6,11 +6,10 @@
 
 /*
 
-9g is the version of the gc compiler for 64-bit PowerPC or Power Architecture processors.
-The $GOARCH for these tools is ppc64 (big endian) or
-ppc64le (little endian).
+7g is the version of the gc compiler for 64-bit ARM processors.
+The $GOARCH for these tools is arm64.
 
-It reads .go files and outputs .9 files. The flags are documented in ../gc/doc.go.
+It reads .go files and outputs .7 files. The flags are documented in ../gc/doc.go.
 
 */
 package main
