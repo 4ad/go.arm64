@@ -31,7 +31,7 @@ enum
 	REGIP0	= 16,
 	REGIP1	= 17,
 	REGTMP	= REGIP1,	/* compiler allocates external registers R27 down */
-	REGEXT	= 27,
+	REGG	= 27,	/* G */
 	REGSB	= 28,
 	REGFP	= 29,
 	REGLINK	= 30,

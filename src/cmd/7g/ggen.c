@@ -973,22 +973,6 @@ expandchecks(Prog *firstp)
 			warnl(p->lineno, "generated nil check");
 		if(p->from.type != D_REG)
 			fatal("invalid nil check %P\n", p);
-		/*
-		// check is
-		//	TD $4, R0, arg (R0 is always zero)
-		// eqv. to:
-		// 	tdeq r0, arg
-		// NOTE: this needs special runtime support to make SIGTRAP recoverable.
-		reg = p->from.reg;
-		p->as = ATD;
-		p->from = p->to = p->from3 = zprog.from;
-		p->from.type = D_CONST;
-		p->from.offset = 4;
-		p->from.reg = NREG;
-		p->reg = 0;
-		p->to.type = D_REG;
-		p->to.reg = reg;
-		*/
 		// check is
 		//	CMP arg, R0
 		//	BNE 2(PC) [likely]
