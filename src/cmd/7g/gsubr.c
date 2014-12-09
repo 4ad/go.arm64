@@ -1534,7 +1534,7 @@ optoas(int op, Type *t)
 	case CASE(OOR, TINT64):
 	case CASE(OOR, TUINT64):
 	case CASE(OOR, TPTR64):
-		a = AOR;
+		a = AORR;
 		break;
 
 	case CASE(OXOR, TINT8):
@@ -1547,7 +1547,7 @@ optoas(int op, Type *t)
 	case CASE(OXOR, TINT64):
 	case CASE(OXOR, TUINT64):
 	case CASE(OXOR, TPTR64):
-		a = AXOR;
+		a = AEOR;
 		break;
 
 	// TODO(minux): handle rotates
@@ -1574,7 +1574,7 @@ optoas(int op, Type *t)
 	case CASE(OLSH, TINT64):
 	case CASE(OLSH, TUINT64):
 	case CASE(OLSH, TPTR64):
-		a = ASLD;
+		a = ALSL;
 		break;
 
 	case CASE(ORSH, TUINT8):
@@ -1583,14 +1583,14 @@ optoas(int op, Type *t)
 	case CASE(ORSH, TPTR32):
 	case CASE(ORSH, TUINT64):
 	case CASE(ORSH, TPTR64):
-		a = ASRD;
+		a = ALSR;
 		break;
 
 	case CASE(ORSH, TINT8):
 	case CASE(ORSH, TINT16):
 	case CASE(ORSH, TINT32):
 	case CASE(ORSH, TINT64):
-		a = ASRAD;
+		a = AASR;
 		break;
 
 	// TODO(minux): handle rotates
