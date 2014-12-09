@@ -87,7 +87,7 @@ static ProgInfo progtable[ALAST] = {
 	[AFMOVD]=	{SizeD | LeftRead | RightWrite | Move},
 
 	// Jumps
-	[ABR]=		{Jump | Break},
+	[AB]=		{Jump | Break},
 	[ABL]=		{Call},
 	[ABEQ]=		{Cjmp},
 	[ABNE]=		{Cjmp},

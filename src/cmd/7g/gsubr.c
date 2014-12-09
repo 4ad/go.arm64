@@ -122,7 +122,7 @@ gbranch(int as, Type *t, int likely)
 	// Note: liblink used Bcc CR0, label form, so we need another way
 	// to set likely/unlikely flag. Also note the y bit is not exactly
 	// likely/unlikely bit.
-	if(0 && as != ABR && likely != 0) {
+	if(0 && as != AB && likely != 0) {
 		p->from.type = D_CONST;
 		p->from.offset = likely > 0;
 	}
@@ -182,7 +182,7 @@ gjmp(Prog *to)
 {
 	Prog *p;
 
-	p = gbranch(ABR, T, 0);
+	p = gbranch(AB, T, 0);
 	if(to != P)
 		patch(p, to);
 	return p;

@@ -220,10 +220,10 @@ cgen(Node *n, Node *res)
 	case OGE:
 	case OGT:
 	case ONOT:
-		p1 = gbranch(ABR, T, 0);
+		p1 = gbranch(AB, T, 0);
 		p2 = pc;
 		gmove(nodbool(1), res);
-		p3 = gbranch(ABR, T, 0);
+		p3 = gbranch(AB, T, 0);
 		patch(p1, pc);
 		bgen(n, 1, 0, p2);
 		gmove(nodbool(0), res);
@@ -1105,7 +1105,7 @@ bgen(Node *n, int true, int likely, Prog *to)
 	case OLITERAL:
 		// need to ask if it is bool?
 		if(!true == !n->val.u.bval)
-			patch(gbranch(ABR, T, likely), to);
+			patch(gbranch(AB, T, likely), to);
 		goto ret;
 
 	case OANDAND:
@@ -1113,12 +1113,12 @@ bgen(Node *n, int true, int likely, Prog *to)
 			goto caseor;
 
 	caseand:
-		p1 = gbranch(ABR, T, 0);
-		p2 = gbranch(ABR, T, 0);
+		p1 = gbranch(AB, T, 0);
+		p2 = gbranch(AB, T, 0);
 		patch(p1, pc);
 		bgen(n->left, !true, -likely, p2);
 		bgen(n->right, !true, -likely, p2);
-		p1 = gbranch(ABR, T, 0);
+		p1 = gbranch(AB, T, 0);
 		patch(p1, to);
 		patch(p2, pc);
 		goto ret;
@@ -1165,14 +1165,14 @@ bgen(Node *n, int true, int likely, Prog *to)
 		if(!true) {
 			if(isfloat[nr->type->etype]) {
 				// brcom is not valid on floats when NaN is involved.
-				p1 = gbranch(ABR, T, 0);
-				p2 = gbranch(ABR, T, 0);
+				p1 = gbranch(AB, T, 0);
+				p2 = gbranch(AB, T, 0);
 				patch(p1, pc);
 				ll = n->ninit;   // avoid re-genning ninit
 				n->ninit = nil;
 				bgen(n, 1, -likely, p2);
 				n->ninit = ll;
-				patch(gbranch(ABR, T, 0), to);
+				patch(gbranch(AB, T, 0), to);
 				patch(p2, pc);
 				goto ret;
 			}

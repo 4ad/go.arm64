@@ -790,7 +790,7 @@ copyu(Prog *p, Addr *v, Addr *s)
 			return 1;
 		return 0;
 
-	case ABR:	/* read p->to */
+	case AB:	/* read p->to */
 		// 9g never generates a branch to a GPR (this isn't
 		// even a normal instruction; liblink turns it in to a
 		// mov and a branch).
