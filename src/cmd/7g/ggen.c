@@ -761,7 +761,7 @@ cgen_hmul(Node *nl, Node *nr, Node *res)
 	case TINT16:
 	case TINT32:
 		gins(optoas(OMUL, t), &n2, &n1);
-		p = gins(ASRAD, N, &n1);
+		p = gins(AASR, N, &n1);
 		p->from.type = D_CONST;
 		p->from.offset = w;
 		break;
@@ -769,16 +769,16 @@ cgen_hmul(Node *nl, Node *nr, Node *res)
 	case TUINT16:
 	case TUINT32:
 		gins(optoas(OMUL, t), &n2, &n1);
-		p = gins(ASRD, N, &n1);
+		p = gins(ALSR, N, &n1);
 		p->from.type = D_CONST;
 		p->from.offset = w;
 		break;
 	case TINT64:
 	case TUINT64:
 		if(issigned[t->etype])
-			p = gins(AMULHD, &n2, &n1);
+			p = gins(ASMULH, &n2, &n1);
 		else
-			p = gins(AMULHDU, &n2, &n1);
+			p = gins(AUMULH, &n2, &n1);
 		break;
 	default:
 		fatal("cgen_hmul %T", t);
