@@ -577,12 +577,6 @@ ginscon2(int as, Node *n2, vlong c)
 			return;
 		}
 		break;
-	case ACMPU:
-		if(0 <= c && c <= 2*BIG) {
-			gins(as, n2, &n1);
-			return;
-		}
-		break;
 	}
 	// MOV n1 into register first
 	regalloc(&ntmp, types[TINT64], N);
@@ -754,7 +748,7 @@ gmove(Node *f, Node *t)
 	case CASE(TUINT32, TUINT8):
 	case CASE(TINT64, TUINT8):
 	case CASE(TUINT64, TUINT8):
-		a = AMOVBZ;
+		a = AMOVBU;
 		break;
 
 	case CASE(TINT16, TINT16):	// same size
@@ -772,7 +766,7 @@ gmove(Node *f, Node *t)
 	case CASE(TUINT32, TUINT16):
 	case CASE(TINT64, TUINT16):
 	case CASE(TUINT64, TUINT16):
-		a = AMOVHZ;
+		a = AMOVHU;
 		break;
 
 	case CASE(TINT32, TINT32):	// same size
@@ -786,7 +780,7 @@ gmove(Node *f, Node *t)
 	case CASE(TUINT32, TUINT32):
 	case CASE(TINT64, TUINT32):
 	case CASE(TUINT64, TUINT32):
-		a = AMOVWZ;
+		a = AMOVWU;
 		break;
 
 	case CASE(TINT64, TINT64):	// same size
@@ -814,7 +808,7 @@ gmove(Node *f, Node *t)
 	case CASE(TUINT8, TUINT32):
 	case CASE(TUINT8, TINT64):
 	case CASE(TUINT8, TUINT64):
-		a = AMOVBZ;
+		a = AMOVBU;
 		goto rdst;
 
 	case CASE(TINT16, TINT32):	// sign extend int16
@@ -828,7 +822,7 @@ gmove(Node *f, Node *t)
 	case CASE(TUINT16, TUINT32):
 	case CASE(TUINT16, TINT64):
 	case CASE(TUINT16, TUINT64):
-		a = AMOVHZ;
+		a = AMOVHU;
 		goto rdst;
 
 	case CASE(TINT32, TINT64):	// sign extend int32
@@ -838,7 +832,7 @@ gmove(Node *f, Node *t)
 
 	case CASE(TUINT32, TINT64):	// zero extend uint32
 	case CASE(TUINT32, TUINT64):
-		a = AMOVWZ;
+		a = AMOVWU;
 		goto rdst;
 
 #if HAVEFLOAT	// TODO(aram)
@@ -979,12 +973,11 @@ gmove(Node *f, Node *t)
 	case CASE(TFLOAT64, TFLOAT32):
 		a = AFRSP;
 		goto rdst;
+#endif // HAVEFLOAT
 	}
 
 	gins(a, f, t);
 	return;
-
-#endif // HAVEFLOAT
 
 rdst:
 	// requires register destination

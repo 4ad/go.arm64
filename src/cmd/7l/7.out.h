@@ -47,6 +47,10 @@ enum
 /* compiler allocates register variables F0 up */
 /* compiler allocates external registers F15 down */
 
+enum {
+	BIG = 2048-8,
+};
+
 enum
 {
 	C_NONE		= 0,
