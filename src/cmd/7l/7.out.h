@@ -19,8 +19,10 @@ enum
 enum
 {
 	REGRET	= 0,
+	REGRT1	= 3,	/* reserved for runtime, duffzero and duffcopy */
+	REGRT2	= 4,	/* reserved for runtime, duffcopy */
 	REGARG	= -1,	/* -1 disables passing the first argument in register */
-	REGIRL	= 8,	/* indirect result location (TO DO) */
+	REGENV	= 8,	/* environment for closures */
 
 	/* compiler allocates R9 up as temps */
 	/* compiler allocates register variables R10 up */

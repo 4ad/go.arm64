@@ -1400,16 +1400,16 @@ sgen(Node *n, Node *ns, int64 w)
 	default:
 		fatal("sgen: invalid alignment %d for %T", align, n->type);
 	case 1:
-		op = AMOVBU;
+		op = AMOVB;
 		break;
 	case 2:
-		op = AMOVHU;
+		op = AMOVH;
 		break;
 	case 4:
-		op = AMOVWZU; // there is no lwau, only lwaux
+		op = AMOVW;
 		break;
 	case 8:
-		op = AMOVDU;
+		op = AMOV;
 		break;
 	}
 	if(w%align)

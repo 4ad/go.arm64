@@ -88,7 +88,7 @@ zerorange(Prog *p, vlong frame, vlong lo, vlong hi)
 		p = appendpp(p, AMOV, D_CONST, NREG, cnt, D_REG, REGTMP, 0);
 		p = appendpp(p, AADD, D_REG, REGTMP, 0, D_REG, REGRT2, 0);
 		p->reg = REGRT1;
-		p1 = p = appendpp(p, AMOVDU, D_REG, REGZERO, 0, D_OREG, REGRT1, widthptr);
+		p1 = p = appendpp(p, AMOV, D_REG, REGZERO, 0, D_OREG, REGRT1, widthptr);
 		p = appendpp(p, ACMP, D_REG, REGRT1, 0, D_REG, REGRT2, 0);
 		p = appendpp(p, ABNE, D_NONE, NREG, 0, D_BRANCH, NREG, 0);
 		patch(p, p1);
@@ -163,23 +163,6 @@ fixautoused(Prog *p)
 }
 
 /*
- * generate: BL reg, f
- * where both reg and f are registers.
- * On power, f must be moved to CTR first.
- */
-static void
-ginsBL(Node *reg, Node *f)
-{
-	Prog *p;
-	p = gins(AMOV, f, N);
-	p->to.type = D_SPR;
-	p->to.offset = D_CTR;
-	p = gins(ABL, reg, N);
-	p->to.type = D_SPR;
-	p->to.offset = D_CTR;
-}
-
-/*
  * generate:
  *	call f
  *	proc=-1	normal call but no return
@@ -208,16 +191,16 @@ ginscall(Node *f, int proc)
 		if(f->op == ONAME && f->class == PFUNC) {
 			if(f == deferreturn) {
 				// Deferred calls will appear to be returning to
-				// the CALL deferreturn(SB) that we are about to emit.
+				// the BL deferreturn(SB) that we are about to emit.
 				// However, the stack trace code will show the line
-				// of the instruction byte before the return PC. 
-				// To avoid that being an unrelated instruction,
-				// insert a ppc64 NOP that we will have the right line number.
-				// The ppc64 NOP is really or r0, r0, r0; use that description
-				// because the NOP pseudo-instruction would be removed by
-				// the linker.
+				// of the instruction before that return PC. 
+				// To avoid that instruction being an unrelated instruction,
+				// insert a NOP so that we will have the right line number.
+				// ARM64 NOP is really HINT $0
+				// Use the latter form because the NOP pseudo-instruction
+				// would be removed by the linker.
 				nodreg(&reg, types[TINT], D_R0);
-				gins(AOR, &reg, &reg);
+				gins(AHINT, &reg, &reg);
 			}
 			p = gins(ABL, N, f);
 			afunclit(&p->to, f);
@@ -231,11 +214,11 @@ ginscall(Node *f, int proc)
 		reg.op = OINDREG;
 		gmove(&reg, &r1);
 		reg.op = OREGISTER;
-		ginsBL(&reg, &r1);
+		gins(ABL, &reg, &r1);
 		break;
 	
 	case 3:	// normal call of c function pointer
-		ginsBL(N, f);
+		gins(ABL, N, f);
 		break;
 
 	case 1:	// call in new proc (go)
@@ -935,7 +918,7 @@ clearfat(Node *nl)
 		p->from.type = D_CONST;
 		p->from.offset = q*8;
 
-		p = gins(AMOVDU, &r0, &dst);
+		p = gins(AMOV, &r0, &dst);
 		p->to.type = D_OREG;
 		p->to.offset = 8;
 		pl = p;
