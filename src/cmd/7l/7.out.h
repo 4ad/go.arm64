@@ -275,6 +275,7 @@ enum	as
 	ARBITW,
 	AREM,
 	AREMW,
+	ARET,
 	AREV,
 	AREV16,
 	AREV16W,

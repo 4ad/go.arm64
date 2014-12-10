@@ -240,5 +240,7 @@ enum
 {
 	AJMP = AB,
 	ACALL = ABL,
-	ARET = ARETURN,
 };
+// Already in the as enum, and still required by liblink, so we
+// can't put it above.
+#define ARET ARETURN
