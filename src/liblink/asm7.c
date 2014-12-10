@@ -533,6 +533,13 @@ static Optab optab[] = {
 	{ AAESD,	C_VREG,	C_NONE,	C_VREG,	29, 4, 0 },
 	{ ASHA1C,	C_VREG,	C_REG,	C_VREG,	1, 4, 0 },
 
+	{ AUSEFIELD,	C_ADDR,	C_NONE,	C_NONE, 	 0, 0, 0 },
+	{ APCDATA,	C_LCON,	C_NONE,	C_LCON,		0, 0, 0 },
+	{ AFUNCDATA,	C_LCON,	C_NONE,	C_ADDR,	0, 0, 0 },
+	
+	{ ADUFFZERO,	C_NONE,	C_NONE,	C_SBRA,		 5, 4, 0 },	// same as AB/ABL
+	{ ADUFFCOPY,	C_NONE,	C_NONE,	C_SBRA,		 5, 4, 0 },	// same as AB/ABL
+
 	{ AXXX,		C_NONE,	C_NONE,	C_NONE,		 0, 4, 0 },
 };
 
@@ -1640,6 +1647,12 @@ buildop(Link *ctxt)
 			oprange[ASHA256H] = t;
 			oprange[ASHA256H2] = t;
 			oprange[ASHA256SU1] = t;
+			break;
+		case AUSEFIELD:
+		case AFUNCDATA:
+		case APCDATA:
+		case ADUFFZERO:
+		case ADUFFCOPY:
 			break;
 		}
 	}
