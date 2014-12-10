@@ -153,21 +153,21 @@ type sigaltstackt struct {
 	ss_size   uintptr
 }
 
-type mcontext struct { // Also known as as sigcontext in some, er, contexts
-	address    uint64
+type sigcontext struct {
+	fault_address uint64
+	/* AArch64 registers */
 	regs       [31]uint64
 	sp         uint64
 	pc         uint64
 	pstate     uint64
-	_pad_cgo_0 [8]byte
-	_reserved  [4096]uint8
+	_pad       [8]byte // __attribute__((__aligned__(16)))
+	__reserved [4096]byte
 }
 
 type ucontext struct {
-	flags      uint64
-	link       *ucontext
-	stack      sigaltstackt
-	sigmask    usigset
-	_pad_cgo_0 [8]byte
-	mcontext   mcontext
+	uc_flags    uint64
+	uc_link     *ucontext
+	uc_stack    sigaltstackt
+	uc_sigmask  uint64
+	uc_mcontext sigcontext
 }
