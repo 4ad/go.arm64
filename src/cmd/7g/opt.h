@@ -235,9 +235,10 @@ enum {
 int as2variant(int);
 int variant2as(int, int);
 
-// To allow use of AJMP, ACALL in ../gc/popt.c.
+// To allow use of AJMP, ACALL, ARET in ../gc/popt.c.
 enum
 {
 	AJMP = AB,
 	ACALL = ABL,
+	ARET = ARETURN,
 };

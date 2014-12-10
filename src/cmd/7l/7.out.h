@@ -454,7 +454,7 @@ enum	as
 	ADWORD,
 	ASIGNAME,
 	AGOK,
-	ARET,
+	ARETURN,
 	AEND,
 
 	AFCSELS,

@@ -221,7 +221,7 @@ inst:
 		outgcode($1, &$2, $6, &$4, &$8);
 	}
 /*
- * RET
+ * RET/RETURN
  */
 |	LTYPEA comma
 	{
