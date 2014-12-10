@@ -239,8 +239,8 @@ static Optab optab[] = {
 
 	{ AB,		C_NONE,	C_NONE,	C_ZOREG,	 	6, 4, 0 },
 	{ ABL,	C_NONE,	C_NONE,	C_ZOREG,	 	6, 4, 0 },
-	{ ARETURN,	C_NONE,	C_NONE,	C_REG,		6, 4, 0 },
-	{ ARETURN,	C_NONE, C_NONE, C_ZOREG,		6, 4, 0 },
+	{ ARET,	C_NONE,	C_NONE,	C_REG,		6, 4, 0 },
+	{ ARET,	C_NONE, C_NONE, C_ZOREG,		6, 4, 0 },
 
 	{ AADRP,	C_SBRA,	C_NONE,	C_REG,		60, 4, 0 },
 	{ AADR,	C_SBRA,	C_NONE,	C_REG,		61, 4, 0 },
@@ -609,7 +609,7 @@ span7(Link *ctxt, LSym *cursym)
 			addpool(ctxt, p, &p->to);
 			break;
 		}
-		if(p->as == AB || p->as == AERET || p->as == ARETURN) /* TO DO: other unconditional operations */
+		if(p->as == AB || p->as == AERET || p->as == ARET) /* TO DO: other unconditional operations */
 			checkpool(ctxt, p, 0);
 		c += m;
 		if(ctxt->blitrl)
@@ -3197,8 +3197,8 @@ opbrr(Link *ctxt, int a)
 		return OPBLR(1); /* BLR */
 	case AB:
 		return OPBLR(0); /* BR */
-	case ARETURN:
-		return OPBLR(2); /* RETURN */
+	case ARET:
+		return OPBLR(2); /* RET */
 	}
 	ctxt->diag("bad brr %A", a);
 	prasm(ctxt->curp);

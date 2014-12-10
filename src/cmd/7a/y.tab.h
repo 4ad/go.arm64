@@ -1,13 +1,14 @@
-/* A Bison parser, made by GNU Bison 3.0.2.  */
+/* A Bison parser, made by GNU Bison 2.3.  */
 
-/* Bison interface for Yacc-like parsers in C
+/* Skeleton interface for Bison's Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2013 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+   Free Software Foundation, Inc.
 
-   This program is free software: you can redistribute it and/or modify
+   This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -15,7 +16,9 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110-1301, USA.  */
 
 /* As a special exception, you may create a larger work that contains
    part or all of the Bison parser skeleton and distribute that work
@@ -30,88 +33,79 @@
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
-#ifndef YY_YY_Y_TAB_H_INCLUDED
-# define YY_YY_Y_TAB_H_INCLUDED
-/* Debug traces.  */
-#ifndef YYDEBUG
-# define YYDEBUG 0
-#endif
-#if YYDEBUG
-extern int yydebug;
-#endif
-
-/* Token type.  */
+/* Tokens.  */
 #ifndef YYTOKENTYPE
 # define YYTOKENTYPE
-  enum yytokentype
-  {
-    LTYPE0 = 258,
-    LTYPE1 = 259,
-    LTYPE2 = 260,
-    LTYPE3 = 261,
-    LTYPE4 = 262,
-    LTYPE5 = 263,
-    LTYPE6 = 264,
-    LTYPE7 = 265,
-    LTYPE8 = 266,
-    LTYPE9 = 267,
-    LTYPEA = 268,
-    LTYPEB = 269,
-    LTYPEC = 270,
-    LTYPED = 271,
-    LTYPEE = 272,
-    LTYPEF = 273,
-    LTYPEG = 274,
-    LTYPEH = 275,
-    LTYPEI = 276,
-    LTYPEJ = 277,
-    LTYPEK = 278,
-    LTYPEL = 279,
-    LTYPEM = 280,
-    LTYPEN = 281,
-    LTYPEO = 282,
-    LTYPEP = 283,
-    LTYPEQ = 284,
-    LTYPER = 285,
-    LTYPES = 286,
-    LTYPET = 287,
-    LTYPEU = 288,
-    LTYPEV = 289,
-    LTYPEW = 290,
-    LTYPEX = 291,
-    LTYPEY = 292,
-    LTYPEZ = 293,
-    LMOVK = 294,
-    LDMB = 295,
-    LSTXR = 296,
-    LCONST = 297,
-    LSP = 298,
-    LSB = 299,
-    LFP = 300,
-    LPC = 301,
-    LR = 302,
-    LREG = 303,
-    LF = 304,
-    LFREG = 305,
-    LV = 306,
-    LVREG = 307,
-    LC = 308,
-    LCREG = 309,
-    LFCR = 310,
-    LFCSEL = 311,
-    LCOND = 312,
-    LS = 313,
-    LAT = 314,
-    LEXT = 315,
-    LSPR = 316,
-    LSPREG = 317,
-    LVTYPE = 318,
-    LFCONST = 319,
-    LSCONST = 320,
-    LNAME = 321,
-    LLAB = 322,
-    LVAR = 323
-  };
+   /* Put the tokens into the symbol table, so that GDB and other debuggers
+      know about them.  */
+   enum yytokentype {
+     LTYPE0 = 258,
+     LTYPE1 = 259,
+     LTYPE2 = 260,
+     LTYPE3 = 261,
+     LTYPE4 = 262,
+     LTYPE5 = 263,
+     LTYPE6 = 264,
+     LTYPE7 = 265,
+     LTYPE8 = 266,
+     LTYPE9 = 267,
+     LTYPEA = 268,
+     LTYPEB = 269,
+     LTYPEC = 270,
+     LTYPED = 271,
+     LTYPEE = 272,
+     LTYPEF = 273,
+     LTYPEG = 274,
+     LTYPEH = 275,
+     LTYPEI = 276,
+     LTYPEJ = 277,
+     LTYPEK = 278,
+     LTYPEL = 279,
+     LTYPEM = 280,
+     LTYPEN = 281,
+     LTYPEO = 282,
+     LTYPEP = 283,
+     LTYPEQ = 284,
+     LTYPER = 285,
+     LTYPES = 286,
+     LTYPET = 287,
+     LTYPEU = 288,
+     LTYPEV = 289,
+     LTYPEW = 290,
+     LTYPEX = 291,
+     LTYPEY = 292,
+     LTYPEZ = 293,
+     LMOVK = 294,
+     LDMB = 295,
+     LSTXR = 296,
+     LCONST = 297,
+     LSP = 298,
+     LSB = 299,
+     LFP = 300,
+     LPC = 301,
+     LR = 302,
+     LREG = 303,
+     LF = 304,
+     LFREG = 305,
+     LV = 306,
+     LVREG = 307,
+     LC = 308,
+     LCREG = 309,
+     LFCR = 310,
+     LFCSEL = 311,
+     LCOND = 312,
+     LS = 313,
+     LAT = 314,
+     LEXT = 315,
+     LSPR = 316,
+     LSPREG = 317,
+     LVTYPE = 318,
+     LFCONST = 319,
+     LSCONST = 320,
+     LNAME = 321,
+     LLAB = 322,
+     LVAR = 323
+   };
 #endif
 /* Tokens.  */
 #define LTYPE0 258
@@ -181,28 +175,26 @@ extern int yydebug;
 #define LLAB 322
 #define LVAR 323
 
-/* Value type.  */
-#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef union YYSTYPE YYSTYPE;
-union YYSTYPE
-{
-#line 8 "a.y" /* yacc.c:1909  */
 
+
+
+#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
+typedef union YYSTYPE
+#line 8 "a.y"
+{
 	Sym	*sym;
 	vlong	lval;
 	double	dval;
 	char	sval[NSNAME];
 	Addr	addr;
-
-#line 198 "y.tab.h" /* yacc.c:1909  */
-};
-# define YYSTYPE_IS_TRIVIAL 1
+}
+/* Line 1529 of yacc.c.  */
+#line 193 "y.tab.h"
+	YYSTYPE;
+# define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
+# define YYSTYPE_IS_TRIVIAL 1
 #endif
-
 
 extern YYSTYPE yylval;
 
-int yyparse (void);
-
-#endif /* !YY_YY_Y_TAB_H_INCLUDED  */

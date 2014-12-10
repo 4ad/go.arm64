@@ -92,7 +92,7 @@ progedit(Link *ctxt, Prog *p)
 	switch(p->as) {
 	case AB:
 	case ABL:
-	case ARETURN:
+	case ARET:
 	case ADUFFZERO:
 	case ADUFFCOPY:
 		if(p->to.sym != nil)
@@ -219,7 +219,7 @@ loop:
 				i--;
 				continue;
 			}
-			if(a == AB || a == ARETURN || a == AERET)
+			if(a == AB || a == ARET || a == AERET)
 				goto copy;
 			if(q->pcond == nil || ((q->pcond->mark & FOLL)))
 				continue;
@@ -240,7 +240,7 @@ loop:
 				}
 				(*last)->link = r;
 				*last = r;
-				if(a == AB || a == ARETURN || a == AERET)
+				if(a == AB || a == ARET || a == AERET)
 					return;
 				r->as = a == ABNE ? ABEQ : ABNE;
 				r->pcond = p->link;
@@ -264,7 +264,7 @@ loop:
 	p->mark |= FOLL;
 	(*last)->link = p;
 	*last = p;
-	if(a == AB || a == ARETURN || a == AERET)
+	if(a == AB || a == ARET || a == AERET)
 		return;
 	if(p->pcond != nil)
 		if(a != ABL && p->link != nil) {
@@ -347,7 +347,7 @@ addstacksplit(Link *ctxt, LSym *cursym)
 		case ATEXT:
 			p->mark |= LEAF;
 			break;
-		case ARETURN:
+		case ARET:
 			break;
 		case ANOP:
 			q1 = p->link;
@@ -450,7 +450,7 @@ addstacksplit(Link *ctxt, LSym *cursym)
 			q1->link = q->link;
 			q->link = q1;
 			break;
-		case ARETURN:
+		case ARET:
 			nocache(p);
 			if(p->from.type == D_CONST) {
 				ctxt->diag("using BECOME (%P) is not supported!", p);
@@ -487,14 +487,14 @@ addstacksplit(Link *ctxt, LSym *cursym)
 					p = q;
 				}
 			}
-			if(p->as != ARETURN) {
+			if(p->as != ARET) {
 				q = ctxt->arch->prg();
 				q->lineno = p->lineno;
 				q->link = p->link;
 				p->link = q;
 				p = q;
 			}
-			p->as = ARETURN;
+			p->as = ARET;
 			p->lineno = p->lineno;
 			p->to.type = D_OREG;
 			p->to.offset = 0;
@@ -563,7 +563,7 @@ LinkArch linkarm64 = {
 	.AJMP = AB,
 	.ANOP = ANOP,
 	.APCDATA = APCDATA,
-	.ARET = ARETURN,
+	.ARET = ARET,
 	.ATEXT = ATEXT,
 	.ATYPE = ATYPE,
 	.AUSEFIELD = AUSEFIELD,

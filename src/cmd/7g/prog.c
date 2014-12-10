@@ -95,7 +95,7 @@ static ProgInfo progtable[ALAST] = {
 	[ABLT]=		{Cjmp},
 	[ABGT]=		{Cjmp},
 	[ABLE]=		{Cjmp},
-	[ARETURN]=	{Break},
+	[ARET]=	{Break},
 
 	[ADUFFZERO]=	{Call},
 	[ADUFFCOPY]=	{Call},
