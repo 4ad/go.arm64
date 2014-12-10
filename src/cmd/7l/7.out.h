@@ -573,6 +573,8 @@ enum
 	D_COND,		/* condition EQ, NE, etc */
 	D_VLANE,		/* Vn lane */
 	D_VSET,		/* set of Vn */
+
+	D_LAST,
 	
 /* reg names for 7g OREGISTER */
 	D_R0 = 0, // type is D_REG
