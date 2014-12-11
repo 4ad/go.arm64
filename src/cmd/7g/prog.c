@@ -44,6 +44,7 @@ static ProgInfo progtable[ALAST] = {
 	[AORR]=		{SizeQ | LeftRead | RegRead | RightWrite},
 	[AEOR]=		{SizeQ | LeftRead | RegRead | RightWrite},
 	[ASMULL]=	{SizeQ | LeftRead | RegRead | RightWrite},
+	[AUMULL]=	{SizeQ | LeftRead | RegRead | RightWrite},
 	[ASMULH]=	{SizeL | LeftRead | RegRead | RightWrite},
 	[AUMULH]=	{SizeL | LeftRead | RegRead | RightWrite},
 	[ASDIV]=	{SizeQ | LeftRead | RegRead | RightWrite},
