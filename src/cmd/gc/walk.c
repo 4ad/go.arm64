@@ -3348,7 +3348,9 @@ walkrotate(Node **np)
 	Node *l, *r;
 	Node *n;
 
-	if(thechar == '9')
+	// XXX mwhudson: This check is here because 9g's and 7g's opttoas does
+	// not know how to handle LROTs.
+	if(thechar == '9' || thechar == '7')
 		return;
 	
 	n = *np;
