@@ -35,6 +35,7 @@ static ProgInfo progtable[ALAST] = {
 	// NOP is an internal no-op that also stands
 	// for USED and SET annotations, not the Power opcode.
 	[ANOP]=		{LeftRead | RightWrite},
+	[AHINT]=	{OK},
 
 	// Integer
 	[AADD]=		{SizeQ | LeftRead | RegRead | RightWrite},
