@@ -861,8 +861,7 @@ func needm(x byte) {
 	if needextram != 0 {
 		// Can happen if C/C++ code calls Go from a global ctor.
 		// Can not throw, because scheduler is not initialized yet.
-		// XXX
-		// write(2, unsafe.Pointer("fatal error: cgo callback before cgo call\n"), sizeof("fatal error: cgo callback before cgo call\n") - 1)
+		write(2, unsafe.Pointer(&earlycgocallback[0]), int32(len(earlycgocallback)))
 		exit(1)
 	}
 
@@ -897,6 +896,8 @@ func needm(x byte) {
 	asminit()
 	minit()
 }
+
+var earlycgocallback = []byte("fatal error: cgo callback before cgo call\n")
 
 // newextram allocates an m and puts it on the extra list.
 // It is called with a working local m, so that it can do things
@@ -1576,6 +1577,7 @@ func goexit0(gp *g) {
 }
 
 //go:nosplit
+//go:nowritebarrier
 func save(pc, sp uintptr) {
 	_g_ := getg()
 
@@ -1584,7 +1586,7 @@ func save(pc, sp uintptr) {
 	_g_.sched.lr = 0
 	_g_.sched.ret = 0
 	_g_.sched.ctxt = nil
-	// write as uintptr to avoid write barrier, which will smash _g_.sched.
+	// _g_.sched.g = _g_, but avoid write barrier, which smashes _g_.sched
 	*(*uintptr)(unsafe.Pointer(&_g_.sched.g)) = uintptr(unsafe.Pointer(_g_))
 }
 
