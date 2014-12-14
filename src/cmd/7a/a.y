@@ -3,6 +3,7 @@
 #include <stdio.h>	/* if we don't, bison will, and a.h re-#defines getc */
 #include <libc.h>
 #include "a.h"
+#include "../../runtime/funcdata.h"
 %}
 %union
 {
@@ -257,12 +258,23 @@ inst:
 /*
  * TEXT/GLOBL
  */
-|	LTYPEB name ',' imm
+|       LTYPEB name ',' imm
 	{
+		settext($2.sym);
 		outcode($1, &$2, NREG, &$4);
 	}
-|	LTYPEB name ',' con ',' imm
+|       LTYPEB name ',' con ',' imm
 	{
+		settext($2.sym);
+		$6.offset &= 0xffffffffull;
+		$6.offset |= (vlong)ArgsSizeUnknown << 32;
+		outcode($1, &$2, $4, &$6);
+	}
+|       LTYPEB name ',' con ',' imm '-' con
+	{
+		settext($2.sym);
+		$6.offset &= 0xffffffffull;
+		$6.offset |= ($8 & 0xffffffffull) << 32;
 		outcode($1, &$2, $4, &$6);
 	}
 /*
