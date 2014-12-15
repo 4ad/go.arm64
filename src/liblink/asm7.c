@@ -535,6 +535,8 @@ static Optab optab[] = {
 	{ AAESD,	C_VREG,	C_NONE,	C_VREG,	29, 4, 0 },
 	{ ASHA1C,	C_VREG,	C_REG,	C_VREG,	1, 4, 0 },
 
+	{ AUNDEF,		C_NONE,	C_NONE,	C_NONE,		90, 4, 0 },
+
 	{ AUSEFIELD,	C_ADDR,	C_NONE,	C_NONE, 	 0, 0, 0 },
 	{ APCDATA,	C_LCON,	C_NONE,	C_LCON,		0, 0, 0 },
 	{ AFUNCDATA,	C_LCON,	C_NONE,	C_ADDR,	0, 0, 0 },
@@ -1651,6 +1653,7 @@ buildop(Link *ctxt)
 			oprange[ASHA256H2] = t;
 			oprange[ASHA256SU1] = t;
 			break;
+		case AUNDEF:
 		case AUSEFIELD:
 		case AFUNCDATA:
 		case APCDATA:
@@ -2511,6 +2514,14 @@ asmout(Link *ctxt, Prog *p, Optab *o, int32 *out)
 			break;
 		o2 = olsr12u(ctxt, opldr12(ctxt, p->as), 0, REGTMP, p->to.reg);
 		addaddrreloc(ctxt, p->from.sym, &o1, &o2);
+		break;
+	case 90:
+		// This is supposed to be something that stops execution.
+		// It's not supposed to be reached, ever, but if it is, we'd
+		// like to be able to tell how we got there.  Assemble as
+		// 0xbea71700 which is guaranteed to raise undefined instruction
+		// exception.
+		o1 = 0xbea71700;
 		break;
 	}
 	out[0] = o1;
