@@ -261,7 +261,7 @@ ginscall(Node *f, int proc)
 
 		if(proc == 2) {
 			nodreg(&reg, types[TINT64], D_R0+3);
-			p = gins(ACMP, &reg, N);
+			p = gcmp(ACMP, &reg, N);
 			p->to.type = D_REG;
 			p->to.reg = D_R0;
 			p = gbranch(ABEQ, T, +1);
@@ -562,7 +562,7 @@ dodiv(int op, Node *nl, Node *nr, Node *res)
 	}
 
 	// Handle divide-by-zero panic.
-	p1 = gins(optoas(OCMP, t), &tr, N);
+	p1 = gcmp(optoas(OCMP, t), &tr, N);
 	p1->to.type = D_REG;
 	p1->to.reg = REGZERO;
 	p1 = gbranch(optoas(ONE, t), T, +1);
@@ -573,7 +573,7 @@ dodiv(int op, Node *nl, Node *nr, Node *res)
 
 	if(check) {
 		nodconst(&nm1, t, -1);
-		gins(optoas(OCMP, t), &tr, &nm1);
+		gcmp(optoas(OCMP, t), &tr, &nm1);
 		p1 = gbranch(optoas(ONE, t), T, +1);
 		if(op == ODIV) {
 			// a / (-1) is -a.
@@ -857,7 +857,7 @@ cgen_shift(int op, int bounded, Node *nl, Node *nr, Node *res)
 	// test and fix up large shifts
 	if(!bounded) {
 		nodconst(&n3, tcount, nl->type->width*8);
-		gins(optoas(OCMP, tcount), &n1, &n3);
+		gcmp(optoas(OCMP, tcount), &n1, &n3);
 		p1 = gbranch(optoas(OLT, tcount), T, +1);
 		if(op == ORSH && issigned[nl->type->etype]) {
 			nodconst(&n3, types[TUINT32], nl->type->width*8-1);
@@ -923,7 +923,7 @@ clearfat(Node *nl)
 		p->to.offset = 8;
 		pl = p;
 
-		p = gins(ACMP, &dst, &end);
+		p = gcmp(ACMP, &dst, &end);
 		patch(gbranch(ABNE, T, 0), pl);
 
 		regfree(&end);

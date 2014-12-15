@@ -348,7 +348,7 @@ cgen(Node *n, Node *res)
 			cgen(nl, &n1);
 
 			nodconst(&n2, types[tptr], 0);
-			gins(optoas(OCMP, types[tptr]), &n1, &n2);
+			gcmp(optoas(OCMP, types[tptr]), &n1, &n2);
 			p1 = gbranch(optoas(OEQ, types[tptr]), T, 0);
 
 			n2 = n1;
@@ -383,7 +383,7 @@ cgen(Node *n, Node *res)
 			cgen(nl, &n1);
 
 			nodconst(&n2, types[tptr], 0);
-			gins(optoas(OCMP, types[tptr]), &n1, &n2);
+			gcmp(optoas(OCMP, types[tptr]), &n1, &n2);
 			p1 = gbranch(optoas(OEQ, types[tptr]), T, 0);
 
 			n2 = n1;
@@ -735,7 +735,7 @@ agenr(Node *n, Node *a, Node *res)
 					p1->from.offset = nl->type->bound;
 				}
 			}
-			gins(optoas(OCMP, types[TUINT64]), &n2, &n4);
+			gcmp(optoas(OCMP, types[TUINT64]), &n2, &n4);
 			if(n4.op == OREGISTER)
 				regfree(&n4);
 			p1 = gbranch(optoas(OLT, types[TUINT64]), T, +1);
@@ -1094,7 +1094,7 @@ bgen(Node *n, int true, int likely, Prog *to)
 		regalloc(&n1, n->type, N);
 		cgen(n, &n1);
 		nodconst(&n2, n->type, 0);
-		gins(optoas(OCMP, n->type), &n1, &n2);
+		gcmp(optoas(OCMP, n->type), &n1, &n2);
 		a = ABNE;
 		if(!true)
 			a = ABEQ;
@@ -1201,7 +1201,7 @@ bgen(Node *n, int true, int likely, Prog *to)
 			nodconst(&tmp, types[tptr], 0);
 			regalloc(&n2, types[tptr], &n1);
 			gmove(&n1, &n2);
-			gins(optoas(OCMP, types[tptr]), &n2, &tmp);
+			gcmp(optoas(OCMP, types[tptr]), &n2, &tmp);
 			regfree(&n2);
 			patch(gbranch(a, types[tptr], likely), to);
 			regfree(&n1);
@@ -1220,7 +1220,7 @@ bgen(Node *n, int true, int likely, Prog *to)
 			nodconst(&tmp, types[tptr], 0);
 			regalloc(&n2, types[tptr], &n1);
 			gmove(&n1, &n2);
-			gins(optoas(OCMP, types[tptr]), &n2, &tmp);
+			gcmp(optoas(OCMP, types[tptr]), &n2, &tmp);
 			regfree(&n2);
 			patch(gbranch(a, types[tptr], likely), to);
 			regfree(&n1);
@@ -1254,7 +1254,7 @@ bgen(Node *n, int true, int likely, Prog *to)
 		// TODO(minux): cmpi does accept 16-bit signed immediate as p->to.
 		// and cmpli accepts 16-bit unsigned immediate.
 		//if(smallintconst(nr)) {
-		//	gins(optoas(OCMP, nr->type), &n1, nr);
+		//	gcmp(optoas(OCMP, nr->type), &n1, nr);
 		//	patch(gbranch(optoas(a, nr->type), nr->type, likely), to);
 		//	regfree(&n1);
 		//	break;
@@ -1265,7 +1265,7 @@ bgen(Node *n, int true, int likely, Prog *to)
 	cmp:
 		l = &n1;
 		r = &n2;
-		gins(optoas(OCMP, nr->type), l, r);
+		gcmp(optoas(OCMP, nr->type), l, r);
 		if(isfloat[nr->type->etype] && (a == OLE || a == OGE)) {
 			// To get NaN right, must rewrite x <= y into separate x < y or x = y.
 			switch(a) {
@@ -1501,7 +1501,7 @@ sgen(Node *n, Node *ns, int64 w)
 		p->to.type = D_OREG;
 		p->to.offset = dir;
 
-		p = gins(ACMP, &src, &nend);
+		p = gcmp(ACMP, &src, &nend);
 
 		patch(gbranch(ABNE, T, 0), ploop);
  		regfree(&nend);

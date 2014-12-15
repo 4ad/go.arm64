@@ -573,7 +573,7 @@ ginscon2(int as, Node *n2, vlong c)
 		fatal("ginscon2");
 	case ACMP:
 		if(-BIG <= c && c <= BIG) {
-			gins(as, n2, &n1);
+			gcmp(as, n2, &n1);
 			return;
 		}
 		break;
@@ -581,7 +581,7 @@ ginscon2(int as, Node *n2, vlong c)
 	// MOV n1 into register first
 	regalloc(&ntmp, types[TINT64], N);
 	gins(AMOV, &n1, &ntmp);
-	gins(as, n2, &ntmp);
+	gcmp(as, n2, &ntmp);
 	regfree(&ntmp);
 }
 
@@ -1081,6 +1081,41 @@ fixlargeoffset(Node *n)
 		ginscon(optoas(OADD, types[tptr]), n->xoffset, &a);
 		n->xoffset = 0;
 	}
+}
+
+/*
+ * insert n into reg slot of p
+ */
+void
+raddr(Node *n, Prog *p)
+{
+	Addr a;
+
+	naddr(n, &a, 1);
+	if(a.type != D_REG && a.type != D_FREG) {
+		if(n)
+			fatal("bad in raddr: %O", n->op);
+		else
+			fatal("bad in raddr: <null>");
+		p->reg = NREG;
+	} else
+		p->reg = a.reg;
+}
+
+/* generate a comparison
+TODO(kaib): one of the args can actually be a small constant. relax the constraint and fix call sites.
+ */
+Prog*
+gcmp(int as, Node *lhs, Node *rhs)
+{
+	Prog *p;
+
+	if(lhs->op != OREGISTER)
+		fatal("bad operands to gcmp: %O %O", lhs->op, rhs->op);
+
+	p = gins(as, rhs, N);
+	raddr(lhs, p);
+	return p;
 }
 
 /*

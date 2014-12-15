@@ -95,6 +95,8 @@ void	afunclit(Addr*, Node*);
 void	nodfconst(Node*, Type*, Mpflt*);
 void	gtrack(Sym*);
 void	fixlargeoffset(Node *n);
+void	raddr(Node *n, Prog *p);
+Prog*	gcmp(int, Node*, Node*);
 
 /*
  * cplx.c
