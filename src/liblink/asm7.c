@@ -190,6 +190,7 @@ static Optab optab[] = {
 
 	{ AADD,		C_REG,	C_REG,	C_REG,		 1, 4, 0 },
 	{ AADD,		C_REG,	C_NONE,	C_REG,		 1, 4, 0 },
+	{ ACMP,		C_REG,  C_NONE, C_REG,		 3, 4, 0 },
 
 	/* logical operations */
 	{ AAND,		C_REG,	C_REG,	C_REG,		 1, 4, 0 },
