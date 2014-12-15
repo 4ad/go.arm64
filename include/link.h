@@ -632,6 +632,7 @@ extern	char*	anames8[];
 extern	char*	anames9[];
 
 extern	char*	cnames5[];
+extern	char*	cnames7[];
 extern	char*	cnames9[];
 
 extern	char*	dnames5[];
