@@ -1100,7 +1100,8 @@ oplook(Link *ctxt, Prog *p)
 					p->optab = ((o - optab)) + 1;
 					return o;
 				}
-	ctxt->diag("illegal combination %A %R %R %R", p->as, a1, a2, a3);
+	ctxt->diag("illegal combination %P %^ %^ %^, %d %d",
+                p, a1, a2, a3, p->from.type, p->to.type);
 	prasm(p);
 	o = badop;
 	if(o == 0)

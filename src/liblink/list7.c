@@ -17,6 +17,7 @@ static int Dconv(Fmt*);
 static int Mconv(Fmt*);
 static int Rconv(Fmt*);
 static int DSconv(Fmt*);
+static int DRconv(Fmt*);
 
 static char *strcond[16] = {
 	"EQ",
@@ -49,6 +50,7 @@ static char *strcond[16] = {
 //	%R int		Registers
 //
 //	%$ char*	String constant addresses (for internal use only)
+//      %^ int          C_* classes (for liblink internal use)
 
 #pragma	varargck	type	"$"	char*
 #pragma	varargck	type	"M"	Addr*
@@ -60,6 +62,9 @@ listinit7(void)
 	fmtinstall('D', Dconv);
 	fmtinstall('P', Pconv);
 	fmtinstall('R', Rconv);
+
+        // for liblink internal use
+        fmtinstall('^', DRconv);
 
 	// for internal use
 	fmtinstall('$', DSconv);
@@ -317,6 +322,19 @@ Rconv(Fmt *fp)
 	r = va_arg(fp->args, int);
 	sprint(str, "R%d", r);
 	return fmtstrcpy(fp, str);
+}
+
+static int
+DRconv(Fmt *fp)
+{
+        char *s;
+        int a;
+
+        a = va_arg(fp->args, int);
+        s = "C_??";
+        if(a >= C_NONE && a <= C_NCLASS)
+                s = cnames7[a];
+        return fmtstrcpy(fp, s);
 }
 
 static int
