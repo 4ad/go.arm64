@@ -972,7 +972,7 @@ expandchecks(Prog *firstp)
 		// check is
 		//	CMP arg, ZR
 		//	BNE 2(PC) [likely]
-		//	MOV $0, 0(arg)
+		//	MOV arg, 0(ZR)
 		p1 = mal(sizeof *p1);
 		p2 = mal(sizeof *p2);
 		clearp(p1);
