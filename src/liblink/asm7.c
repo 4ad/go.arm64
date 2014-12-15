@@ -151,6 +151,8 @@ enum
 };
 
 static Optab optab[] = {
+        /* struct Optab:
+          OPCODE,       from, prog->reg, to,             type,size,param,flag */
 	{ ATEXT,	C_LEXT,	C_NONE,	C_LCON, 	 0, 0, 0 },
 	{ ATEXT,	C_LEXT,	C_REG,	C_LCON, 	 0, 0, 0 },
 	{ ATEXT,	C_ADDR,	C_NONE,	C_LCON, 	 0, 0, 0 },
