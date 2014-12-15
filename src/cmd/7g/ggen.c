@@ -970,9 +970,9 @@ expandchecks(Prog *firstp)
 		if(p->from.type != D_REG)
 			fatal("invalid nil check %P\n", p);
 		// check is
-		//	CMP arg, R0
+		//	CMP arg, ZR
 		//	BNE 2(PC) [likely]
-		//	MOVD R0, 0(R0)
+		//	MOV $0, 0(arg)
 		p1 = mal(sizeof *p1);
 		p2 = mal(sizeof *p2);
 		clearp(p1);
@@ -985,8 +985,7 @@ expandchecks(Prog *firstp)
 		p1->pc = 9999;
 		p2->pc = 9999;
 		p->as = ACMP;
-		p->to.type = D_REG;
-		p->to.reg = REGZERO;
+		p->reg = REGZERO;
 		p1->as = ABNE;
 		//p1->from.type = D_CONST;
 		//p1->from.offset = 1; // likely
@@ -995,9 +994,9 @@ expandchecks(Prog *firstp)
 		// crash by write to memory address 0.
 		p2->as = AMOV;
 		p2->from.type = D_REG;
-		p2->from.reg = 0;
+		p2->from.reg = p->from.reg;
 		p2->to.type = D_OREG;
-		p2->to.reg = 0;
+		p2->to.reg = REGZERO;
 		p2->to.offset = 0;
 	}
 }
