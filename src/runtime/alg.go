@@ -105,28 +105,36 @@ func strhash(a unsafe.Pointer, s, h uintptr) uintptr {
 // To avoid long hash chains, we assign a random number
 // as the hash value for a NaN.
 
+func f32zero(p unsafe.Pointer) bool {
+        return *(*uint32)(p) & 0x7fffffff == 0
+}
+
 func f32hash(p unsafe.Pointer, s, h uintptr) uintptr {
-	f := *(*float32)(p)
-	switch {
-	case f == 0:
-		return c1 * (c0 ^ h) // +0, -0
-	case f != f:
-		return c1 * (c0 ^ h ^ uintptr(fastrand1())) // any kind of NaN
-	default:
-		return memhash(p, 4, h)
-	}
+        f := *(*float32)(p)
+        switch {
+        case f32zero(p):
+                return c1 * (c0 ^ h) // +0, -0
+        case f != f:
+                return c1 * (c0 ^ h ^ uintptr(fastrand1())) // any kind of NaN
+        default:
+                return memhash(p, 4, h)
+        }
+}
+
+func f64zero(p unsafe.Pointer) bool {
+        return *(*uintptr)(p) & 0x7fffffffffffffff == 0
 }
 
 func f64hash(p unsafe.Pointer, s, h uintptr) uintptr {
-	f := *(*float64)(p)
-	switch {
-	case f == 0:
-		return c1 * (c0 ^ h) // +0, -0
-	case f != f:
-		return c1 * (c0 ^ h ^ uintptr(fastrand1())) // any kind of NaN
-	default:
-		return memhash(p, 8, h)
-	}
+        f := *(*float64)(p)
+        switch {
+        case f64zero(p):
+                return c1 * (c0 ^ h) // +0, -0
+        case f != f:
+                return c1 * (c0 ^ h ^ uintptr(fastrand1())) // any kind of NaN
+        default:
+                return memhash(p, 8, h)
+        }
 }
 
 func c64hash(p unsafe.Pointer, s, h uintptr) uintptr {
