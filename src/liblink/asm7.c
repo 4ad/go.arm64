@@ -605,6 +605,10 @@ span7(Link *ctxt, LSym *cursym)
 		if(p->as == ADWORD && ((c & 7)) != 0)
 			c += 4;
 		p->pc = c;
+		if (p->from.type == D_CONST && p->from.offset == 0)
+			p->from.reg = REGZERO;
+		if (p->to.type == D_CONST && p->to.offset == 0)
+			p->to.reg = REGZERO;
 		o = oplook(ctxt, p);
 		m = o->size;
 		if(m == 0) {
