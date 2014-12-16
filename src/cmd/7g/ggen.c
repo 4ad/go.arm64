@@ -257,9 +257,8 @@ ginscall(Node *f, int proc)
 
 		if(proc == 2) {
 			nodreg(&reg, types[TINT64], D_R0+3);
-			p = gcmp(ACMP, &reg, N);
-			p->to.type = D_REG;
-			p->to.reg = D_R0;
+			p = gins(ACMP, &reg, N);
+			p->reg = D_R0;
 			p = gbranch(ABEQ, T, +1);
 			cgen_ret(N);
 			patch(p, pc);
