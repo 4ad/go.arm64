@@ -279,8 +279,10 @@ static Optab optab[] = {
 	{ AMOVW,	C_REG,	C_NONE,	C_ADDR,		64, 8, 0,	LTO },
 	{ AMOVB,	C_REG,	C_NONE,	C_ADDR,		64, 8, 0,	LTO },
 	{ AMOVBU,	C_REG,	C_NONE,	C_ADDR,		64, 8, 0,	LTO },
+	{ AMOV,	C_REG,	C_NONE,	C_ADDR,		64, 8, 0,	LTO },
 	{ AMOVW,	C_ADDR,	C_NONE,	C_REG,		65, 8, 0,	LFROM },
 	{ AMOVBU,	C_ADDR,	C_NONE,	C_REG,		65, 8, 0,	LFROM },
+	{ AMOV,	C_ADDR,	C_NONE,	C_REG,		65, 8, 0,	LFROM },
 
 	{ AMUL,		C_REG,	C_REG,	C_REG,		15, 4, 0 },
 	{ AMUL,		C_REG,	C_NONE,	C_REG,		15, 4, 0 },
