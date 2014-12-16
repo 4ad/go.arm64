@@ -156,10 +156,10 @@ func vprintf(str string, arg unsafe.Pointer) {
 			printint(int64(*(*int64)(arg)))
 		case 'e':
 			printeface(*(*interface{})(arg))
-		case 'f':
-			printfloat(*(*float64)(arg))
-		case 'C':
-			printcomplex(*(*complex128)(arg))
+//		case 'f':
+//			printfloat(*(*float64)(arg))
+//		case 'C':
+//			printcomplex(*(*complex128)(arg))
 		case 'i':
 			printiface(*(*fInterface)(arg))
 		case 'p':
@@ -202,7 +202,7 @@ func printbool(v bool) {
 func printbyte(c byte) {
 	gwrite((*[1]byte)(unsafe.Pointer(&c))[:])
 }
-
+/*
 func printfloat(v float64) {
 	switch {
 	case v != v:
@@ -274,10 +274,13 @@ func printfloat(v float64) {
 	buf[n+6] = byte(e%10) + '0'
 	gwrite(buf[:])
 }
+*/
 
+/*
 func printcomplex(c complex128) {
 	print("(", real(c), imag(c), "i)")
 }
+*/
 
 func printuint(v uint64) {
 	var buf [100]byte
