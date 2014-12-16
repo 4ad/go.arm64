@@ -264,10 +264,12 @@ func f64equal(p, q unsafe.Pointer, size uintptr) bool {
         return *(*uint64)(p) == *(*uint64)(q)
 }
 func c64equal(p, q unsafe.Pointer, size uintptr) bool {
-	return *(*complex64)(p) == *(*complex64)(q)
+        cp, cq := *(*struct{r, i uint32})(p), *(*struct{r, i uint32})(q)
+        return f32equal(unsafe.Pointer(&cp.r), unsafe.Pointer(&cq.r), 0) && f32equal(unsafe.Pointer(&cq.i), unsafe.Pointer(&cq.i), 0)
 }
 func c128equal(p, q unsafe.Pointer, size uintptr) bool {
-	return *(*complex128)(p) == *(*complex128)(q)
+        cp, cq := *(*struct{r, i uint64})(p), *(*struct{r, i uint64})(q)
+        return f64equal(unsafe.Pointer(&cp.r), unsafe.Pointer(&cq.r), 0) && f64equal(unsafe.Pointer(&cq.i), unsafe.Pointer(&cq.i), 0)
 }
 func strequal(p, q unsafe.Pointer, size uintptr) bool {
 	return *(*string)(p) == *(*string)(q)
