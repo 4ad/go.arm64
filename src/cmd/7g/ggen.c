@@ -558,9 +558,8 @@ dodiv(int op, Node *nl, Node *nr, Node *res)
 	}
 
 	// Handle divide-by-zero panic.
-	p1 = gcmp(optoas(OCMP, t), &tr, N);
-	p1->to.type = D_REG;
-	p1->to.reg = REGZERO;
+	p1 = gins(optoas(OCMP, t), &tr, N);
+	p1->reg = REGZERO;
 	p1 = gbranch(optoas(ONE, t), T, +1);
 	if(panicdiv == N)
 		panicdiv = sysfunc("panicdivide");
