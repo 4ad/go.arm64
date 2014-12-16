@@ -109,12 +109,31 @@ func f32zero(p unsafe.Pointer) bool {
         return *(*uint32)(p) & 0x7fffffff == 0
 }
 
+func f32nan(p unsafe.Pointer) bool {
+        f32 := *(*uint32)(p)
+        switch {
+        case f32 >= 0x7f800001 && f32 <= 0x7ffbffff:
+                // signalling positive nan
+                return true
+        case f32 >= 0xFF800001 && f32 <= 0xFFBFFFFF:
+                // signalling negative nan
+                return true
+        case f32 >= 0x7FC00000 && f32 <= 0x7FFFFFFF:
+                // quiet positive nan
+                return true
+        case f32 >= 0xFFC00000 && f32 <= 0xFFFFFFFF:
+		// quiet negative nan
+                return true
+        default:
+                return false
+        }
+}
+
 func f32hash(p unsafe.Pointer, s, h uintptr) uintptr {
-        f := *(*float32)(p)
         switch {
         case f32zero(p):
                 return c1 * (c0 ^ h) // +0, -0
-        case f != f:
+        case f32nan(p):
                 return c1 * (c0 ^ h ^ uintptr(fastrand1())) // any kind of NaN
         default:
                 return memhash(p, 4, h)
@@ -125,12 +144,31 @@ func f64zero(p unsafe.Pointer) bool {
         return *(*uintptr)(p) & 0x7fffffffffffffff == 0
 }
 
+func f64nan(p unsafe.Pointer) bool {
+        f64 := *(*uint64)(p)
+        switch {
+        case f64 >= 0x7FF0000000000001 && f64 <= 0x7FF7FFFFFFFFFFFF:
+                // signalling positive nan
+                return true
+        case f64 >= 0xFFF0000000000001 && f64 <= 0xFFF0000000000001:
+                // signalling negative nan
+                return true
+        case f64 >= 0x7FF8000000000000 && f64 <= 0x7FFFFFFFFFFFFFFF:
+                // quiet positive nan
+                return true
+        case f64 >= 0xFFF8000000000000 && f64 <= 0xFFFFFFFFFFFFFFFF:
+		// quiet negative nan
+                return true
+        default:
+                return false
+        }
+}
+
 func f64hash(p unsafe.Pointer, s, h uintptr) uintptr {
-        f := *(*float64)(p)
         switch {
         case f64zero(p):
                 return c1 * (c0 ^ h) // +0, -0
-        case f != f:
+        case f64nan(p):
                 return c1 * (c0 ^ h ^ uintptr(fastrand1())) // any kind of NaN
         default:
                 return memhash(p, 8, h)
@@ -208,10 +246,22 @@ func memequal128(p, q unsafe.Pointer, size uintptr) bool {
 	return *(*[2]int64)(p) == *(*[2]int64)(q)
 }
 func f32equal(p, q unsafe.Pointer, size uintptr) bool {
-	return *(*float32)(p) == *(*float32)(q)
+        if f32zero(p) && f32zero(q) {
+                return true // negative or postive zero are equal
+        }
+        if f32nan(p) || f32nan(q) {
+                return false // nan is never equal to anything, even nan
+        }
+        return *(*uint32)(p) == *(*uint32)(q)
 }
 func f64equal(p, q unsafe.Pointer, size uintptr) bool {
-	return *(*float64)(p) == *(*float64)(q)
+        if f64zero(p) && f64zero(q) {
+                return true // negative or postive zero are equal
+        }
+        if f64nan(p) || f64nan(q) {
+                return false // nan is never equal to anything, even nan
+        }
+        return *(*uint64)(p) == *(*uint64)(q)
 }
 func c64equal(p, q unsafe.Pointer, size uintptr) bool {
 	return *(*complex64)(p) == *(*complex64)(q)
