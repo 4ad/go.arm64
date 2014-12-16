@@ -63,8 +63,8 @@ listinit7(void)
 	fmtinstall('P', Pconv);
 	fmtinstall('R', Rconv);
 
-        // for liblink internal use
-        fmtinstall('^', DRconv);
+	// for liblink internal use
+	fmtinstall('^', DRconv);
 
 	// for internal use
 	fmtinstall('$', DSconv);
