@@ -176,12 +176,12 @@ func f64hash(p unsafe.Pointer, s, h uintptr) uintptr {
 }
 
 func c64hash(p unsafe.Pointer, s, h uintptr) uintptr {
-	x := (*[2]float32)(p)
+	x := (*[2]uint32)(p)
 	return f32hash(unsafe.Pointer(&x[1]), 4, f32hash(unsafe.Pointer(&x[0]), 4, h))
 }
 
 func c128hash(p unsafe.Pointer, s, h uintptr) uintptr {
-	x := (*[2]float64)(p)
+	x := (*[2]uint64)(p)
 	return f64hash(unsafe.Pointer(&x[1]), 8, f64hash(unsafe.Pointer(&x[0]), 8, h))
 }
 
