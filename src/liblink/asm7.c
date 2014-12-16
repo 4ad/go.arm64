@@ -768,7 +768,11 @@ addpool(Link *ctxt, Prog *p, Addr *a)
 	t = zprg;
 	t.as = AWORD;
 	sz = 4;
-	if(p->as == AMOV) {
+	// MOVW foo(SB), R is actually
+	//	MOV addr, REGTEMP
+	//	MOVW REGTEMP, R
+	// where addr is the address of the DWORD containing the address of foo.
+	if(p->as == AMOV || c == C_ADDR) {
 		t.as = ADWORD;
 		sz = 8;
 	}
