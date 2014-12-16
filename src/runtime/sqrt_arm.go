@@ -89,7 +89,6 @@ const (
 	mask       = 0x7FF
 	shift      = 64 - 11 - 1
 	bias       = 1023
-	maxFloat64 = 1.797693134862315708145274237317043567981e+308 // 2**1023 * (2**53 - 1) / 2**52
 )
 
 func float64bits(f float64) uint64     { return *(*uint64)(unsafe.Pointer(&f)) }
