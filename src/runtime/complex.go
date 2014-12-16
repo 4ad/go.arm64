@@ -4,6 +4,8 @@
 
 package runtime
 
+const maxFloat64 = 1.797693134862315708145274237317043567981e+308 // 2**1023 * (2**53 - 1) / 2**52
+
 func isposinf(f float64) bool { return f > maxFloat64 }
 func isneginf(f float64) bool { return f < -maxFloat64 }
 func isnan(f float64) bool    { return f != f }
