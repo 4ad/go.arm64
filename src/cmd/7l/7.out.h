@@ -51,7 +51,7 @@ enum {
 
 enum
 {
-	C_NONE		= 0,
+	C_NONE,
 	C_REG,
 	C_RSP,		/* D_REG or D_SP */
 	C_SHIFT,		/* D_SHIFT: shift type, amount, value */
