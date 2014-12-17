@@ -198,8 +198,8 @@ ginscall(Node *f, int proc)
 				// ARM64 NOP is really HINT $0
 				// Use the latter form because the NOP pseudo-instruction
 				// would be removed by the linker.
-				nodconst(&con, types[TINT], argsize(f->type));
-				gins(AHINT, &con, N);
+				nodreg(&reg, types[TINT], D_R0);
+				gins(AMOV, &reg, &reg);
 			}
 			p = gins(ABL, N, f);
 			afunclit(&p->to, f);
@@ -571,7 +571,8 @@ dodiv(int op, Node *nl, Node *nr, Node *res)
 		p1 = gbranch(optoas(ONE, t), T, +1);
 		if(op == ODIV) {
 			// a / (-1) is -a.
-			gins(optoas(OMINUS, t), N, &tl);
+			nodconst(&nz, t, 0);
+			gins(optoas(OMINUS, t), &nz, &tl);
 			gmove(&tl, res);
 		} else {
 			// a % (-1) is 0.
