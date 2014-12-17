@@ -246,14 +246,13 @@ cgen(Node *n, Node *res)
 		goto ret;
 
 	case OMINUS:
-		if(isfloat[nl->type->etype]) {
-			nr = nodintconst(-1);
-			convlit(&nr, n->type);
-			a = optoas(OMUL, nl->type);
-			goto sbop;
-		}
-		a = optoas(n->op, nl->type);
-		goto uop;
+		regalloc(&n1, nl->type, N);
+		cgen(nl, &n1);
+		nodconst(&n2, nl->type, 0);
+		gins(optoas(OMINUS, nl->type), &n2, &n1);
+		gmove(&n1, res);
+		regfree(&n1);
+		goto ret;
 
 	// symmetric binary
 	case OAND:
@@ -544,16 +543,6 @@ abop:	// asymmetric binary
 	regfree(&n1);
 	if(n2.op != OLITERAL)
 		regfree(&n2);
-	goto ret;
-
-uop:	// unary
-	regalloc(&n1, nl->type, res);
-	cgen(nl, &n1);
-	gins(a, N, &n1);
-	gmove(&n1, res);
-	regfree(&n1);
-	goto ret;
-
 ret:
 	;
 }
