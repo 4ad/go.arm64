@@ -16,27 +16,25 @@ enum
 };
 */
 
-enum
-{
-	REGRET	= 0,
-	REGRT1	= 3,	/* reserved for runtime, duffzero and duffcopy */
-	REGRT2	= 4,	/* reserved for runtime, duffcopy */
-	REGARG	= -1,	/* -1 disables passing the first argument in register */
-	REGENV	= 8,	/* environment for closures */
-
-	/* compiler allocates R9 up as temps */
-	/* compiler allocates register variables R10 up */
-	REGMIN	= 9,
-	REGMAX	= 15,
-	REGIP0	= 16,
-	REGIP1	= 17,
-	REGTMP	= REGIP1,	/* compiler allocates external registers R27 down */
-	REGG	= 27,	/* G */
-	REGSB	= 28,
-	REGFP	= 29,
+enum {
+	REGENV	= 0,	/* environment for closures */
+	REGTMP	= 1,	/* reserved for liblink */
+	REGRT1	= 2,	/* reserved for runtime, duffzero and duffcopy */
+	REGRT2	= 3,	/* reserved for runtime, duffcopy */
+	REGMIN	= 7,	/* register variables allocated from here to REGMAX */
+	REGMAX	= 27,
+	REGSB	= 28,	/* static base register, unused in the Go toolchain */
+	REGG	= 29,	/* G */
 	REGLINK	= 30,
 	REGSP	= 31,
-	REGZERO	= 31	
+	REGZERO	= 31
+/*
+ * GENERAL:
+ *
+ * compiler allocates R4 up as temps
+ * compiler allocates register variables R7-R27
+ * compiler allocates external registers R29 down
+ */
 };
 
 #define	NFREG		32

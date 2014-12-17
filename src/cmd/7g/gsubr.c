@@ -261,10 +261,10 @@ afunclit(Addr *a, Node *n)
 
 static	int	resvd[] =
 {
+	REGTMP,
+	REGG,
+	REGSP,
 	REGZERO,
-	REGSP,	// reserved for SP, XXX: not reserved in 9c.
-	30,	// for g
-	REGTMP,	// REGTMP
 
 #if HAVEFLOAT	// TODO(aram): enable
 	FREGCVI+NREG,
