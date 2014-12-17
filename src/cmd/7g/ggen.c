@@ -198,8 +198,8 @@ ginscall(Node *f, int proc)
 				// ARM64 NOP is really HINT $0
 				// Use the latter form because the NOP pseudo-instruction
 				// would be removed by the linker.
-				nodreg(&reg, types[TINT], D_R0);
-				gins(AMOV, &reg, &reg);
+				nodconst(&con, types[TINT], 0);
+				gins(AHINT, &con, N);
 			}
 			p = gins(ABL, N, f);
 			afunclit(&p->to, f);
