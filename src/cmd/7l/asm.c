@@ -76,6 +76,11 @@ int	nelfsym = 1;
 // }
 
 void
+gentext(void)
+{
+}
+
+void
 adddynrela(LSym *rel, LSym *s, Reloc *r)
 {
 	USED(rel); USED(s); USED(r);
