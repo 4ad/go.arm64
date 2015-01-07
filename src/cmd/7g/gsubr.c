@@ -1066,21 +1066,16 @@ fixlargeoffset(Node *n)
 		return;
 	if(n->op != OINDREG)
 		return;
-	if(n->val.u.reg == D_R0+REGSP) // stack offset cannot be large
+	if(-4096 <= n->xoffset && n->xoffset < 4096)
 		return;
-	if(n->xoffset != (int32)n->xoffset) {
-		// TODO(minux): offset too large, move into R31 and add to R31 instead.
-		// this is used only in test/fixedbugs/issue6036.go.
-		print("offset too large: %N\n", n);
-		noimpl;
-		a = *n;
-		a.op = OREGISTER;
-		a.type = types[tptr];
-		a.xoffset = 0;
-		cgen_checknil(&a);
-		ginscon(optoas(OADD, types[tptr]), n->xoffset, &a);
-		n->xoffset = 0;
-	}
+
+	a = *n;
+	a.op = OREGISTER;
+	a.type = types[tptr];
+	a.xoffset = 0;
+	cgen_checknil(&a);
+	ginscon(optoas(OADD, types[tptr]), n->xoffset, &a);
+	n->xoffset = 0;
 }
 
 /*
