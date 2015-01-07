@@ -456,6 +456,11 @@ addstacksplit(Link *ctxt, LSym *cursym)
 				ctxt->diag("using BECOME (%P) is not supported!", p);
 				break;
 			}
+			if(p->to.sym) { // retjmp
+				p->as = AB;
+				p->to.type = D_BRANCH;
+				break;
+			}
 			if(cursym->text->mark & LEAF) {
 				if(ctxt->autosize != 0) {
 					p->as = AADD;
