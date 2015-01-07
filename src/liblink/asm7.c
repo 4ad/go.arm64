@@ -783,7 +783,10 @@ addpool(Link *ctxt, Prog *p, Addr *a)
 	}
 	switch(c) {
 	default:
-		t.to = *a;
+		t.to.offset = a->offset;
+		t.to.sym = a->sym;
+		t.to.type = a->type;
+		t.to.name = a->name;
 		break;
 	case C_PSAUTO:
 	case C_PPAUTO:
