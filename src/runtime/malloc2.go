@@ -40,7 +40,7 @@ import "unsafe"
 //
 //	3. If the MCentral free list is empty, replenish it by
 //	   allocating a run of pages from the MHeap and then
-//	   chopping that memory into a objects of the given size.
+//	   chopping that memory into objects of the given size.
 //	   Allocating many objects amortizes the cost of locking
 //	   the heap.
 //
@@ -433,6 +433,15 @@ type mheap struct {
 	arena_used     uintptr
 	arena_end      uintptr
 	arena_reserved bool
+
+	// write barrier shadow data+heap.
+	// 64-bit systems only, enabled by GODEBUG=wbshadow=1.
+	shadow_enabled  bool    // shadow should be updated and checked
+	shadow_reserved bool    // shadow memory is reserved
+	shadow_heap     uintptr // heap-addr + shadow_heap = shadow heap addr
+	shadow_data     uintptr // data-addr + shadow_data = shadow data addr
+	data_start      uintptr // start of shadowed data addresses
+	data_end        uintptr // end of shadowed data addresses
 
 	// central free lists for small size classes.
 	// the padding makes sure that the MCentrals are

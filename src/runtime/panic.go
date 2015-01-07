@@ -43,11 +43,11 @@ func panicmem() {
 }
 
 func throwreturn() {
-	gothrow("no return at end of a typed function - compiler is broken")
+	throw("no return at end of a typed function - compiler is broken")
 }
 
 func throwinit() {
-	gothrow("recursive call during initialization - linker skew")
+	throw("recursive call during initialization - linker skew")
 }
 
 // Create a new deferred function fn with siz bytes of arguments.
@@ -56,29 +56,26 @@ func throwinit() {
 func deferproc(siz int32, fn *funcval) { // arguments of fn follow fn
 	if getg().m.curg != getg() {
 		// go code on the system stack can't defer
-		gothrow("defer on system stack")
+		throw("defer on system stack")
 	}
 
 	// the arguments of fn are in a perilous state.  The stack map
 	// for deferproc does not describe them.  So we can't let garbage
 	// collection or stack copying trigger until we've copied them out
-	// to somewhere safe.  deferproc_m does that.  Until deferproc_m,
-	// we can only call nosplit routines.
-	argp := uintptr(unsafe.Pointer(&fn))
-	argp += unsafe.Sizeof(fn)
-	if GOARCH == "arm" || GOARCH == "ppc64" || GOARCH == "ppc64le" {
-		argp += ptrSize // skip caller's saved link register
-	}
+	// to somewhere safe.  The memmove below does that.
+	// Until the copy completes, we can only call nosplit routines.
+	sp := getcallersp(unsafe.Pointer(&siz))
+	argp := uintptr(unsafe.Pointer(&fn)) + unsafe.Sizeof(fn)
 	callerpc := getcallerpc(unsafe.Pointer(&siz))
 
 	systemstack(func() {
 		d := newdefer(siz)
 		if d._panic != nil {
-			gothrow("deferproc: d.panic != nil after newdefer")
+			throw("deferproc: d.panic != nil after newdefer")
 		}
 		d.fn = fn
 		d.pc = callerpc
-		d.argp = argp
+		d.sp = sp
 		memmove(add(unsafe.Pointer(d), unsafe.Sizeof(*d)), unsafe.Pointer(argp), uintptr(siz))
 	})
 
@@ -133,14 +130,14 @@ func testdefersizes() {
 		if defersc >= uintptr(len(m)) {
 			break
 		}
-		siz := goroundupsize(totaldefersize(i))
+		siz := roundupsize(totaldefersize(i))
 		if m[defersc] < 0 {
 			m[defersc] = int32(siz)
 			continue
 		}
 		if m[defersc] != int32(siz) {
 			print("bad defer size class: i=", i, " siz=", siz, " defersc=", defersc, "\n")
-			gothrow("bad defer size class")
+			throw("bad defer size class")
 		}
 	}
 }
@@ -176,10 +173,20 @@ func newdefer(siz int32) *_defer {
 	}
 	if d == nil {
 		// Allocate new defer+args.
-		total := goroundupsize(totaldefersize(uintptr(siz)))
+		total := roundupsize(totaldefersize(uintptr(siz)))
 		d = (*_defer)(mallocgc(total, deferType, 0))
 	}
 	d.siz = siz
+	if mheap_.shadow_enabled {
+		// This memory will be written directly, with no write barrier,
+		// and then scanned like stacks during collection.
+		// Unlike real stacks, it is from heap spans, so mark the
+		// shadow as explicitly unusable.
+		p := deferArgs(d)
+		for i := uintptr(0); i+ptrSize <= uintptr(siz); i += ptrSize {
+			writebarrierptr_noshadow((*uintptr)(add(p, i)))
+		}
+	}
 	gp := mp.curg
 	d.link = gp._defer
 	gp._defer = d
@@ -197,6 +204,12 @@ func freedefer(d *_defer) {
 	if d.fn != nil {
 		freedeferfn()
 	}
+	if mheap_.shadow_enabled {
+		// Undo the marking in newdefer.
+		systemstack(func() {
+			clearshadow(uintptr(deferArgs(d)), uintptr(d.siz))
+		})
+	}
 	sc := deferclass(uintptr(d.siz))
 	if sc < uintptr(len(p{}.deferpool)) {
 		mp := acquirem()
@@ -212,12 +225,12 @@ func freedefer(d *_defer) {
 // Windows otherwise runs out of stack space.
 func freedeferpanic() {
 	// _panic must be cleared before d is unlinked from gp.
-	gothrow("freedefer with d._panic != nil")
+	throw("freedefer with d._panic != nil")
 }
 
 func freedeferfn() {
 	// fn must be cleared before d is unlinked from gp.
-	gothrow("freedefer with d.fn != nil")
+	throw("freedefer with d.fn != nil")
 }
 
 // Run a deferred function if there is one.
@@ -240,8 +253,8 @@ func deferreturn(arg0 uintptr) {
 	if d == nil {
 		return
 	}
-	argp := uintptr(unsafe.Pointer(&arg0))
-	if d.argp != argp {
+	sp := getcallersp(unsafe.Pointer(&arg0))
+	if d.sp != sp {
 		return
 	}
 
@@ -250,13 +263,13 @@ func deferreturn(arg0 uintptr) {
 	// won't know the form of the arguments until the jmpdefer can
 	// flip the PC over to fn.
 	mp := acquirem()
-	memmove(unsafe.Pointer(argp), deferArgs(d), uintptr(d.siz))
+	memmove(unsafe.Pointer(&arg0), deferArgs(d), uintptr(d.siz))
 	fn := d.fn
 	d.fn = nil
 	gp._defer = d.link
 	freedefer(d)
 	releasem(mp)
-	jmpdefer(fn, argp)
+	jmpdefer(fn, uintptr(unsafe.Pointer(&arg0)))
 }
 
 // Goexit terminates the goroutine that calls it.  No other goroutine is affected.
@@ -288,9 +301,9 @@ func Goexit() {
 			continue
 		}
 		d.started = true
-		reflectcall(unsafe.Pointer(d.fn), deferArgs(d), uint32(d.siz), uint32(d.siz))
+		reflectcall(nil, unsafe.Pointer(d.fn), deferArgs(d), uint32(d.siz), uint32(d.siz))
 		if gp._defer != d {
-			gothrow("bad defer entry in Goexit")
+			throw("bad defer entry in Goexit")
 		}
 		d._panic = nil
 		d.fn = nil
@@ -322,7 +335,7 @@ func gopanic(e interface{}) {
 		print("panic: ")
 		printany(e)
 		print("\n")
-		gothrow("panic on system stack")
+		throw("panic on system stack")
 	}
 
 	// m.softfloat is set during software floating point.
@@ -332,25 +345,25 @@ func gopanic(e interface{}) {
 	if gp.m.softfloat != 0 {
 		gp.m.locks--
 		gp.m.softfloat = 0
-		gothrow("panic during softfloat")
+		throw("panic during softfloat")
 	}
 	if gp.m.mallocing != 0 {
 		print("panic: ")
 		printany(e)
 		print("\n")
-		gothrow("panic during malloc")
+		throw("panic during malloc")
 	}
 	if gp.m.gcing != 0 {
 		print("panic: ")
 		printany(e)
 		print("\n")
-		gothrow("panic during gc")
+		throw("panic during gc")
 	}
 	if gp.m.locks != 0 {
 		print("panic: ")
 		printany(e)
 		print("\n")
-		gothrow("panic holding locks")
+		throw("panic holding locks")
 	}
 
 	var p _panic
@@ -388,12 +401,12 @@ func gopanic(e interface{}) {
 		d._panic = (*_panic)(noescape((unsafe.Pointer)(&p)))
 
 		p.argp = unsafe.Pointer(getargp(0))
-		reflectcall(unsafe.Pointer(d.fn), deferArgs(d), uint32(d.siz), uint32(d.siz))
+		reflectcall(nil, unsafe.Pointer(d.fn), deferArgs(d), uint32(d.siz), uint32(d.siz))
 		p.argp = nil
 
 		// reflectcall did not panic. Remove d.
 		if gp._defer != d {
-			gothrow("bad defer entry in panic")
+			throw("bad defer entry in panic")
 		}
 		d._panic = nil
 		d.fn = nil
@@ -403,7 +416,7 @@ func gopanic(e interface{}) {
 		//GC()
 
 		pc := d.pc
-		argp := unsafe.Pointer(d.argp) // must be pointer so it gets adjusted during stack copy
+		sp := unsafe.Pointer(d.sp) // must be pointer so it gets adjusted during stack copy
 		freedefer(d)
 		if p.recovered {
 			gp._panic = p.link
@@ -416,10 +429,10 @@ func gopanic(e interface{}) {
 				gp.sig = 0
 			}
 			// Pass information about recovering frame to recovery.
-			gp.sigcode0 = uintptr(argp)
+			gp.sigcode0 = uintptr(sp)
 			gp.sigcode1 = pc
 			mcall(recovery)
-			gothrow("recovery failed") // mcall should not return
+			throw("recovery failed") // mcall should not return
 		}
 	}
 
@@ -485,19 +498,7 @@ func dopanic(unused int) {
 }
 
 //go:nosplit
-func throw(s *byte) {
-	gp := getg()
-	if gp.m.throwing == 0 {
-		gp.m.throwing = 1
-	}
-	startpanic()
-	print("fatal error: ", gostringnocopy(s), "\n")
-	dopanic(0)
-	*(*int)(nil) = 0 // not reached
-}
-
-//go:nosplit
-func gothrow(s string) {
+func throw(s string) {
 	print("fatal error: ", s, "\n")
 	gp := getg()
 	if gp.m.throwing == 0 {

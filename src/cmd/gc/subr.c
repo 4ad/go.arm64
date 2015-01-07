@@ -250,7 +250,7 @@ fatal(char *fmt, ...)
 	if(strncmp(getgoversion(), "release", 7) == 0) {
 		print("\n");
 		print("Please file a bug report including a short program that triggers the error.\n");
-		print("http://code.google.com/p/go/issues/entry?template=compilerbug\n");
+		print("https://golang.org/issue/new\n");
 	}
 	hcrash();
 	errorexit();
@@ -2115,14 +2115,17 @@ localexpr(Node *n, Type *t, NodeList **init)
 }
 
 void
-setmaxarg(Type *t)
+setmaxarg(Type *t, int32 extra)
 {
 	int64 w;
 
 	dowidth(t);
 	w = t->argwid;
-	if(t->argwid >= MAXWIDTH)
+	if(w >= MAXWIDTH)
 		fatal("bad argwid %T", t);
+	w += extra;
+	if(w >= MAXWIDTH)
+		fatal("bad argwid %d + %T", extra, t);
 	if(w > maxarg)
 		maxarg = w;
 }

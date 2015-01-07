@@ -318,7 +318,7 @@ TEXT runtime·morestack_noctxt(SB),NOSPLIT,$0
 	JMP	runtime·morestack(SB)
 
 // reflectcall: call a function with the given argument list
-// func call(f *FuncVal, arg *byte, argsize, retoffset uint32).
+// func call(argtype *_type, f *FuncVal, arg *byte, argsize, retoffset uint32).
 // we don't have variable-sized frames, so we use a small number
 // of constant-sized-frame functions to encode a few bits of size in the pc.
 // Caution: ugly multiline assembly macros in your future!
@@ -330,9 +330,13 @@ TEXT runtime·morestack_noctxt(SB),NOSPLIT,$0
 	JMP	AX
 // Note: can't just "JMP NAME(SB)" - bad inlining results.
 
-TEXT ·reflectcall(SB), NOSPLIT, $0-24
-	MOVLQZX argsize+16(FP), CX
-	DISPATCH(runtime·call16, 16)
+TEXT reflect·call(SB), NOSPLIT, $0-0
+	JMP	·reflectcall(SB)
+
+TEXT ·reflectcall(SB), NOSPLIT, $0-32
+	MOVLQZX argsize+24(FP), CX
+	// NOTE(rsc): No call16, because CALLFN needs four words
+	// of argument space to invoke callwritebarrier.
 	DISPATCH(runtime·call32, 32)
 	DISPATCH(runtime·call64, 64)
 	DISPATCH(runtime·call128, 128)
@@ -363,29 +367,38 @@ TEXT ·reflectcall(SB), NOSPLIT, $0-24
 	JMP	AX
 
 #define CALLFN(NAME,MAXSIZE)			\
-TEXT NAME(SB), WRAPPER, $MAXSIZE-24;		\
+TEXT NAME(SB), WRAPPER, $MAXSIZE-32;		\
 	NO_LOCAL_POINTERS;			\
 	/* copy arguments to stack */		\
-	MOVQ	argptr+8(FP), SI;		\
-	MOVLQZX argsize+16(FP), CX;		\
+	MOVQ	argptr+16(FP), SI;		\
+	MOVLQZX argsize+24(FP), CX;		\
 	MOVQ	SP, DI;				\
 	REP;MOVSB;				\
 	/* call function */			\
-	MOVQ	f+0(FP), DX;			\
+	MOVQ	f+8(FP), DX;			\
 	PCDATA  $PCDATA_StackMapIndex, $0;	\
 	CALL	(DX);				\
 	/* copy return values back */		\
-	MOVQ	argptr+8(FP), DI;		\
-	MOVLQZX	argsize+16(FP), CX;		\
-	MOVLQZX retoffset+20(FP), BX;		\
+	MOVQ	argptr+16(FP), DI;		\
+	MOVLQZX	argsize+24(FP), CX;		\
+	MOVLQZX retoffset+28(FP), BX;		\
 	MOVQ	SP, SI;				\
 	ADDQ	BX, DI;				\
 	ADDQ	BX, SI;				\
 	SUBQ	BX, CX;				\
 	REP;MOVSB;				\
+	/* execute write barrier updates */	\
+	MOVQ	argtype+0(FP), DX;		\
+	MOVQ	argptr+16(FP), DI;		\
+	MOVLQZX	argsize+24(FP), CX;		\
+	MOVLQZX retoffset+28(FP), BX;		\
+	MOVQ	DX, 0(SP);			\
+	MOVQ	DI, 8(SP);			\
+	MOVQ	CX, 16(SP);			\
+	MOVQ	BX, 24(SP);			\
+	CALL	runtime·callwritebarrier(SB);	\
 	RET
 
-CALLFN(·call16, 16)
 CALLFN(·call32, 32)
 CALLFN(·call64, 64)
 CALLFN(·call128, 128)
@@ -426,12 +439,7 @@ TEXT runtime·cas(SB), NOSPLIT, $0-17
 	MOVL	new+12(FP), CX
 	LOCK
 	CMPXCHGL	CX, 0(BX)
-	JZ 4(PC)
-	MOVL	$0, AX
-	MOVB	AX, ret+16(FP)
-	RET
-	MOVL	$1, AX
-	MOVB	AX, ret+16(FP)
+	SETEQ	, ret+16(FP)
 	RET
 
 // bool	runtime·cas64(uint64 *val, uint64 old, uint64 new)
@@ -448,13 +456,7 @@ TEXT runtime·cas64(SB), NOSPLIT, $0-25
 	MOVQ	new+16(FP), CX
 	LOCK
 	CMPXCHGQ	CX, 0(BX)
-	JNZ	fail
-	MOVL	$1, AX
-	MOVB	AX, ret+24(FP)
-	RET
-fail:
-	MOVL	$0, AX
-	MOVB	AX, ret+24(FP)
+	SETEQ	, ret+24(FP)
 	RET
 	
 TEXT runtime·casuintptr(SB), NOSPLIT, $0-25
@@ -482,12 +484,7 @@ TEXT runtime·casp1(SB), NOSPLIT, $0-25
 	MOVQ	new+16(FP), CX
 	LOCK
 	CMPXCHGQ	CX, 0(BX)
-	JZ 4(PC)
-	MOVL	$0, AX
-	MOVB	AX, ret+24(FP)
-	RET
-	MOVL	$1, AX
-	MOVB	AX, ret+24(FP)
+	SETEQ	, ret+24(FP)
 	RET
 
 // uint32 xadd(uint32 volatile *val, int32 delta)
@@ -1336,7 +1333,7 @@ TEXT runtime·cmpstring(SB),NOSPLIT,$0-40
 	MOVQ	AX, ret+32(FP)
 	RET
 
-TEXT runtime·cmpbytes(SB),NOSPLIT,$0-56
+TEXT bytes·Compare(SB),NOSPLIT,$0-56
 	MOVQ	s1+0(FP), SI
 	MOVQ	s1+8(FP), BX
 	MOVQ	s2+24(FP), DI

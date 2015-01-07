@@ -128,6 +128,35 @@ paramoutheap(Node *fn)
 	return 0;
 }
 
+// adds "adjust" to all the argument locations for the call n.
+// n must be a defer or go node that has already been walked.
+static void
+adjustargs(Node *n, int adjust)
+{
+	Node *callfunc, *arg, *lhs;
+	NodeList *args;
+
+	callfunc = n->left;
+	for(args = callfunc->list; args != 0; args = args->next) {
+		arg = args->n;
+		if(arg->op != OAS)
+			yyerror("call arg not assignment");
+		lhs = arg->left;
+		if(lhs->op == ONAME) {
+			// This is a temporary introduced by reorder1.
+			// The real store to the stack appears later in the arg list.
+			continue;
+		}
+		if(lhs->op != OINDREG) {
+			yyerror("call argument store does not use OINDREG");
+		}
+		// can't really check this in machine-indep code.
+		//if(lhs->val.u.reg != D_SP)
+		//      yyerror("call arg assign not indreg(SP)");
+		lhs->xoffset += adjust;
+	}
+}
+
 void
 walkstmt(Node **np)
 {
@@ -237,6 +266,8 @@ walkstmt(Node **np)
 			walkexpr(&n->left, &n->ninit);
 			break;
 		}
+		// make room for size & fn arguments.
+		adjustargs(n, 2 * widthptr);
 		break;
 
 	case OFOR:
@@ -270,6 +301,8 @@ walkstmt(Node **np)
 			walkexpr(&n->left, &n->ninit);
 			break;
 		}
+		// make room for size & fn arguments.
+		adjustargs(n, 2 * widthptr);
 		break;
 
 	case ORETURN:
@@ -375,7 +408,7 @@ walkexprlistcheap(NodeList *l, NodeList **init)
 void
 walkexpr(Node **np, NodeList **init)
 {
-	Node *r, *l, *var, *a;
+	Node *r, *l, *var, *a, *ok;
 	Node *map, *key;
 	NodeList *ll, *lr;
 	Type *t;
@@ -429,6 +462,7 @@ walkexpr(Node **np, NodeList **init)
 	case ONONAME:
 	case OINDREG:
 	case OEMPTY:
+	case OPARAM:
 		goto ret;
 
 	case ONOT:
@@ -631,6 +665,29 @@ walkexpr(Node **np, NodeList **init)
 			walkexpr(&n->right, init);
 			break;
 		
+		case ODOTTYPE:
+			// x = i.(T); n->left is x, n->right->left is i.
+			// orderstmt made sure x is addressable.
+			walkexpr(&n->right->left, init);
+			n1 = nod(OADDR, n->left, N);
+			r = n->right; // i.(T)
+
+			strcpy(buf, "assertI2T");
+			if(isnilinter(r->left->type))
+				buf[6] = 'E';
+			if(isnilinter(r->type))
+				buf[8] = 'E';
+			else if(isinter(r->type))
+				buf[8] = 'I';
+			
+			fn = syslook(buf, 1);
+			argtype(fn, r->left->type);
+			argtype(fn, r->type);
+		
+			n = mkcall1(fn, T, init, typename(r->type), r->left, n1);
+			walkexpr(&n, init);
+			goto ret;
+
 		case ORECV:
 			// x = <-c; n->left is x, n->right->left is c.
 			// orderstmt made sure x is addressable.
@@ -706,7 +763,7 @@ walkexpr(Node **np, NodeList **init)
 		walkexpr(&r->right, init);
 		t = r->left->type;
 		p = nil;
-		if(t->type->width <= 128) { // Check ../../runtime/hashmap.c:MAXVALUESIZE before changing.
+		if(t->type->width <= 128) { // Check ../../runtime/hashmap.go:maxValueSize before changing.
 			switch(simsimtype(t->down)) {
 			case TINT32:
 			case TUINT32:
@@ -776,77 +833,42 @@ walkexpr(Node **np, NodeList **init)
 
 	case OAS2DOTTYPE:
 		// a,b = i.(T)
+		// orderstmt made sure a is addressable.
 		*init = concat(*init, n->ninit);
 		n->ninit = nil;
 		r = n->rlist->n;
 		walkexprlistsafe(n->list, init);
-		if(isblank(n->list->n) && !isinter(r->type)) {
-			strcpy(buf, "assert");
-			p = buf+strlen(buf);
-			if(isnilinter(r->left->type))
-				*p++ = 'E';
-			else
-				*p++ = 'I';
-			*p++ = '2';
-			*p++ = 'T';
-			*p++ = 'O';
-			*p++ = 'K';
-			*p = '\0';
-			
-			fn = syslook(buf, 1);
+		walkexpr(&r->left, init);
+		if(isblank(n->list->n))
+			n1 = nodnil();
+		else
+			n1 = nod(OADDR, n->list->n, N);
+		n1->etype = 1; // addr does not escape
 
-			// runtime.assert(E|I)2TOK returns a typed bool, but due
-			// to spec changes, the boolean result of i.(T) is now untyped
-			// so we make it the same type as the variable on the lhs.
-			if(!isblank(n->list->next->n))
-				fn->type->type->down->type->type = n->list->next->n->type;
-			ll = list1(typename(r->type));
-			ll = list(ll, r->left);
-			argtype(fn, r->left->type);
-			n1 = nod(OCALL, fn, N);
-			n1->list = ll;
-			n = nod(OAS, n->list->next->n, n1);
-			typecheck(&n, Etop);
-			walkexpr(&n, init);
-			goto ret;
-		}
-
-		r->op = ODOTTYPE2;
-		walkexpr(&r, init);
-		ll = ascompatet(n->op, n->list, &r->type, 0, init);
-		n = liststmt(concat(list1(r), ll));
+		strcpy(buf, "assertI2T2");
+		if(isnilinter(r->left->type))
+			buf[6] = 'E';
+		if(isnilinter(r->type))
+			buf[8] = 'E';
+		else if(isinter(r->type))
+			buf[8] = 'I';
+		
+		fn = syslook(buf, 1);
+		argtype(fn, r->left->type);
+		argtype(fn, r->type);
+		
+		t = types[TBOOL];
+		ok = n->list->next->n;
+		if(!isblank(ok))
+			t = ok->type;
+		r = mkcall1(fn, t, init, typename(r->type), r->left, n1);
+		n = nod(OAS, ok, r);
+		typecheck(&n, Etop);
 		goto ret;
 
 	case ODOTTYPE:
 	case ODOTTYPE2:
-		// Build name of function: assertI2E2 etc.
-		strcpy(buf, "assert");
-		p = buf+strlen(buf);
-		if(isnilinter(n->left->type))
-			*p++ = 'E';
-		else
-			*p++ = 'I';
-		*p++ = '2';
-		if(isnilinter(n->type))
-			*p++ = 'E';
-		else if(isinter(n->type))
-			*p++ = 'I';
-		else
-			*p++ = 'T';
-		if(n->op == ODOTTYPE2)
-			*p++ = '2';
-		*p = '\0';
-
-		fn = syslook(buf, 1);
-		ll = list1(typename(n->type));
-		ll = list(ll, n->left);
-		argtype(fn, n->left->type);
-		argtype(fn, n->type);
-		n = nod(OCALL, fn, N);
-		n->list = ll;
-		typecheck(&n, Erv | Efnstruct);
-		walkexpr(&n, init);
-		goto ret;
+		fatal("walkexpr ODOTTYPE"); // should see inside OAS or OAS2 only
 
 	case OCONVIFACE:
 		walkexpr(&n->left, init);
@@ -1101,7 +1123,7 @@ walkexpr(Node **np, NodeList **init)
 
 		t = n->left->type;
 		p = nil;
-		if(t->type->width <= 128) {  // Check ../../runtime/hashmap.c:MAXVALUESIZE before changing.
+		if(t->type->width <= 128) {  // Check ../../runtime/hashmap.go:maxValueSize before changing.
 			switch(simsimtype(t->down)) {
 			case TINT32:
 			case TUINT32:
@@ -2063,8 +2085,8 @@ applywritebarrier(Node *n, NodeList **init)
 				r = r->left;
 			r = nod(OADDR, r, N);
 			r->etype = 1; // addr does not escape
-			//warnl(n->lineno, "writebarrierfat %T %N", t, r);
-			n = mkcall1(writebarrierfn("writebarrierfat", t, r->left->type), T, init,
+			//warnl(n->lineno, "typedmemmove %T %N", t, r);
+			n = mkcall1(writebarrierfn("typedmemmove", t, r->left->type), T, init,
 				typename(t), l, r);
 		}
 	}
@@ -2486,7 +2508,7 @@ paramstoheap(Type **argin, int out)
 {
 	Type *t;
 	Iter savet;
-	Node *v;
+	Node *v, *as;
 	NodeList *nn;
 
 	nn = nil;
@@ -2511,8 +2533,13 @@ paramstoheap(Type **argin, int out)
 		if(v->alloc == nil)
 			v->alloc = callnew(v->type);
 		nn = list(nn, nod(OAS, v->heapaddr, v->alloc));
-		if((v->class & ~PHEAP) != PPARAMOUT)
-			nn = list(nn, nod(OAS, v, v->stackparam));
+		if((v->class & ~PHEAP) != PPARAMOUT) {
+			as = nod(OAS, v, v->stackparam);
+			v->stackparam->typecheck = 1;
+			typecheck(&as, Etop);
+			as = applywritebarrier(as, &nn);
+			nn = list(nn, as);
+		}
 	}
 	return nn;
 }
@@ -2773,7 +2800,21 @@ appendslice(Node *n, NodeList **init)
 
 	l = list(l, nif);
 
-	if(flag_race) {
+	if(haspointers(l1->type->type)) {
+		// copy(s[len(l1):len(l1)+len(l2)], l2)
+		nptr1 = nod(OSLICE, s, nod(OKEY,
+			nod(OLEN, l1, N),
+			nod(OADD, nod(OLEN, l1, N), nod(OLEN, l2, N))));
+		nptr1->etype = 1;
+		nptr2 = l2;
+		fn = syslook("typedslicecopy", 1);
+		argtype(fn, l1->type);
+		argtype(fn, l2->type);
+		nt = mkcall1(fn, types[TINT], &l,
+				typename(l1->type->type),
+				nptr1, nptr2);
+		l = list(l, nt);
+	} else if(flag_race) {
 		// rely on runtime to instrument copy.
 		// copy(s[len(l1):len(l1)+len(l2)], l2)
 		nptr1 = nod(OSLICE, s, nod(OKEY,
@@ -2919,7 +2960,7 @@ copyany(Node *n, NodeList **init, int runtimecall)
 	NodeList *l;
 	
 	if(haspointers(n->left->type->type)) {
-		fn = writebarrierfn("writebarriercopy", n->left->type, n->right->type);
+		fn = writebarrierfn("typedslicecopy", n->left->type, n->right->type);
 		return mkcall1(fn, n->type, init, typename(n->left->type->type), n->left, n->right);
 	}
 

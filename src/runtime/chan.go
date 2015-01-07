@@ -16,15 +16,20 @@ const (
 
 // TODO(khr): make hchan.buf an unsafe.Pointer, not a *uint8
 
+//go:linkname reflect_makechan reflect.makechan
+func reflect_makechan(t *chantype, size int64) *hchan {
+	return makechan(t, size)
+}
+
 func makechan(t *chantype, size int64) *hchan {
 	elem := t.elem
 
 	// compiler checks this but be safe.
 	if elem.size >= 1<<16 {
-		gothrow("makechan: invalid channel element type")
+		throw("makechan: invalid channel element type")
 	}
 	if hchanSize%maxAlign != 0 || elem.align > maxAlign {
-		gothrow("makechan: bad alignment")
+		throw("makechan: bad alignment")
 	}
 	if size < 0 || int64(uintptr(size)) != size || (elem.size > 0 && uintptr(size) > (_MaxMem-hchanSize)/uintptr(elem.size)) {
 		panic("makechan: size out of range")
@@ -90,7 +95,7 @@ func chansend(t *chantype, c *hchan, ep unsafe.Pointer, block bool, callerpc uin
 			return false
 		}
 		gopark(nil, nil, "chan send (nil chan)")
-		gothrow("unreachable")
+		throw("unreachable")
 	}
 
 	if debugChan {
@@ -141,7 +146,7 @@ func chansend(t *chantype, c *hchan, ep unsafe.Pointer, block bool, callerpc uin
 
 			recvg := sg.g
 			if sg.elem != nil {
-				memmove(unsafe.Pointer(sg.elem), ep, uintptr(c.elemsize))
+				typedmemmove(c.elemtype, unsafe.Pointer(sg.elem), ep)
 				sg.elem = nil
 			}
 			recvg.param = unsafe.Pointer(sg)
@@ -175,12 +180,12 @@ func chansend(t *chantype, c *hchan, ep unsafe.Pointer, block bool, callerpc uin
 
 		// someone woke us up.
 		if mysg != gp.waiting {
-			gothrow("G waiting list is corrupted!")
+			throw("G waiting list is corrupted!")
 		}
 		gp.waiting = nil
 		if gp.param == nil {
 			if c.closed == 0 {
-				gothrow("chansend: spurious wakeup")
+				throw("chansend: spurious wakeup")
 			}
 			panic("send on closed channel")
 		}
@@ -229,7 +234,7 @@ func chansend(t *chantype, c *hchan, ep unsafe.Pointer, block bool, callerpc uin
 		raceacquire(chanbuf(c, c.sendx))
 		racerelease(chanbuf(c, c.sendx))
 	}
-	memmove(chanbuf(c, c.sendx), ep, uintptr(c.elemsize))
+	typedmemmove(c.elemtype, chanbuf(c, c.sendx), ep)
 	c.sendx++
 	if c.sendx == c.dataqsiz {
 		c.sendx = 0
@@ -334,7 +339,7 @@ func chanrecv(t *chantype, c *hchan, ep unsafe.Pointer, block bool) (selected, r
 			return
 		}
 		gopark(nil, nil, "chan receive (nil chan)")
-		gothrow("unreachable")
+		throw("unreachable")
 	}
 
 	// Fast path: check for failed non-blocking operation without acquiring the lock.
@@ -374,7 +379,7 @@ func chanrecv(t *chantype, c *hchan, ep unsafe.Pointer, block bool) (selected, r
 			unlock(&c.lock)
 
 			if ep != nil {
-				memmove(ep, sg.elem, uintptr(c.elemsize))
+				typedmemmove(c.elemtype, ep, sg.elem)
 			}
 			sg.elem = nil
 			gp := sg.g
@@ -411,7 +416,7 @@ func chanrecv(t *chantype, c *hchan, ep unsafe.Pointer, block bool) (selected, r
 
 		// someone woke us up
 		if mysg != gp.waiting {
-			gothrow("G waiting list is corrupted!")
+			throw("G waiting list is corrupted!")
 		}
 		gp.waiting = nil
 		if mysg.releasetime > 0 {
@@ -430,7 +435,7 @@ func chanrecv(t *chantype, c *hchan, ep unsafe.Pointer, block bool) (selected, r
 
 		lock(&c.lock)
 		if c.closed == 0 {
-			gothrow("chanrecv: spurious wakeup")
+			throw("chanrecv: spurious wakeup")
 		}
 		return recvclosed(c, ep)
 	}
@@ -479,7 +484,7 @@ func chanrecv(t *chantype, c *hchan, ep unsafe.Pointer, block bool) (selected, r
 		racerelease(chanbuf(c, c.recvx))
 	}
 	if ep != nil {
-		memmove(ep, chanbuf(c, c.recvx), uintptr(c.elemsize))
+		typedmemmove(c.elemtype, ep, chanbuf(c, c.recvx))
 	}
 	memclr(chanbuf(c, c.recvx), uintptr(c.elemsize))
 
@@ -590,14 +595,17 @@ func selectnbrecv2(t *chantype, elem unsafe.Pointer, received *bool, c *hchan) (
 	return
 }
 
+//go:linkname reflect_chansend reflect.chansend
 func reflect_chansend(t *chantype, c *hchan, elem unsafe.Pointer, nb bool) (selected bool) {
 	return chansend(t, c, elem, !nb, getcallerpc(unsafe.Pointer(&t)))
 }
 
+//go:linkname reflect_chanrecv reflect.chanrecv
 func reflect_chanrecv(t *chantype, c *hchan, nb bool, elem unsafe.Pointer) (selected bool, received bool) {
 	return chanrecv(t, c, elem, !nb)
 }
 
+//go:linkname reflect_chanlen reflect.chanlen
 func reflect_chanlen(c *hchan) int {
 	if c == nil {
 		return 0
@@ -605,11 +613,17 @@ func reflect_chanlen(c *hchan) int {
 	return int(c.qcount)
 }
 
+//go:linkname reflect_chancap reflect.chancap
 func reflect_chancap(c *hchan) int {
 	if c == nil {
 		return 0
 	}
 	return int(c.dataqsiz)
+}
+
+//go:linkname reflect_chanclose reflect.chanclose
+func reflect_chanclose(c *hchan) {
+	closechan(c)
 }
 
 func (q *waitq) enqueue(sgp *sudog) {

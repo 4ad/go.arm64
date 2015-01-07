@@ -232,7 +232,6 @@ func (t *transferWriter) WriteBody(w io.Writer) error {
 			t.ContentLength, ncopy)
 	}
 
-	// TODO(petar): Place trailer writer code here.
 	if chunked(t.TransferEncoding) {
 		// Write Trailer header
 		if t.Trailer != nil {
@@ -639,8 +638,7 @@ func (b *body) readTrailer() error {
 	// The common case, since nobody uses trailers.
 	buf, err := b.r.Peek(2)
 	if bytes.Equal(buf, singleCRLF) {
-		b.r.ReadByte()
-		b.r.ReadByte()
+		b.r.Discard(2)
 		return nil
 	}
 	if len(buf) < 2 {

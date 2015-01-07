@@ -122,17 +122,20 @@ func schedinit() {
 	goargs()
 	goenvs()
 	parsedebugvars()
+	wbshadowinit()
 	gcinit()
 
 	sched.lastpoll = uint64(nanotime())
 	procs := 1
-	if n := goatoi(gogetenv("GOMAXPROCS")); n > 0 {
+	if n := atoi(gogetenv("GOMAXPROCS")); n > 0 {
 		if n > _MaxGomaxprocs {
 			n = _MaxGomaxprocs
 		}
 		procs = n
 	}
-	procresize(int32(procs))
+	if procresize(int32(procs)) != nil {
+		throw("unknown runnable goroutine during bootstrap")
+	}
 
 	if buildVersion == "" {
 		// Condition should never trigger.  This code just serves
@@ -155,7 +158,7 @@ func checkmcount() {
 	// sched lock is held
 	if sched.mcount > sched.maxmcount {
 		print("runtime: program exceeds ", sched.maxmcount, "-thread limit\n")
-		gothrow("thread exhaustion")
+		throw("thread exhaustion")
 	}
 }
 
@@ -200,7 +203,7 @@ func ready(gp *g) {
 	_g_.m.locks++ // disable preemption because it can be holding p in a local var
 	if status&^_Gscan != _Gwaiting {
 		dumpgstatus(gp)
-		gothrow("bad g->status in ready")
+		throw("bad g->status in ready")
 	}
 
 	// status is Gwaiting or Gscanwaiting, make Grunnable and put on runq
@@ -257,7 +260,7 @@ func helpgc(nproc int32) {
 		}
 		mp := mget()
 		if mp == nil {
-			gothrow("gcprocs inconsistency")
+			throw("gcprocs inconsistency")
 		}
 		mp.helpgc = n
 		mp.mcache = allp[pos].mcache
@@ -295,7 +298,7 @@ func freezetheworld() {
 
 func isscanstatus(status uint32) bool {
 	if status == _Gscan {
-		gothrow("isscanstatus: Bad status Gscan")
+		throw("isscanstatus: Bad status Gscan")
 	}
 	return status&_Gscan == _Gscan
 }
@@ -319,7 +322,7 @@ func casfrom_Gscanstatus(gp *g, oldval, newval uint32) {
 	default:
 		print("runtime: casfrom_Gscanstatus bad oldval gp=", gp, ", oldval=", hex(oldval), ", newval=", hex(newval), "\n")
 		dumpgstatus(gp)
-		gothrow("casfrom_Gscanstatus:top gp->status is not in scan state")
+		throw("casfrom_Gscanstatus:top gp->status is not in scan state")
 	case _Gscanrunnable,
 		_Gscanwaiting,
 		_Gscanrunning,
@@ -335,7 +338,7 @@ func casfrom_Gscanstatus(gp *g, oldval, newval uint32) {
 	if !success {
 		print("runtime: casfrom_Gscanstatus failed gp=", gp, ", oldval=", hex(oldval), ", newval=", hex(newval), "\n")
 		dumpgstatus(gp)
-		gothrow("casfrom_Gscanstatus: gp->status is not in scan state")
+		throw("casfrom_Gscanstatus: gp->status is not in scan state")
 	}
 }
 
@@ -355,7 +358,7 @@ func castogscanstatus(gp *g, oldval, newval uint32) bool {
 		}
 	}
 	print("runtime: castogscanstatus oldval=", hex(oldval), " newval=", hex(newval), "\n")
-	gothrow("castogscanstatus")
+	throw("castogscanstatus")
 	panic("not reached")
 }
 
@@ -368,7 +371,7 @@ func casgstatus(gp *g, oldval, newval uint32) {
 	if (oldval&_Gscan != 0) || (newval&_Gscan != 0) || oldval == newval {
 		systemstack(func() {
 			print("casgstatus: oldval=", hex(oldval), " newval=", hex(newval), "\n")
-			gothrow("casgstatus: bad incoming values")
+			throw("casgstatus: bad incoming values")
 		})
 	}
 
@@ -377,7 +380,7 @@ func casgstatus(gp *g, oldval, newval uint32) {
 	for !cas(&gp.atomicstatus, oldval, newval) {
 		if oldval == _Gwaiting && gp.atomicstatus == _Grunnable {
 			systemstack(func() {
-				gothrow("casgstatus: waiting for Gwaiting but is Grunnable")
+				throw("casgstatus: waiting for Gwaiting but is Grunnable")
 			})
 		}
 		// Help GC if needed.
@@ -400,7 +403,7 @@ func casgcopystack(gp *g) uint32 {
 	for {
 		oldstatus := readgstatus(gp) &^ _Gscan
 		if oldstatus != _Gwaiting && oldstatus != _Grunnable {
-			gothrow("copystack: bad status, not Gwaiting or Grunnable")
+			throw("copystack: bad status, not Gwaiting or Grunnable")
 		}
 		if cas(&gp.atomicstatus, oldstatus, _Gcopystack) {
 			return oldstatus
@@ -425,7 +428,7 @@ func stopg(gp *g) bool {
 		switch s := readgstatus(gp); s {
 		default:
 			dumpgstatus(gp)
-			gothrow("stopg: gp->atomicstatus is not valid")
+			throw("stopg: gp->atomicstatus is not valid")
 
 		case _Gdead:
 			return false
@@ -477,7 +480,7 @@ func restartg(gp *g) {
 	switch s {
 	default:
 		dumpgstatus(gp)
-		gothrow("restartg: unexpected status")
+		throw("restartg: unexpected status")
 
 	case _Gdead:
 		// ok
@@ -493,7 +496,7 @@ func restartg(gp *g) {
 	case _Gscanenqueue:
 		casfrom_Gscanstatus(gp, _Gscanenqueue, _Gwaiting)
 		if gp != getg().m.curg {
-			gothrow("processing Gscanenqueue on wrong m")
+			throw("processing Gscanenqueue on wrong m")
 		}
 		dropg()
 		ready(gp)
@@ -503,12 +506,12 @@ func restartg(gp *g) {
 func stopscanstart(gp *g) {
 	_g_ := getg()
 	if _g_ == gp {
-		gothrow("GC not moved to G0")
+		throw("GC not moved to G0")
 	}
 	if stopg(gp) {
 		if !isscanstatus(readgstatus(gp)) {
 			dumpgstatus(gp)
-			gothrow("GC not in scan state")
+			throw("GC not in scan state")
 		}
 		restartg(gp)
 	}
@@ -586,7 +589,7 @@ func stoptheworld() {
 	// If we hold a lock, then we won't be able to stop another M
 	// that is blocked trying to acquire the lock.
 	if _g_.m.locks > 0 {
-		gothrow("stoptheworld: holding locks")
+		throw("stoptheworld: holding locks")
 	}
 
 	lock(&sched.lock)
@@ -628,12 +631,12 @@ func stoptheworld() {
 		}
 	}
 	if sched.stopwait != 0 {
-		gothrow("stoptheworld: not stopped")
+		throw("stoptheworld: not stopped")
 	}
 	for i := 0; i < int(gomaxprocs); i++ {
 		p := allp[i]
 		if p.status != _Pgcstop {
-			gothrow("stoptheworld: not stopped")
+			throw("stoptheworld: not stopped")
 		}
 	}
 }
@@ -651,30 +654,14 @@ func starttheworld() {
 	injectglist(gp)
 	add := needaddgcproc()
 	lock(&sched.lock)
-	if newprocs != 0 {
-		procresize(newprocs)
-		newprocs = 0
-	} else {
-		procresize(gomaxprocs)
-	}
-	sched.gcwaiting = 0
 
-	var p1 *p
-	for {
-		p := pidleget()
-		if p == nil {
-			break
-		}
-		// procresize() puts p's with work at the beginning of the list.
-		// Once we reach a p without a run queue, the rest don't have one either.
-		if p.runqhead == p.runqtail {
-			pidleput(p)
-			break
-		}
-		p.m = mget()
-		p.link = p1
-		p1 = p
+	procs := gomaxprocs
+	if newprocs != 0 {
+		procs = newprocs
+		newprocs = 0
 	}
+	p1 := procresize(procs)
+	sched.gcwaiting = 0
 	if sched.sysmonwait != 0 {
 		sched.sysmonwait = 0
 		notewakeup(&sched.sysmonnote)
@@ -688,7 +675,7 @@ func starttheworld() {
 			mp := p.m
 			p.m = nil
 			if mp.nextp != nil {
-				gothrow("starttheworld: inconsistent mp->nextp")
+				throw("starttheworld: inconsistent mp->nextp")
 			}
 			mp.nextp = p
 			notewakeup(&mp.park)
@@ -697,6 +684,13 @@ func starttheworld() {
 			_newm(nil, p)
 			add = false
 		}
+	}
+
+	// Wakeup an additional proc in case we have excessive runnable goroutines
+	// in local queues or in the global queue. If we don't, the proc will park itself.
+	// If we have lots of excessive work, resetspinning will unpark additional procs as necessary.
+	if atomicload(&sched.npidle) != 0 && atomicload(&sched.nmspinning) == 0 {
+		wakep()
 	}
 
 	if add {
@@ -741,7 +735,7 @@ func mstart1() {
 	_g_ := getg()
 
 	if _g_ != _g_.m.g0 {
-		gothrow("bad runtime·mstart")
+		throw("bad runtime·mstart")
 	}
 
 	// Record top of stack for use by mcall.
@@ -914,7 +908,7 @@ func newextram() {
 	gp.sched.sp = gp.stack.hi
 	gp.sched.sp -= 4 * regSize // extra space in case of reads slightly beyond frame
 	gp.sched.lr = 0
-	gp.sched.g = gp
+	gp.sched.g = guintptr(unsafe.Pointer(gp))
 	gp.syscallpc = gp.sched.pc
 	gp.syscallsp = gp.sched.sp
 	// malg returns status as Gidle, change to Gsyscall before adding to allg
@@ -966,12 +960,13 @@ func dropm() {
 	unminit()
 
 	// Clear m and g, and return m to the extra list.
-	// After the call to setmg we can only call nosplit functions.
+	// After the call to setg we can only call nosplit functions
+	// with no pointer manipulation.
 	mp := getg().m
-	setg(nil)
-
 	mnext := lockextra(true)
 	mp.schedlink = mnext
+
+	setg(nil)
 	unlockextra(mp)
 }
 
@@ -1020,7 +1015,7 @@ func _newm(fn func(), _p_ *p) {
 	if iscgo {
 		var ts cgothreadstart
 		if _cgo_thread_start == nil {
-			gothrow("_cgo_thread_start missing")
+			throw("_cgo_thread_start missing")
 		}
 		ts.g = mp.g0
 		ts.tls = (*uint64)(unsafe.Pointer(&mp.tls[0]))
@@ -1037,10 +1032,10 @@ func stopm() {
 	_g_ := getg()
 
 	if _g_.m.locks != 0 {
-		gothrow("stopm holding locks")
+		throw("stopm holding locks")
 	}
 	if _g_.m.p != nil {
-		gothrow("stopm holding p")
+		throw("stopm holding p")
 	}
 	if _g_.m.spinning {
 		_g_.m.spinning = false
@@ -1092,10 +1087,10 @@ func startm(_p_ *p, spinning bool) {
 		return
 	}
 	if mp.spinning {
-		gothrow("startm: m is spinning")
+		throw("startm: m is spinning")
 	}
 	if mp.nextp != nil {
-		gothrow("startm: m has p")
+		throw("startm: m has p")
 	}
 	mp.spinning = spinning
 	mp.nextp = _p_
@@ -1157,7 +1152,7 @@ func stoplockedm() {
 	_g_ := getg()
 
 	if _g_.m.lockedg == nil || _g_.m.lockedg.lockedm != _g_.m {
-		gothrow("stoplockedm: inconsistent locking")
+		throw("stoplockedm: inconsistent locking")
 	}
 	if _g_.m.p != nil {
 		// Schedule another M to run this p.
@@ -1172,7 +1167,7 @@ func stoplockedm() {
 	if status&^_Gscan != _Grunnable {
 		print("runtime:stoplockedm: g is not Grunnable or Gscanrunnable\n")
 		dumpgstatus(_g_)
-		gothrow("stoplockedm: not runnable")
+		throw("stoplockedm: not runnable")
 	}
 	acquirep(_g_.m.nextp)
 	_g_.m.nextp = nil
@@ -1184,10 +1179,10 @@ func startlockedm(gp *g) {
 
 	mp := gp.lockedm
 	if mp == _g_.m {
-		gothrow("startlockedm: locked to me")
+		throw("startlockedm: locked to me")
 	}
 	if mp.nextp != nil {
-		gothrow("startlockedm: m has p")
+		throw("startlockedm: m has p")
 	}
 	// directly handoff current P to the locked m
 	incidlelocked(-1)
@@ -1203,7 +1198,7 @@ func gcstopm() {
 	_g_ := getg()
 
 	if sched.gcwaiting == 0 {
-		gothrow("gcstopm: not waiting for gc")
+		throw("gcstopm: not waiting for gc")
 	}
 	if _g_.m.spinning {
 		_g_.m.spinning = false
@@ -1345,10 +1340,10 @@ stop:
 	// poll network
 	if xchg64(&sched.lastpoll, 0) != 0 {
 		if _g_.m.p != nil {
-			gothrow("findrunnable: netpoll with p")
+			throw("findrunnable: netpoll with p")
 		}
 		if _g_.m.spinning {
-			gothrow("findrunnable: netpoll with spinning")
+			throw("findrunnable: netpoll with spinning")
 		}
 		gp := netpoll(true) // block until new work is available
 		atomicstore64(&sched.lastpoll, uint64(nanotime()))
@@ -1377,7 +1372,7 @@ func resetspinning() {
 		_g_.m.spinning = false
 		nmspinning = xadd(&sched.nmspinning, -1)
 		if nmspinning < 0 {
-			gothrow("findrunnable: negative nmspinning")
+			throw("findrunnable: negative nmspinning")
 		}
 	} else {
 		nmspinning = atomicload(&sched.nmspinning)
@@ -1416,7 +1411,7 @@ func schedule() {
 	_g_ := getg()
 
 	if _g_.m.locks != 0 {
-		gothrow("schedule: holding locks")
+		throw("schedule: holding locks")
 	}
 
 	if _g_.m.lockedg != nil {
@@ -1448,7 +1443,7 @@ top:
 	if gp == nil {
 		gp = runqget(_g_.m.p)
 		if gp != nil && _g_.m.spinning {
-			gothrow("schedule: spinning with local work")
+			throw("schedule: spinning with local work")
 		}
 	}
 	if gp == nil {
@@ -1529,7 +1524,7 @@ func gosched_m(gp *g) {
 	status := readgstatus(gp)
 	if status&^_Gscan != _Grunning {
 		dumpgstatus(gp)
-		gothrow("bad g status")
+		throw("bad g status")
 	}
 	casgstatus(gp, _Grunning, _Grunnable)
 	dropg()
@@ -1569,7 +1564,7 @@ func goexit0(gp *g) {
 
 	if _g_.m.locked&^_LockExternal != 0 {
 		print("invalid m->locked = ", _g_.m.locked, "\n")
-		gothrow("internal lockOSThread error")
+		throw("internal lockOSThread error")
 	}
 	_g_.m.locked = 0
 	gfput(_g_.m.p, gp)
@@ -1586,8 +1581,7 @@ func save(pc, sp uintptr) {
 	_g_.sched.lr = 0
 	_g_.sched.ret = 0
 	_g_.sched.ctxt = nil
-	// _g_.sched.g = _g_, but avoid write barrier, which smashes _g_.sched
-	*(*uintptr)(unsafe.Pointer(&_g_.sched.g)) = uintptr(unsafe.Pointer(_g_))
+	_g_.sched.g = guintptr(unsafe.Pointer(_g_))
 }
 
 // The goroutine g is about to enter a system call.
@@ -1635,7 +1629,7 @@ func reentersyscall(pc, sp uintptr) {
 	if _g_.syscallsp < _g_.stack.lo || _g_.stack.hi < _g_.syscallsp {
 		systemstack(func() {
 			print("entersyscall inconsistent ", hex(_g_.syscallsp), " [", hex(_g_.stack.lo), ",", hex(_g_.stack.hi), "]\n")
-			gothrow("entersyscall")
+			throw("entersyscall")
 		})
 	}
 
@@ -1707,14 +1701,14 @@ func entersyscallblock(dummy int32) {
 		sp3 := _g_.syscallsp
 		systemstack(func() {
 			print("entersyscallblock inconsistent ", hex(sp1), " ", hex(sp2), " ", hex(sp3), " [", hex(_g_.stack.lo), ",", hex(_g_.stack.hi), "]\n")
-			gothrow("entersyscallblock")
+			throw("entersyscallblock")
 		})
 	}
 	casgstatus(_g_, _Grunning, _Gsyscall)
 	if _g_.syscallsp < _g_.stack.lo || _g_.stack.hi < _g_.syscallsp {
 		systemstack(func() {
 			print("entersyscallblock inconsistent ", hex(sp), " ", hex(_g_.sched.sp), " ", hex(_g_.syscallsp), " [", hex(_g_.stack.lo), ",", hex(_g_.stack.hi), "]\n")
-			gothrow("entersyscallblock")
+			throw("entersyscallblock")
 		})
 	}
 
@@ -1740,13 +1734,13 @@ func exitsyscall(dummy int32) {
 
 	_g_.m.locks++ // see comment in entersyscall
 	if getcallersp(unsafe.Pointer(&dummy)) > _g_.syscallsp {
-		gothrow("exitsyscall: syscall frame is no longer valid")
+		throw("exitsyscall: syscall frame is no longer valid")
 	}
 
 	_g_.waitsince = 0
 	if exitsyscallfast() {
 		if _g_.m.mcache == nil {
-			gothrow("lost mcache")
+			throw("lost mcache")
 		}
 		// There's a cpu for us, so we can run.
 		_g_.m.p.syscalltick++
@@ -1774,7 +1768,7 @@ func exitsyscall(dummy int32) {
 	mcall(exitsyscall0)
 
 	if _g_.m.mcache == nil {
-		gothrow("lost mcache")
+		throw("lost mcache")
 	}
 
 	// Scheduler returned, so we're allowed to run now.
@@ -1884,8 +1878,9 @@ func beforefork() {
 }
 
 // Called from syscall package before fork.
+//go:linkname syscall_runtime_BeforeFork syscall.runtime_BeforeFork
 //go:nosplit
-func syscall_BeforeFork() {
+func syscall_runtime_BeforeFork() {
 	systemstack(beforefork)
 }
 
@@ -1903,8 +1898,9 @@ func afterfork() {
 }
 
 // Called from syscall package after fork in parent.
+//go:linkname syscall_runtime_AfterFork syscall.runtime_AfterFork
 //go:nosplit
-func syscall_AfterFork() {
+func syscall_runtime_AfterFork() {
 	systemstack(afterfork)
 }
 
@@ -1931,10 +1927,6 @@ func malg(stacksize int32) *g {
 //go:nosplit
 func newproc(siz int32, fn *funcval) {
 	argp := add(unsafe.Pointer(&fn), ptrSize)
-	if hasLinkRegister {
-		argp = add(argp, ptrSize) // skip caller's saved LR
-	}
-
 	pc := getcallerpc(unsafe.Pointer(&siz))
 	systemstack(func() {
 		newproc1(fn, (*uint8)(argp), siz, 0, pc)
@@ -1950,7 +1942,7 @@ func newproc1(fn *funcval, argp *uint8, narg int32, nret int32, callerpc uintptr
 
 	if fn == nil {
 		_g_.m.throwing = -1 // do not dump full stacks
-		gothrow("go of nil func value")
+		throw("go of nil func value")
 	}
 	_g_.m.locks++ // disable preemption because it can be holding p in a local var
 	siz := narg + nret
@@ -1961,7 +1953,7 @@ func newproc1(fn *funcval, argp *uint8, narg int32, nret int32, callerpc uintptr
 	// 4*sizeof(uintreg): extra space added below
 	// sizeof(uintreg): caller's LR (arm) or return address (x86, in gostartcall).
 	if siz >= _StackMin-4*regSize-regSize {
-		gothrow("newproc: function arguments too large for new goroutine")
+		throw("newproc: function arguments too large for new goroutine")
 	}
 
 	_p_ := _g_.m.p
@@ -1972,11 +1964,11 @@ func newproc1(fn *funcval, argp *uint8, narg int32, nret int32, callerpc uintptr
 		allgadd(newg) // publishes with a g->status of Gdead so GC scanner doesn't look at uninitialized stack.
 	}
 	if newg.stack.hi == 0 {
-		gothrow("newproc1: newg missing stack")
+		throw("newproc1: newg missing stack")
 	}
 
 	if readgstatus(newg) != _Gdead {
-		gothrow("newproc1: new g is not Gdead")
+		throw("newproc1: new g is not Gdead")
 	}
 
 	sp := newg.stack.hi
@@ -1992,7 +1984,7 @@ func newproc1(fn *funcval, argp *uint8, narg int32, nret int32, callerpc uintptr
 	memclr(unsafe.Pointer(&newg.sched), unsafe.Sizeof(newg.sched))
 	newg.sched.sp = sp
 	newg.sched.pc = funcPC(goexit) + _PCQuantum // +PCQuantum so that previous instruction is in same function
-	newg.sched.g = newg
+	newg.sched.g = guintptr(unsafe.Pointer(newg))
 	gostartcallfn(&newg.sched, fn)
 	newg.gopc = callerpc
 	casgstatus(newg, _Gdead, _Grunnable)
@@ -2026,7 +2018,7 @@ func newproc1(fn *funcval, argp *uint8, narg int32, nret int32, callerpc uintptr
 // If local list is too long, transfer a batch to the global list.
 func gfput(_p_ *p, gp *g) {
 	if readgstatus(gp) != _Gdead {
-		gothrow("gfput: bad status (not Gdead)")
+		throw("gfput: bad status (not Gdead)")
 	}
 
 	stksize := gp.stack.hi - gp.stack.lo
@@ -2170,7 +2162,7 @@ func unlockOSThread() {
 }
 
 func badunlockosthread() {
-	gothrow("runtime: internal error: misuse of lockOSThread/unlockOSThread")
+	throw("runtime: internal error: misuse of lockOSThread/unlockOSThread")
 }
 
 func gcount() int32 {
@@ -2385,10 +2377,11 @@ func setcpuprofilerate_m(hz int32) {
 // Change number of processors.  The world is stopped, sched is locked.
 // gcworkbufs are not being modified by either the GC or
 // the write barrier code.
-func procresize(new int32) {
+// Returns list of Ps with local work, they need to be scheduled by the caller.
+func procresize(new int32) *p {
 	old := gomaxprocs
 	if old < 0 || old > _MaxGomaxprocs || new <= 0 || new > _MaxGomaxprocs {
-		gothrow("procresize: invalid arg")
+		throw("procresize: invalid arg")
 	}
 
 	// initialize new P's
@@ -2403,7 +2396,7 @@ func procresize(new int32) {
 		if p.mcache == nil {
 			if old == 0 && i == 0 {
 				if getg().m.mcache == nil {
-					gothrow("missing mcache?")
+					throw("missing mcache?")
 				}
 				p.mcache = getg().m.mcache // bootstrap
 			} else {
@@ -2412,19 +2405,11 @@ func procresize(new int32) {
 		}
 	}
 
-	// redistribute runnable G's evenly
-	// collect all runnable goroutines in global queue preserving FIFO order
-	// FIFO order is required to ensure fairness even during frequent GCs
-	// see http://golang.org/issue/7126
-	empty := false
-	for !empty {
-		empty = true
-		for i := int32(0); i < old; i++ {
-			p := allp[i]
-			if p.runqhead == p.runqtail {
-				continue
-			}
-			empty = false
+	// free unused P's
+	for i := new; i < old; i++ {
+		p := allp[i]
+		// move all runable goroutines to the global queue
+		for p.runqhead != p.runqtail {
 			// pop from tail of local queue
 			p.runqtail--
 			gp := p.runq[p.runqtail%uint32(len(p.runq))]
@@ -2436,25 +2421,6 @@ func procresize(new int32) {
 			}
 			sched.runqsize++
 		}
-	}
-
-	// fill local queues with at most len(p.runq)/2 goroutines
-	// start at 1 because current M already executes some G and will acquire allp[0] below,
-	// so if we have a spare G we want to put it into allp[1].
-	var _p_ p
-	for i := int32(1); i < new*int32(len(_p_.runq))/2 && sched.runqsize > 0; i++ {
-		gp := sched.runqhead
-		sched.runqhead = gp.schedlink
-		if sched.runqhead == nil {
-			sched.runqtail = nil
-		}
-		sched.runqsize--
-		runqput(allp[i%new], gp)
-	}
-
-	// free unused P's
-	for i := new; i < old; i++ {
-		p := allp[i]
 		freemcache(p.mcache)
 		p.mcache = nil
 		gfpurge(p)
@@ -2463,22 +2429,39 @@ func procresize(new int32) {
 	}
 
 	_g_ := getg()
-	if _g_.m.p != nil {
-		_g_.m.p.m = nil
-	}
-	_g_.m.p = nil
-	_g_.m.mcache = nil
-	p := allp[0]
-	p.m = nil
-	p.status = _Pidle
-	acquirep(p)
-	for i := new - 1; i > 0; i-- {
-		p := allp[i]
+	if _g_.m.p != nil && _g_.m.p.id < new {
+		// continue to use the current P
+		_g_.m.p.status = _Prunning
+	} else {
+		// release the current P and acquire allp[0]
+		if _g_.m.p != nil {
+			_g_.m.p.m = nil
+		}
+		_g_.m.p = nil
+		_g_.m.mcache = nil
+		p := allp[0]
+		p.m = nil
 		p.status = _Pidle
-		pidleput(p)
+		acquirep(p)
+	}
+	var runnablePs *p
+	for i := new - 1; i >= 0; i-- {
+		p := allp[i]
+		if _g_.m.p == p {
+			continue
+		}
+		p.status = _Pidle
+		if p.runqhead == p.runqtail {
+			pidleput(p)
+		} else {
+			p.m = mget()
+			p.link = runnablePs
+			runnablePs = p
+		}
 	}
 	var int32p *int32 = &gomaxprocs // make compiler check that gomaxprocs is an int32
 	atomicstore((*uint32)(unsafe.Pointer(int32p)), uint32(new))
+	return runnablePs
 }
 
 // Associate p and the current m.
@@ -2486,7 +2469,7 @@ func acquirep(_p_ *p) {
 	_g_ := getg()
 
 	if _g_.m.p != nil || _g_.m.mcache != nil {
-		gothrow("acquirep: already in go")
+		throw("acquirep: already in go")
 	}
 	if _p_.m != nil || _p_.status != _Pidle {
 		id := int32(0)
@@ -2494,7 +2477,7 @@ func acquirep(_p_ *p) {
 			id = _p_.m.id
 		}
 		print("acquirep: p->m=", _p_.m, "(", id, ") p->status=", _p_.status, "\n")
-		gothrow("acquirep: invalid p state")
+		throw("acquirep: invalid p state")
 	}
 	_g_.m.mcache = _p_.mcache
 	_g_.m.p = _p_
@@ -2507,12 +2490,12 @@ func releasep() *p {
 	_g_ := getg()
 
 	if _g_.m.p == nil || _g_.m.mcache == nil {
-		gothrow("releasep: invalid arg")
+		throw("releasep: invalid arg")
 	}
 	_p_ := _g_.m.p
 	if _p_.m != _g_.m || _p_.mcache != _g_.m.mcache || _p_.status != _Prunning {
 		print("releasep: m=", _g_.m, " m->p=", _g_.m.p, " p->m=", _p_.m, " m->mcache=", _g_.m.mcache, " p->mcache=", _p_.mcache, " p->status=", _p_.status, "\n")
-		gothrow("releasep: invalid p state")
+		throw("releasep: invalid p state")
 	}
 	_g_.m.p = nil
 	_g_.m.mcache = nil
@@ -2548,7 +2531,7 @@ func checkdead() {
 	}
 	if run < 0 {
 		print("runtime: checkdead: nmidle=", sched.nmidle, " nmidlelocked=", sched.nmidlelocked, " mcount=", sched.mcount, "\n")
-		gothrow("checkdead: inconsistent counts")
+		throw("checkdead: inconsistent counts")
 	}
 
 	grunning := 0
@@ -2567,12 +2550,12 @@ func checkdead() {
 			_Gsyscall:
 			unlock(&allglock)
 			print("runtime: checkdead: find g ", gp.goid, " in status ", s, "\n")
-			gothrow("checkdead: runnable g")
+			throw("checkdead: runnable g")
 		}
 	}
 	unlock(&allglock)
 	if grunning == 0 { // possible if main goroutine calls runtime·Goexit()
-		gothrow("no goroutines (main called runtime.Goexit) - deadlock!")
+		throw("no goroutines (main called runtime.Goexit) - deadlock!")
 	}
 
 	// Maybe jump time forward for playground.
@@ -2582,7 +2565,7 @@ func checkdead() {
 		globrunqput(gp)
 		_p_ := pidleget()
 		if _p_ == nil {
-			gothrow("checkdead: no p for timer")
+			throw("checkdead: no p for timer")
 		}
 		mp := mget()
 		if mp == nil {
@@ -2595,7 +2578,7 @@ func checkdead() {
 	}
 
 	getg().m.throwing = -1 // do not dump full stacks
-	gothrow("all goroutines are asleep - deadlock!")
+	throw("all goroutines are asleep - deadlock!")
 }
 
 func sysmon() {
@@ -3017,7 +3000,7 @@ func runqputslow(_p_ *p, gp *g, h, t uint32) bool {
 	n := t - h
 	n = n / 2
 	if n != uint32(len(_p_.runq)/2) {
-		gothrow("runqputslow: queue is not full")
+		throw("runqputslow: queue is not full")
 	}
 	for i := uint32(0); i < n; i++ {
 		batch[i] = _p_.runq[(h+i)%uint32(len(_p_.runq))]
@@ -3097,7 +3080,7 @@ func runqsteal(_p_, p2 *p) *g {
 	h := atomicload(&_p_.runqhead) // load-acquire, synchronize with consumers
 	t := _p_.runqtail
 	if t-h+n >= uint32(len(_p_.runq)) {
-		gothrow("runqsteal: runq overflow")
+		throw("runqsteal: runq overflow")
 	}
 	for i := uint32(0); i < n; i++ {
 		_p_.runq[(t+i)%uint32(len(_p_.runq))] = batch[i]
@@ -3111,7 +3094,7 @@ func testSchedLocalQueue() {
 	gs := make([]g, len(_p_.runq))
 	for i := 0; i < len(_p_.runq); i++ {
 		if runqget(_p_) != nil {
-			gothrow("runq is not empty initially")
+			throw("runq is not empty initially")
 		}
 		for j := 0; j < i; j++ {
 			runqput(_p_, &gs[i])
@@ -3119,11 +3102,11 @@ func testSchedLocalQueue() {
 		for j := 0; j < i; j++ {
 			if runqget(_p_) != &gs[i] {
 				print("bad element at iter ", i, "/", j, "\n")
-				gothrow("bad element")
+				throw("bad element")
 			}
 		}
 		if runqget(_p_) != nil {
-			gothrow("runq is not empty afterwards")
+			throw("runq is not empty afterwards")
 		}
 	}
 }
@@ -3161,12 +3144,12 @@ func testSchedLocalQueueSteal() {
 		for j := 0; j < i; j++ {
 			if gs[j].sig != 1 {
 				print("bad element ", j, "(", gs[j].sig, ") at iter ", i, "\n")
-				gothrow("bad element")
+				throw("bad element")
 			}
 		}
 		if s != i/2 && s != i/2+1 {
 			print("bad steal ", s, ", want ", i/2, " or ", i/2+1, ", iter ", i, "\n")
-			gothrow("bad steal")
+			throw("bad steal")
 		}
 	}
 }
@@ -3200,7 +3183,7 @@ func haveexperiment(name string) bool {
 }
 
 //go:nosplit
-func sync_procPin() int {
+func procPin() int {
 	_g_ := getg()
 	mp := _g_.m
 
@@ -3209,7 +3192,31 @@ func sync_procPin() int {
 }
 
 //go:nosplit
-func sync_procUnpin() {
+func procUnpin() {
 	_g_ := getg()
 	_g_.m.locks--
+}
+
+//go:linkname sync_runtime_procPin sync.runtime_procPin
+//go:nosplit
+func sync_runtime_procPin() int {
+	return procPin()
+}
+
+//go:linkname sync_runtime_procUnpin sync.runtime_procUnpin
+//go:nosplit
+func sync_runtime_procUnpin() {
+	procUnpin()
+}
+
+//go:linkname sync_atomic_runtime_procPin sync/atomic.runtime_procPin
+//go:nosplit
+func sync_atomic_runtime_procPin() int {
+	return procPin()
+}
+
+//go:linkname sync_atomic_runtime_procUnpin sync/atomic.runtime_procUnpin
+//go:nosplit
+func sync_atomic_runtime_procUnpin() {
+	procUnpin()
 }

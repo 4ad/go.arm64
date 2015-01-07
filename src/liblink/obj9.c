@@ -145,7 +145,8 @@ progedit(Link *ctxt, Prog *p)
 		}
 		break;
 	case AMOVD:
-		if(p->from.type == D_CONST && p->from.name == D_NONE && (int64)(uint32)p->from.offset != p->from.offset) {
+		// Put >32-bit constants in memory and load them
+		if(p->from.type == D_CONST && p->from.name == D_NONE && p->from.reg == NREG && (int32)p->from.offset != p->from.offset) {
 			sprint(literal, "$i64.%016llux", (uvlong)p->from.offset);
 			s = linklookup(ctxt, literal, 0);
 			s->size = 8;
@@ -617,6 +618,22 @@ addstacksplit(Link *ctxt, LSym *cursym)
 			q->link = p->link;
 			p->link = q;
 			p = q;
+
+			if(0) {
+				// Debug bad returns
+				q = ctxt->arch->prg();
+				q->as = AMOVD;
+				q->lineno = p->lineno;
+				q->from.type = D_OREG;
+				q->from.offset = 0;
+				q->from.reg = REGTMP;
+				q->to.type = D_REG;
+				q->to.reg = REGTMP;
+
+				q->link = p->link;
+				p->link = q;
+				p = q;
+			}
 
 			if(autosize) {
 				q = ctxt->arch->prg();

@@ -241,8 +241,8 @@ var (
 	gccheckmarkenable = true
 )
 
-// Is address b in the known heap. If it doesn't have a valid gcmap
-// returns false. For example pointers into stacks will return false.
+// inheap reports whether b is a pointer into a (potentially dead) heap object.
+// It returns false for pointers into stack spans.
 //go:nowritebarrier
 func inheap(b uintptr) bool {
 	if b == 0 || b < mheap_.arena_start || b >= mheap_.arena_used {
@@ -307,7 +307,7 @@ func objectstart(b uintptr, mbits *markbits) uintptr {
 					print(" s.start=", hex(s.start<<_PageShift), " s.limit=", hex(s.limit), " s.state=", s.state, "\n")
 				}
 				printunlock()
-				gothrow("objectstart: bad pointer in unexpected span")
+				throw("objectstart: bad pointer in unexpected span")
 			}
 			return 0
 		}
@@ -320,7 +320,7 @@ func objectstart(b uintptr, mbits *markbits) uintptr {
 		}
 		if p == obj {
 			print("runtime: failed to find block beginning for ", hex(p), " s=", hex(s.start*_PageSize), " s.limit=", hex(s.limit), "\n")
-			gothrow("failed to find block beginning")
+			throw("failed to find block beginning")
 		}
 		obj = p
 	}
@@ -363,7 +363,7 @@ func docheckmark(mbits *markbits) {
 //go:nowritebarrier
 func ismarked(mbits *markbits) bool {
 	if mbits.bits&bitBoundary != bitBoundary {
-		gothrow("ismarked: bits should have boundary bit set")
+		throw("ismarked: bits should have boundary bit set")
 	}
 	return mbits.bits&bitMarked == bitMarked
 }
@@ -372,7 +372,7 @@ func ismarked(mbits *markbits) bool {
 //go:nowritebarrier
 func ischeckmarked(mbits *markbits) bool {
 	if mbits.bits&bitBoundary != bitBoundary {
-		gothrow("ischeckmarked: bits should have boundary bit set")
+		throw("ischeckmarked: bits should have boundary bit set")
 	}
 	return mbits.tbits == _BitsScalarMarked || mbits.tbits == _BitsPointerMarked
 }
@@ -381,10 +381,10 @@ func ischeckmarked(mbits *markbits) bool {
 //go:nowritebarrier
 func gcmarknewobject_m(obj uintptr) {
 	if gcphase != _GCmarktermination {
-		gothrow("marking new object while not in mark termination phase")
+		throw("marking new object while not in mark termination phase")
 	}
 	if checkmark { // The world should be stopped so this should not happen.
-		gothrow("gcmarknewobject called while doing checkmark")
+		throw("gcmarknewobject called while doing checkmark")
 	}
 
 	var mbits markbits
@@ -408,16 +408,18 @@ func gcmarknewobject_m(obj uintptr) {
 // obj is the start of an object with mark mbits.
 // If it isn't already marked, mark it and enqueue into workbuf.
 // Return possibly new workbuf to use.
+// base and off are for debugging only and could be removed.
 //go:nowritebarrier
-func greyobject(obj uintptr, mbits *markbits, wbuf *workbuf) *workbuf {
+func greyobject(obj uintptr, base, off uintptr, mbits *markbits, wbuf *workbuf) *workbuf {
 	// obj should be start of allocation, and so must be at least pointer-aligned.
 	if obj&(ptrSize-1) != 0 {
-		gothrow("greyobject: obj not pointer-aligned")
+		throw("greyobject: obj not pointer-aligned")
 	}
 
 	if checkmark {
 		if !ismarked(mbits) {
 			print("runtime:greyobject: checkmarks finds unexpected unmarked object obj=", hex(obj), ", mbits->bits=", hex(mbits.bits), " *mbits->bitp=", hex(*mbits.bitp), "\n")
+			print("runtime: found obj at *(", hex(base), "+", hex(off), ")\n")
 
 			k := obj >> _PageShift
 			x := k
@@ -435,7 +437,7 @@ func greyobject(obj uintptr, mbits *markbits, wbuf *workbuf) *workbuf {
 					print(" *(obj+", i*ptrSize, ") = ", hex(*(*uintptr)(unsafe.Pointer(obj + uintptr(i)*ptrSize))), "\n")
 				}
 			}
-			gothrow("checkmark found unmarked object")
+			throw("checkmark found unmarked object")
 		}
 		if ischeckmarked(mbits) {
 			return wbuf
@@ -443,7 +445,7 @@ func greyobject(obj uintptr, mbits *markbits, wbuf *workbuf) *workbuf {
 		docheckmark(mbits)
 		if !ischeckmarked(mbits) {
 			print("mbits xbits=", hex(mbits.xbits), " bits=", hex(mbits.bits), " tbits=", hex(mbits.tbits), " shift=", mbits.shift, "\n")
-			gothrow("docheckmark and ischeckmarked disagree")
+			throw("docheckmark and ischeckmarked disagree")
 		}
 	} else {
 		// If marked we have nothing to do.
@@ -521,7 +523,7 @@ func scanobject(b, n uintptr, ptrmask *uint8, wbuf *workbuf) *workbuf {
 			// Consult GC bitmap.
 			bits = uintptr(*(*byte)(ptrbitp))
 			if wordsPerBitmapByte != 2 {
-				gothrow("alg doesn't work for wordsPerBitmapByte != 2")
+				throw("alg doesn't work for wordsPerBitmapByte != 2")
 			}
 			j := (uintptr(b) + i) / ptrSize & 1 // j indicates upper nibble or lower nibble
 			bits >>= gcBits * j
@@ -546,7 +548,7 @@ func scanobject(b, n uintptr, ptrmask *uint8, wbuf *workbuf) *workbuf {
 
 		if bits&_BitsPointer != _BitsPointer {
 			print("gc checkmark=", checkmark, " b=", hex(b), " ptrmask=", ptrmask, " mbits.bitp=", mbits.bitp, " mbits.xbits=", hex(mbits.xbits), " bits=", hex(bits), "\n")
-			gothrow("unexpected garbage collection bits")
+			throw("unexpected garbage collection bits")
 		}
 
 		obj := *(*uintptr)(unsafe.Pointer(b + i))
@@ -557,6 +559,10 @@ func scanobject(b, n uintptr, ptrmask *uint8, wbuf *workbuf) *workbuf {
 			continue
 		}
 
+		if mheap_.shadow_enabled && debug.wbshadow >= 2 && gccheckmarkenable && checkmark {
+			checkwbshadow((*uintptr)(unsafe.Pointer(b + i)))
+		}
+
 		// Mark the object. return some important bits.
 		// We we combine the following two rotines we don't have to pass mbits or obj around.
 		var mbits markbits
@@ -564,7 +570,7 @@ func scanobject(b, n uintptr, ptrmask *uint8, wbuf *workbuf) *workbuf {
 		if obj == 0 {
 			continue
 		}
-		wbuf = greyobject(obj, &mbits, wbuf)
+		wbuf = greyobject(obj, b, i, &mbits, wbuf)
 	}
 	return wbuf
 }
@@ -575,14 +581,19 @@ func scanobject(b, n uintptr, ptrmask *uint8, wbuf *workbuf) *workbuf {
 // As a special case, scanblock(nil, 0, nil) means to scan previously queued work,
 // stopping only when no work is left in the system.
 //go:nowritebarrier
-func scanblock(b, n uintptr, ptrmask *uint8) {
+func scanblock(b0, n0 uintptr, ptrmask *uint8) {
+	// Use local copies of original parameters, so that a stack trace
+	// due to one of the throws below shows the original block
+	// base and extent.
+	b := b0
+	n := n0
 	wbuf := getpartialorempty()
 	if b != 0 {
 		wbuf = scanobject(b, n, ptrmask, wbuf)
 		if gcphase == _GCscan {
 			if inheap(b) && ptrmask == nil {
 				// b is in heap, we are in GCscan so there should be a ptrmask.
-				gothrow("scanblock: In GCscan phase and inheap is true.")
+				throw("scanblock: In GCscan phase and inheap is true.")
 			}
 			// GCscan only goes one level deep since mark wb not turned on.
 			putpartial(wbuf)
@@ -590,10 +601,15 @@ func scanblock(b, n uintptr, ptrmask *uint8) {
 		}
 	}
 	if gcphase == _GCscan {
-		gothrow("scanblock: In GCscan phase but no b passed in.")
+		throw("scanblock: In GCscan phase but no b passed in.")
 	}
 
 	keepworking := b == 0
+
+	if gcphase != _GCmark && gcphase != _GCmarktermination {
+		println("gcphase", gcphase)
+		throw("scanblock phase")
+	}
 
 	// ptrmask can have 2 possible values:
 	// 1. nil - obtain pointer mask from GC bitmap.
@@ -611,7 +627,7 @@ func scanblock(b, n uintptr, ptrmask *uint8) {
 			}
 
 			if wbuf.nobj <= 0 {
-				gothrow("runtime:scanblock getfull returns empty buffer")
+				throw("runtime:scanblock getfull returns empty buffer")
 			}
 		}
 
@@ -656,7 +672,7 @@ func markroot(desc *parfor, i uint32) {
 			if !checkmark && s.sweepgen != sg {
 				// sweepgen was updated (+2) during non-checkmark GC pass
 				print("sweep ", s.sweepgen, " ", sg, "\n")
-				gothrow("gc: unswept span")
+				throw("gc: unswept span")
 			}
 			for sp := s.specials; sp != nil; sp = sp.next {
 				if sp.kind != _KindSpecialFinalizer {
@@ -682,7 +698,7 @@ func markroot(desc *parfor, i uint32) {
 	default:
 		// the rest is scanning goroutine stacks
 		if uintptr(i-_RootCount) >= allglen {
-			gothrow("markroot: bad index")
+			throw("markroot: bad index")
 		}
 		gp := allgs[i-_RootCount]
 
@@ -743,7 +759,7 @@ func getempty(b *workbuf) *workbuf {
 	if b != nil && b.nobj != 0 {
 		_g_ := getg()
 		print("m", _g_.m.id, ": getempty: popped b=", b, " with non-zero b.nobj=", b.nobj, "\n")
-		gothrow("getempty: workbuffer not empty, b->nobj not 0")
+		throw("getempty: workbuffer not empty, b->nobj not 0")
 	}
 	if b == nil {
 		b = (*workbuf)(persistentalloc(unsafe.Sizeof(*b), _CacheLineSize, &memstats.gc_sys))
@@ -755,7 +771,7 @@ func getempty(b *workbuf) *workbuf {
 //go:nowritebarrier
 func putempty(b *workbuf) {
 	if b.nobj != 0 {
-		gothrow("putempty: b->nobj not 0")
+		throw("putempty: b->nobj not 0")
 	}
 	lfstackpush(&work.empty, &b.node)
 }
@@ -763,7 +779,7 @@ func putempty(b *workbuf) {
 //go:nowritebarrier
 func putfull(b *workbuf) {
 	if b.nobj <= 0 {
-		gothrow("putfull: b->nobj <= 0")
+		throw("putfull: b->nobj <= 0")
 	}
 	lfstackpush(&work.full, &b.node)
 }
@@ -789,7 +805,7 @@ func putpartial(b *workbuf) {
 		lfstackpush(&work.full, &b.node)
 	} else {
 		print("b=", b, " b.nobj=", b.nobj, " len(b.obj)=", len(b.obj), "\n")
-		gothrow("putpartial: bad Workbuf b.nobj")
+		throw("putpartial: bad Workbuf b.nobj")
 	}
 }
 
@@ -869,7 +885,7 @@ func handoff(b *workbuf) *workbuf {
 //go:nowritebarrier
 func stackmapdata(stkmap *stackmap, n int32) bitvector {
 	if n < 0 || n >= stkmap.n {
-		gothrow("stackmapdata: index out of range")
+		throw("stackmapdata: index out of range")
 	}
 	return bitvector{stkmap.nbit, (*byte)(add(unsafe.Pointer(&stkmap.bytedata), uintptr(n*((stkmap.nbit+31)/32*4))))}
 }
@@ -885,7 +901,7 @@ func scanframe(frame *stkframe, unused unsafe.Pointer) bool {
 		return true
 	}
 	if _DebugGC > 1 {
-		print("scanframe ", gofuncname(f), "\n")
+		print("scanframe ", funcname(f), "\n")
 	}
 	if targetpc != f.entry {
 		targetpc--
@@ -909,15 +925,15 @@ func scanframe(frame *stkframe, unused unsafe.Pointer) bool {
 	if size > minsize {
 		stkmap := (*stackmap)(funcdata(f, _FUNCDATA_LocalsPointerMaps))
 		if stkmap == nil || stkmap.n <= 0 {
-			print("runtime: frame ", gofuncname(f), " untyped locals ", hex(frame.varp-size), "+", hex(size), "\n")
-			gothrow("missing stackmap")
+			print("runtime: frame ", funcname(f), " untyped locals ", hex(frame.varp-size), "+", hex(size), "\n")
+			throw("missing stackmap")
 		}
 
 		// Locals bitmap information, scan just the pointers in locals.
 		if pcdata < 0 || pcdata >= stkmap.n {
 			// don't know where we are
-			print("runtime: pcdata is ", pcdata, " and ", stkmap.n, " locals stack map entries for ", gofuncname(f), " (targetpc=", targetpc, ")\n")
-			gothrow("scanframe: bad symbol table")
+			print("runtime: pcdata is ", pcdata, " and ", stkmap.n, " locals stack map entries for ", funcname(f), " (targetpc=", targetpc, ")\n")
+			throw("scanframe: bad symbol table")
 		}
 		bv := stackmapdata(stkmap, pcdata)
 		size = (uintptr(bv.n) * ptrSize) / bitsPerPointer
@@ -932,13 +948,13 @@ func scanframe(frame *stkframe, unused unsafe.Pointer) bool {
 		} else {
 			stkmap := (*stackmap)(funcdata(f, _FUNCDATA_ArgsPointerMaps))
 			if stkmap == nil || stkmap.n <= 0 {
-				print("runtime: frame ", gofuncname(f), " untyped args ", hex(frame.argp), "+", hex(frame.arglen), "\n")
-				gothrow("missing stackmap")
+				print("runtime: frame ", funcname(f), " untyped args ", hex(frame.argp), "+", hex(frame.arglen), "\n")
+				throw("missing stackmap")
 			}
 			if pcdata < 0 || pcdata >= stkmap.n {
 				// don't know where we are
-				print("runtime: pcdata is ", pcdata, " and ", stkmap.n, " args stack map entries for ", gofuncname(f), " (targetpc=", targetpc, ")\n")
-				gothrow("scanframe: bad symbol table")
+				print("runtime: pcdata is ", pcdata, " and ", stkmap.n, " args stack map entries for ", funcname(f), " (targetpc=", targetpc, ")\n")
+				throw("scanframe: bad symbol table")
 			}
 			bv = stackmapdata(stkmap, pcdata)
 		}
@@ -952,28 +968,28 @@ func scanstack(gp *g) {
 
 	if readgstatus(gp)&_Gscan == 0 {
 		print("runtime:scanstack: gp=", gp, ", goid=", gp.goid, ", gp->atomicstatus=", hex(readgstatus(gp)), "\n")
-		gothrow("scanstack - bad status")
+		throw("scanstack - bad status")
 	}
 
 	switch readgstatus(gp) &^ _Gscan {
 	default:
 		print("runtime: gp=", gp, ", goid=", gp.goid, ", gp->atomicstatus=", readgstatus(gp), "\n")
-		gothrow("mark - bad status")
+		throw("mark - bad status")
 	case _Gdead:
 		return
 	case _Grunning:
 		print("runtime: gp=", gp, ", goid=", gp.goid, ", gp->atomicstatus=", readgstatus(gp), "\n")
-		gothrow("scanstack: goroutine not stopped")
+		throw("scanstack: goroutine not stopped")
 	case _Grunnable, _Gsyscall, _Gwaiting:
 		// ok
 	}
 
 	if gp == getg() {
-		gothrow("can't scan our own stack")
+		throw("can't scan our own stack")
 	}
 	mp := gp.m
 	if mp != nil && mp.helpgc != 0 {
-		gothrow("can't scan gchelper stack")
+		throw("can't scan gchelper stack")
 	}
 
 	gentraceback(^uintptr(0), ^uintptr(0), 0, gp, 0, nil, 0x7fffffff, scanframe, nil, 0)
@@ -1010,7 +1026,7 @@ func shaded(slot uintptr) bool {
 //go:nowritebarrier
 func shade(b uintptr) {
 	if !inheap(b) {
-		gothrow("shade: passed an address not in the heap")
+		throw("shade: passed an address not in the heap")
 	}
 
 	wbuf := getpartialorempty()
@@ -1019,7 +1035,7 @@ func shade(b uintptr) {
 	var mbits markbits
 	obj := objectstart(b, &mbits)
 	if obj != 0 {
-		wbuf = greyobject(obj, &mbits, wbuf) // augments the wbuf
+		wbuf = greyobject(obj, 0, 0, &mbits, wbuf) // augments the wbuf
 	}
 	putpartial(wbuf)
 }
@@ -1062,7 +1078,7 @@ func shade(b uintptr) {
 func gcmarkwb_m(slot *uintptr, ptr uintptr) {
 	switch gcphase {
 	default:
-		gothrow("gcphasework in bad gcphase")
+		throw("gcphasework in bad gcphase")
 
 	case _GCoff, _GCquiesce, _GCstw, _GCsweep, _GCscan:
 		// ok
@@ -1080,7 +1096,7 @@ func gcmarkwb_m(slot *uintptr, ptr uintptr) {
 func gcphasework(gp *g) {
 	switch gcphase {
 	default:
-		gothrow("gcphasework in bad gcphase")
+		throw("gcphasework in bad gcphase")
 	case _GCoff, _GCquiesce, _GCstw, _GCsweep:
 		// No work.
 	case _GCscan:
@@ -1136,7 +1152,7 @@ func queuefinalizer(p unsafe.Pointer, fn *funcval, nret uintptr, fint *_type, ot
 					unsafe.Offsetof(finalizer{}.fint) != 3*ptrSize ||
 					unsafe.Offsetof(finalizer{}.ot) != 4*ptrSize ||
 					bitsPerPointer != 2) {
-					gothrow("finalizer out of sync")
+					throw("finalizer out of sync")
 				}
 				for i := range finptrmask {
 					finptrmask[i] = finalizer1[i%len(finalizer1)]
@@ -1177,7 +1193,7 @@ func mSpan_EnsureSwept(s *mspan) {
 	// (if GC is triggered on another goroutine).
 	_g_ := getg()
 	if _g_.m.locks == 0 && _g_.m.mallocing == 0 && _g_ != _g_.m.g0 {
-		gothrow("MSpan_EnsureSwept: m is not locked")
+		throw("MSpan_EnsureSwept: m is not locked")
 	}
 
 	sg := mheap_.sweepgen
@@ -1203,19 +1219,19 @@ func mSpan_EnsureSwept(s *mspan) {
 //TODO go:nowritebarrier
 func mSpan_Sweep(s *mspan, preserve bool) bool {
 	if checkmark {
-		gothrow("MSpan_Sweep: checkmark only runs in STW and after the sweep")
+		throw("MSpan_Sweep: checkmark only runs in STW and after the sweep")
 	}
 
 	// It's critical that we enter this function with preemption disabled,
 	// GC must not start while we are in the middle of this function.
 	_g_ := getg()
 	if _g_.m.locks == 0 && _g_.m.mallocing == 0 && _g_ != _g_.m.g0 {
-		gothrow("MSpan_Sweep: m is not locked")
+		throw("MSpan_Sweep: m is not locked")
 	}
 	sweepgen := mheap_.sweepgen
 	if s.state != mSpanInUse || s.sweepgen != sweepgen-1 {
 		print("MSpan_Sweep: state=", s.state, " sweepgen=", s.sweepgen, " mheap.sweepgen=", sweepgen, "\n")
-		gothrow("MSpan_Sweep: bad span state")
+		throw("MSpan_Sweep: bad span state")
 	}
 	arena_start := mheap_.arena_start
 	cl := s.sizeclass
@@ -1319,7 +1335,7 @@ func mSpan_Sweep(s *mspan, preserve bool) bool {
 		if cl == 0 {
 			// Free large span.
 			if preserve {
-				gothrow("can't preserve large span")
+				throw("can't preserve large span")
 			}
 			unmarkspan(p, s.npages<<_PageShift)
 			s.needzero = 1
@@ -1380,7 +1396,7 @@ func mSpan_Sweep(s *mspan, preserve bool) bool {
 		// check for potential races.
 		if s.state != mSpanInUse || s.sweepgen != sweepgen-1 {
 			print("MSpan_Sweep: state=", s.state, " sweepgen=", s.sweepgen, " mheap.sweepgen=", sweepgen, "\n")
-			gothrow("MSpan_Sweep: bad span state after sweep")
+			throw("MSpan_Sweep: bad span state after sweep")
 		}
 		atomicstore(&s.sweepgen, sweepgen)
 	}
@@ -1588,7 +1604,7 @@ func updatememstats(stats *gcstats) {
 
 func gcinit() {
 	if unsafe.Sizeof(workbuf{}) != _WorkbufSize {
-		gothrow("runtime: size of Workbuf is suboptimal")
+		throw("runtime: size of Workbuf is suboptimal")
 	}
 
 	work.markfor = parforalloc(_MaxGcproc)
@@ -1622,7 +1638,7 @@ func gc_m(start_time int64, eagersweep bool) {
 func clearcheckmarkbitsspan(s *mspan) {
 	if s.state != _MSpanInUse {
 		print("runtime:clearcheckmarkbitsspan: state=", s.state, "\n")
-		gothrow("clearcheckmarkbitsspan: bad span state")
+		throw("clearcheckmarkbitsspan: bad span state")
 	}
 
 	arena_start := mheap_.arena_start
@@ -1695,7 +1711,7 @@ func clearcheckmarkbitsspan(s *mspan) {
 		// updating top and bottom nibbles, all boundaries
 		for i := int32(0); i < n/2; i, bitp = i+1, addb(bitp, uintptrMask&-1) {
 			if *bitp&bitBoundary == 0 {
-				gothrow("missing bitBoundary")
+				throw("missing bitBoundary")
 			}
 			b := (*bitp & bitPtrMask) >> 2
 			if !checkmark && (b == _BitsScalar || b == _BitsScalarMarked) {
@@ -1705,7 +1721,7 @@ func clearcheckmarkbitsspan(s *mspan) {
 			}
 
 			if (*bitp>>gcBits)&bitBoundary == 0 {
-				gothrow("missing bitBoundary")
+				throw("missing bitBoundary")
 			}
 			b = ((*bitp >> gcBits) & bitPtrMask) >> 2
 			if !checkmark && (b == _BitsScalar || b == _BitsScalarMarked) {
@@ -1718,7 +1734,7 @@ func clearcheckmarkbitsspan(s *mspan) {
 		// updating bottom nibble for first word of each object
 		for i := int32(0); i < n; i, bitp = i+1, addb(bitp, -step) {
 			if *bitp&bitBoundary == 0 {
-				gothrow("missing bitBoundary")
+				throw("missing bitBoundary")
 			}
 			b := (*bitp & bitPtrMask) >> 2
 
@@ -1768,14 +1784,12 @@ func gccheckmark_m(startTime int64, eagersweep bool) {
 	}
 
 	if checkmark {
-		gothrow("gccheckmark_m, entered with checkmark already true")
+		throw("gccheckmark_m, entered with checkmark already true")
 	}
 
 	checkmark = true
 	clearcheckmarkbits()        // Converts BitsDead to BitsScalar.
-	gc_m(startTime, eagersweep) // turns off checkmark
-	// Work done, fixed up the GC bitmap to remove the checkmark bits.
-	clearcheckmarkbits()
+	gc_m(startTime, eagersweep) // turns off checkmark + calls clearcheckmarkbits
 }
 
 //go:nowritebarrier
@@ -1824,7 +1838,6 @@ func gcscan_m() {
 	// by placing it onto a scanenqueue state and then calling
 	// runtime·restartg(mastergp) to make it Grunnable.
 	// At the bottom we will want to return this p back to the scheduler.
-	oldphase := gcphase
 
 	// Prepare flag indicating that the scan has not been completed.
 	lock(&allglock)
@@ -1838,7 +1851,6 @@ func gcscan_m() {
 	work.nwait = 0
 	work.ndone = 0
 	work.nproc = 1 // For now do not do this in parallel.
-	gcphase = _GCscan
 	//	ackgcphase is not needed since we are not scanning running goroutines.
 	parforsetup(work.markfor, work.nproc, uint32(_RootCount+local_allglen), nil, false, markroot)
 	parfordo(work.markfor)
@@ -1848,12 +1860,11 @@ func gcscan_m() {
 	for i := uintptr(0); i < local_allglen; i++ {
 		gp := allgs[i]
 		if !gp.gcworkdone {
-			gothrow("scan missed a g")
+			throw("scan missed a g")
 		}
 	}
 	unlock(&allglock)
 
-	gcphase = oldphase
 	casgstatus(mastergp, _Gwaiting, _Grunning)
 	// Let the g that called us continue to run.
 }
@@ -1948,10 +1959,10 @@ func gc(start_time int64, eagersweep bool) {
 	scanblock(0, 0, nil)
 
 	if work.full != 0 {
-		gothrow("work.full != 0")
+		throw("work.full != 0")
 	}
 	if work.partial != 0 {
-		gothrow("work.partial != 0")
+		throw("work.partial != 0")
 	}
 
 	gcphase = oldphase
@@ -1990,7 +2001,7 @@ func gc(start_time int64, eagersweep bool) {
 		updatememstats(&stats)
 		if heap1 != memstats.heap_alloc {
 			print("runtime: mstats skew: heap=", heap1, "/", memstats.heap_alloc, "\n")
-			gothrow("mstats skew")
+			throw("mstats skew")
 		}
 		obj := memstats.nmalloc - memstats.nfree
 
@@ -2026,6 +2037,7 @@ func gc(start_time int64, eagersweep bool) {
 			return
 		}
 		checkmark = false // done checking marks
+		clearcheckmarkbits()
 	}
 
 	// Cache the current array for sweeping.
@@ -2087,7 +2099,7 @@ func readGCStats_m(pauses *[]uint64) {
 	p := *pauses
 	// Calling code in runtime/debug should make the slice large enough.
 	if cap(p) < len(memstats.pause_ns)+3 {
-		gothrow("runtime: short slice passed to readGCStats")
+		throw("runtime: short slice passed to readGCStats")
 	}
 
 	// Pass back: pauses, pause ends, last gc (absolute time), number of gc, total pause ns.
@@ -2131,10 +2143,10 @@ func gchelperstart() {
 	_g_ := getg()
 
 	if _g_.m.helpgc < 0 || _g_.m.helpgc >= _MaxGcproc {
-		gothrow("gchelperstart: bad m->helpgc")
+		throw("gchelperstart: bad m->helpgc")
 	}
 	if _g_ != _g_.m.g0 {
-		gothrow("gchelper not running on g0 stack")
+		throw("gchelper not running on g0 stack")
 	}
 }
 
@@ -2167,7 +2179,7 @@ func unrollgcprog1(maskp *byte, prog *byte, ppos *uintptr, inplace, sparse bool)
 	for {
 		switch *prog {
 		default:
-			gothrow("unrollgcprog: unknown instruction")
+			throw("unrollgcprog: unknown instruction")
 
 		case insData:
 			prog = addb(prog, 1)
@@ -2214,7 +2226,7 @@ func unrollgcprog1(maskp *byte, prog *byte, ppos *uintptr, inplace, sparse bool)
 				prog1 = unrollgcprog1(&mask[0], prog, &pos, inplace, sparse)
 			}
 			if *prog1 != insArrayEnd {
-				gothrow("unrollgcprog: array does not end with insArrayEnd")
+				throw("unrollgcprog: array does not end with insArrayEnd")
 			}
 			prog = (*byte)(add(unsafe.Pointer(prog1), 1))
 
@@ -2234,13 +2246,13 @@ func unrollglobgcprog(prog *byte, size uintptr) bitvector {
 	prog = unrollgcprog1(&mask[0], prog, &pos, false, false)
 	if pos != size/ptrSize*bitsPerPointer {
 		print("unrollglobgcprog: bad program size, got ", pos, ", expect ", size/ptrSize*bitsPerPointer, "\n")
-		gothrow("unrollglobgcprog: bad program size")
+		throw("unrollglobgcprog: bad program size")
 	}
 	if *prog != insEnd {
-		gothrow("unrollglobgcprog: program does not end with insEnd")
+		throw("unrollglobgcprog: program does not end with insEnd")
 	}
 	if mask[masksize] != 0xa1 {
-		gothrow("unrollglobgcprog: overflow")
+		throw("unrollglobgcprog: overflow")
 	}
 	return bitvector{int32(masksize * 8), &mask[0]}
 }
@@ -2280,7 +2292,7 @@ func unrollgcprog_m(typ *_type) {
 		prog := (*byte)(unsafe.Pointer(uintptr(typ.gc[1])))
 		prog = unrollgcprog1(mask, prog, &pos, false, true)
 		if *prog != insEnd {
-			gothrow("unrollgcprog: program does not end with insEnd")
+			throw("unrollgcprog: program does not end with insEnd")
 		}
 		if typ.size/ptrSize%2 != 0 {
 			// repeat the program
@@ -2299,13 +2311,13 @@ func unrollgcprog_m(typ *_type) {
 //go:nowritebarrier
 func markspan(v unsafe.Pointer, size uintptr, n uintptr, leftover bool) {
 	if uintptr(v)+size*n > mheap_.arena_used || uintptr(v) < mheap_.arena_start {
-		gothrow("markspan: bad pointer")
+		throw("markspan: bad pointer")
 	}
 
 	// Find bits of the beginning of the span.
 	off := (uintptr(v) - uintptr(mheap_.arena_start)) / ptrSize
 	if off%wordsPerBitmapByte != 0 {
-		gothrow("markspan: unaligned length")
+		throw("markspan: unaligned length")
 	}
 	b := mheap_.arena_start - off/wordsPerBitmapByte - 1
 
@@ -2317,14 +2329,14 @@ func markspan(v unsafe.Pointer, size uintptr, n uintptr, leftover bool) {
 		// Possible only on 64-bits (minimal size class is 8 bytes).
 		// Set memory to 0x11.
 		if (bitBoundary|bitsDead)<<gcBits|bitBoundary|bitsDead != 0x11 {
-			gothrow("markspan: bad bits")
+			throw("markspan: bad bits")
 		}
 		if n%(wordsPerBitmapByte*ptrSize) != 0 {
-			gothrow("markspan: unaligned length")
+			throw("markspan: unaligned length")
 		}
 		b = b - n/wordsPerBitmapByte + 1 // find first byte
 		if b%ptrSize != 0 {
-			gothrow("markspan: unaligned pointer")
+			throw("markspan: unaligned pointer")
 		}
 		for i := uintptr(0); i < n; i, b = i+wordsPerBitmapByte*ptrSize, b+ptrSize {
 			*(*uintptr)(unsafe.Pointer(b)) = uintptrMask & 0x1111111111111111 // bitBoundary | bitsDead, repeated
@@ -2345,18 +2357,18 @@ func markspan(v unsafe.Pointer, size uintptr, n uintptr, leftover bool) {
 //go:nowritebarrier
 func unmarkspan(v, n uintptr) {
 	if v+n > mheap_.arena_used || v < mheap_.arena_start {
-		gothrow("markspan: bad pointer")
+		throw("markspan: bad pointer")
 	}
 
 	off := (v - mheap_.arena_start) / ptrSize // word offset
 	if off%(ptrSize*wordsPerBitmapByte) != 0 {
-		gothrow("markspan: unaligned pointer")
+		throw("markspan: unaligned pointer")
 	}
 
 	b := mheap_.arena_start - off/wordsPerBitmapByte - 1
 	n /= ptrSize
 	if n%(ptrSize*wordsPerBitmapByte) != 0 {
-		gothrow("unmarkspan: unaligned length")
+		throw("unmarkspan: unaligned length")
 	}
 
 	// Okay to use non-atomic ops here, because we control

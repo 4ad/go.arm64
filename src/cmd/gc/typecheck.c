@@ -644,6 +644,13 @@ reswitch:
 				n->left = l;
 				n->right = r;
 			}
+		} else if(n->op == OANDAND || n->op == OOROR) {
+			if(l->type == r->type)
+				t = l->type;
+			else if(l->type == idealbool)
+				t = r->type;
+			else if(r->type == idealbool)
+				t = l->type;
 		// non-comparison operators on ideal bools should make them lose their ideal-ness
 		} else if(t == idealbool)
 			t = types[TBOOL];
@@ -1226,6 +1233,10 @@ reswitch:
 		ok |= Erv;
 		if(count(n->list) == 1) {
 			typechecklist(n->list, Efnstruct);
+			if(n->list->n->op != OCALLFUNC && n->list->n->op != OCALLMETH) {
+				yyerror("invalid operation: complex expects two arguments");
+				goto error;
+			}
 			t = n->list->n->left->type;
 			if(t->outtuple != 2) {
 				yyerror("invalid operation: complex expects two arguments, %N returns %d results", n->list->n, t->outtuple);
@@ -1438,7 +1449,7 @@ reswitch:
 		}
 		switch(n->op) {
 		case OCONVNOP:
-			if(n->left->op == OLITERAL) {
+			if(n->left->op == OLITERAL && n->type != types[TBOOL]) {
 				r = nod(OXXX, N, N);
 				n->op = OCONV;
 				n->orig = r;
@@ -2530,7 +2541,7 @@ pushtype(Node *n, Type *t)
 	else if(debug['s']) {
 		typecheck(&n->right, Etype);
 		if(n->right->type != T && eqtype(n->right->type, t))
-			print("%lL: redundant type: %T\n", n->lineno, t);
+			print("%L: redundant type: %T\n", n->lineno, t);
 	}
 }
 
@@ -2775,6 +2786,7 @@ islvalue(Node *n)
 	case OIND:
 	case ODOTPTR:
 	case OCLOSUREVAR:
+	case OPARAM:
 		return 1;
 	case ODOT:
 		return islvalue(n->left);
@@ -2958,14 +2970,6 @@ typecheckas2(Node *n)
 
 	l = n->list->n;
 	r = n->rlist->n;
-
-	// m[i] = x, ok
-	if(cl == 1 && cr == 2 && l->op == OINDEXMAP) {
-		if(l->type == T)
-			goto out;
-		yyerror("assignment count mismatch: %d = %d (use delete)", cl, cr);
-		goto out;
-	}
 
 	// x,y,z = f()
 	if(cr == 1) {
