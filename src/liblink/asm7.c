@@ -3226,6 +3226,7 @@ opbra(Link *ctxt, int a)
 		return OPBcc(0xc);
 	case ABLE:
 		return OPBcc(0xd); /* imm19<<5 | cond */
+	case ADUFFZERO:
 	case AB:
 		return 0 << 31 | 5 << 26; /* imm26 */
 	case ABL:
