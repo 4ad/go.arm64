@@ -126,7 +126,7 @@ func f32hash(p unsafe.Pointer, s, h uintptr) uintptr {
 }
 
 func f64zero(p unsafe.Pointer) bool {
-        return *(*uintptr)(p) & 0x7fffffffffffffff == 0
+        return *(*uint64)(p) & 0x7fffffffffffffff == 0
 }
 
 func f64nan(p unsafe.Pointer) bool {
