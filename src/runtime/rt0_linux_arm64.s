@@ -4,7 +4,7 @@
 
 #include "textflag.h"
 
-TEXT _rt0_arm64_linux(SB),NOSPLIT,$-8
+TEXT _rt0_arm64_linux(SB),NOSPLIT,$0-0
 	// reference the dummy symbols so that they end up in the binary.
 	MOVW	$dummydata(SB), R11
 	MOVW	$dummyrodata(SB), R11
@@ -13,11 +13,16 @@ TEXT _rt0_arm64_linux(SB),NOSPLIT,$-8
 	MOVW	$dummynoptrbss(SB), R11
 	MOV	0(SP), R0	// argc
 	MOV	$8(SP), R1	// argv
-	B	main(SB)
+	BL	main(SB)
 
-TEXT main(SB),NOSPLIT,$-8
+TEXT main(SB),NOSPLIT,$0-0
 	MOV	$runtime·rt0_go(SB), R2
-	B	(R2)
+	BL	(R2)
+exit:
+	MOV $0, R0
+	MOV	$94, R8	// sys_exit
+	SVC
+	B	exit
 
 // Linker has a bug, and we need non-zero length symbols in
 // these sections.

@@ -7,7 +7,6 @@
 #include "funcdata.h"
 #include "textflag.h"
 
-TEXT runtime·rt0_go(SB),NOSPLIT,$0
-	MOV	$42, R4
-	MOV R4, (R4)	// crash
-	RET
+TEXT runtime·rt0_go(SB),NOSPLIT,$0-0
+	BL	main·main(SB)
+	RETURN
