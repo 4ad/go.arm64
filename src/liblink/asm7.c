@@ -702,11 +702,6 @@ span7(Link *ctxt, LSym *cursym)
 			*(int32*)bp = 0;
 			bp += 4;
 			psz += 4;
-			cursym->size += 4;
-			if (cursym->size >= cursym->maxp) {
-				symgrow(ctxt, cursym, cursym->size);
-				bp = cursym->p;
-			}
 		}
 		if(o->size > 4*nelem(out))
 			sysfatal("out array in span7 is too small, need at least %d for %P", o->size/4, p);
