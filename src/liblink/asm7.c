@@ -698,7 +698,7 @@ span7(Link *ctxt, LSym *cursym)
 		o = oplook(ctxt, p);
 		// need to align DWORDs on 8-byte boundary. The ISA doesn't
 		// require it, but the various 64-bit loads we generate assume it.
-		if(o->size == 8 && psz % 8 != 0) {
+		if(o->as == ADWORD && psz % 8 != 0) {
 			*(int32*)bp = 0;
 			bp += 4;
 			psz += 4;
