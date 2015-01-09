@@ -55,21 +55,20 @@ static ProgInfo progtable[ALAST] = {
 	[AASR]=	{SizeQ | LeftRead | RegRead | RightWrite},
 	[ACMP]=		{SizeQ | LeftRead | RightRead},
 
-#if HAVEFLOAT	// TODO(aram)
 	// Floating point.
-	[AFADD]=	{SizeD | LeftRead | RegRead | RightWrite},
+	[AFADDD]=	{SizeD | LeftRead | RegRead | RightWrite},
 	[AFADDS]=	{SizeF | LeftRead | RegRead | RightWrite},
-	[AFSUB]=	{SizeD | LeftRead | RegRead | RightWrite},
+	[AFSUBD]=	{SizeD | LeftRead | RegRead | RightWrite},
 	[AFSUBS]=	{SizeF | LeftRead | RegRead | RightWrite},
-	[AFMUL]=	{SizeD | LeftRead | RegRead | RightWrite},
+	[AFMULD]=	{SizeD | LeftRead | RegRead | RightWrite},
 	[AFMULS]=	{SizeF | LeftRead | RegRead | RightWrite},
-	[AFDIV]=	{SizeD | LeftRead | RegRead | RightWrite},
+	[AFDIVD]=	{SizeD | LeftRead | RegRead | RightWrite},
 	[AFDIVS]=	{SizeF | LeftRead | RegRead | RightWrite},
-	[AFCTIDZ]=	{SizeF | LeftRead | RegRead | RightWrite},
-	[AFCFID]=	{SizeF | LeftRead | RegRead | RightWrite},
-	[AFCMPU]=	{SizeD | LeftRead | RightRead},
-	[AFRSP]=	{SizeD | LeftRead | RightWrite | Conv},
-#endif // HAVEFLOAT
+	[AFCVTZSS]=	{SizeF | LeftRead | RegRead | RightWrite},
+	[ASCVTFS]=	{SizeF | LeftRead | RegRead | RightWrite},
+	[AFCMPD]=	{SizeD | LeftRead | RightRead},
+	[AFCVTSD]=	{SizeD | LeftRead | RightWrite | Conv},
+	[AFCVTDS]=	{SizeD | LeftRead | RightWrite | Conv},
 
 	// Moves
 	// TODO(aram): remove duplicates here.
