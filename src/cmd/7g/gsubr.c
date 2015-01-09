@@ -833,8 +833,6 @@ gmove(Node *f, Node *t)
 		a = AMOVWU;
 		goto rdst;
 
-#if HAVEFLOAT	// TODO(aram)
-
 	/*
 	* float to integer
 	*/
@@ -865,15 +863,15 @@ gmove(Node *f, Node *t)
 		if(tt == TUINT64) {
 			regalloc(&r2, types[TFLOAT64], N);
 			gmove(&bigf, &r2);
-			gins(AFCMPU, &r1, &r2);
+			gins(AFCMPD, &r1, &r2);
 			p1 = gbranch(optoas(OLT, types[TFLOAT64]), T, +1);
-			gins(AFSUB, &r2, &r1);
+			gins(AFSUBD, &r2, &r1);
 			patch(p1, pc);
 			regfree(&r2);
 		}
 		regalloc(&r2, types[TFLOAT64], N);
 		regalloc(&r3, types[TINT64], t);
-		gins(AFCTIDZ, &r1, &r2);
+		gins(AFCVTZSD, &r1, &r2);
 		p1 = gins(AFMOVD, &r2, N);
 		p1->to.type = D_OREG;
 		p1->to.reg = REGSP;
@@ -925,9 +923,9 @@ gmove(Node *f, Node *t)
 		if(ft == TUINT64) {
 			nodreg(&r2, types[TUINT64], D_R0+REGTMP);
 			gmove(&bigi, &r2);
-			gins(ACMPU, &r1, &r2);
+			gins(AFCMPD, &r1, &r2);
 			p1 = gbranch(optoas(OLT, types[TUINT64]), T, +1);
-			p2 = gins(ASRD, N, &r1);
+			p2 = gins(ALSR, N, &r1);
 			p2->from.type = D_CONST;
 			p2->from.offset = 1;
 			patch(p1, pc);
@@ -941,12 +939,12 @@ gmove(Node *f, Node *t)
 		p1->from.type = D_OREG;
 		p1->from.reg = REGSP;
 		p1->from.offset = -8;
-		gins(AFCFID, &r2, &r2);
+		gins(ASCVTFS, &r2, &r2);
 		regfree(&r1);
 		if(ft == TUINT64) {
 			p1 = gbranch(optoas(OLT, types[TUINT64]), T, +1); // use CR0 here again
 			nodreg(&r1, types[TFLOAT64], D_F0+FREGTWO);
-			gins(AFMUL, &r1, &r2);
+			gins(AFMULD, &r1, &r2);
 			patch(p1, pc);
 		}
 		gmove(&r2, t);
@@ -965,13 +963,12 @@ gmove(Node *f, Node *t)
 		break;
 
 	case CASE(TFLOAT32, TFLOAT64):
-		a = AFMOVS;
+		a = AFCVTSD;
 		goto rdst;
 
 	case CASE(TFLOAT64, TFLOAT32):
-		a = AFRSP;
+		a = AFCVTDS;
 		goto rdst;
-#endif // HAVEFLOAT
 	}
 
 	gins(a, f, t);
