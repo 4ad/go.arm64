@@ -5,6 +5,7 @@
 #define	NSNAME		8
 #define	NSYM		50
 #define	NREG		32
+#define	NFREG		32
 #include "../ld/textflag.h"
 
 /*c2go
@@ -27,20 +28,28 @@ enum {
 	REGG	= 29,	/* G */
 	REGLINK	= 30,
 	REGSP	= 31,
-	REGZERO	= 31
+	REGZERO	= 31,
+
+	FREGRET		= 0,
+	FREGMIN		= 7,	/* first register variable */
+	FREGMAX		= 26,	/* last register variable for 7g only */
+	FREGEXT		= 26,	/* first external register */
+	FREGCVI		= 27,	/* floating conversion constant */
+	FREGZERO	= 28,	/* both float and double */
+	FREGHALF	= 29,	/* double */
+	FREGONE		= 30,	/* double */
+	FREGTWO		= 31	/* double */
 /*
  * GENERAL:
  *
  * compiler allocates R4 up as temps
  * compiler allocates register variables R7-R27
  * compiler allocates external registers R29 down
+ *
+ * compiler allocates register variables F7-F26
+ * compiler allocates external registers F26 down
  */
 };
-
-#define	NFREG		32
-#define	FREGRET		0
-#define	FREGMIN		7
-#define	FREGEXT		15
 
 /* compiler allocates register variables F0 up */
 /* compiler allocates external registers F15 down */

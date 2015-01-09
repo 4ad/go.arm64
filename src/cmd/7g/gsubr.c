@@ -266,13 +266,11 @@ static	int	resvd[] =
 	REGSP,
 	REGZERO,
 
-#if HAVEFLOAT	// TODO(aram): enable
 	FREGCVI+NREG,
 	FREGZERO+NREG,
 	FREGHALF+NREG,
 	FREGONE+NREG,
 	FREGTWO+NREG,
-#endif
 };
 
 void
