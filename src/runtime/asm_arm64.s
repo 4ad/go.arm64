@@ -21,3 +21,25 @@ notneg:
 	MOVW	R0, m_fastrand(R1)
 	MOVW	R0, ret+0(FP)
 	RETURN
+
+TEXT runtime·memeq(SB),NOSPLIT,$-8-25
+	MOV	a+0(FP), R1
+	MOV	b+8(FP), R2
+	MOV	size+16(FP), R3
+	ADD	R1, R3, R6
+	MOV	$1, R0
+	MOV	R0, ret+24(FP)
+loop:
+	CMP	R1, R6
+	BEQ	done
+	MOVB	(R1), R4
+	ADD 	$1, R1	// no idea how to do post indexed increments
+	MOVB	(R2), R5
+	ADD	$1, R2 	// ditto
+	CMP	R4, R5
+	BEQ	loop
+
+	MOVW	$0, R0
+	MOVB	R0, ret+24(FP)
+done:
+	RETURN
