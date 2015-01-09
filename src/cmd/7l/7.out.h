@@ -609,15 +609,3 @@ enum
  */
 #define	SYMDEF	"__.GOSYMDEF"
 /*c2go extern char SYMDEF[]; */
-
-/*
- * this is the simulated IEEE floating point
- */
-typedef	struct	Ieee	Ieee;
-struct	Ieee
-{
-	int32	l;	/* contains ls-man	0xffffffff */
-	int32	h;	/* contains sign	0x80000000
-				    exp		0x7ff00000
-				    ms-man	0x000fffff */
-};

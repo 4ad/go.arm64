@@ -491,6 +491,8 @@ static Optab optab[] = {
 
 	{ AFMOVS,	C_FREG,	C_NONE,	C_ADDR,		64, 8, 0,	LTO },
 	{ AFMOVS,	C_ADDR,	C_NONE,	C_FREG,		65, 8, 0,	LFROM },
+	{ AFMOVD,	C_FREG,	C_NONE,	C_ADDR,		64, 8, 0,	LTO },
+	{ AFMOVD,	C_ADDR,	C_NONE,	C_FREG,		65, 8, 0,	LFROM },
 
 	{ AFADDS,		C_FREG,	C_NONE,	C_FREG,		54, 4, 0 },
 	{ AFADDS,		C_FREG,	C_REG,	C_FREG,		54, 4, 0 },
