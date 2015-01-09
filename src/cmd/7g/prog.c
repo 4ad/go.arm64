@@ -67,6 +67,7 @@ static ProgInfo progtable[ALAST] = {
 	[AFCVTZSS]=	{SizeF | LeftRead | RegRead | RightWrite},
 	[ASCVTFS]=	{SizeF | LeftRead | RegRead | RightWrite},
 	[AFCMPD]=	{SizeD | LeftRead | RightRead},
+	[AFCMPS]=	{SizeF | LeftRead | RightRead},
 	[AFCVTSD]=	{SizeD | LeftRead | RightWrite | Conv},
 	[AFCVTDS]=	{SizeD | LeftRead | RightWrite | Conv},
 

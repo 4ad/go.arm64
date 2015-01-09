@@ -1431,12 +1431,13 @@ optoas(int op, Type *t)
 		a = ACMP;
 		break;
 
-#if HAVEFLOAT	// TODO(aram)
 	case CASE(OCMP, TFLOAT32):
-	case CASE(OCMP, TFLOAT64):
-		a = AFCMPU;
+		a = AFCMPS;
 		break;
-#endif // HAVEFLOAT
+
+	case CASE(OCMP, TFLOAT64):
+		a = AFCMPD;
+		break;
 
 	case CASE(OAS, TBOOL):
 	case CASE(OAS, TINT8):
@@ -1490,16 +1491,14 @@ optoas(int op, Type *t)
 	case CASE(OADD, TPTR64):
 		a = AADD;
 		break;
-#if HAVEFLOAT	// TODO(aram)
 
 	case CASE(OADD, TFLOAT32):
 		a = AFADDS;
 		break;
 
 	case CASE(OADD, TFLOAT64):
-		a = AFADD;
+		a = AFADDD;
 		break;
-#endif // HAVEFLOAT
 
 	case CASE(OSUB, TINT8):
 	case CASE(OSUB, TUINT8):
@@ -1514,15 +1513,13 @@ optoas(int op, Type *t)
 		a = ASUB;
 		break;
 
-#if HAVEFLOAT	// TODO(aram)
 	case CASE(OSUB, TFLOAT32):
 		a = AFSUBS;
 		break;
 
 	case CASE(OSUB, TFLOAT64):
-		a = AFSUB;
+		a = AFSUBD;
 		break;
-#endif // HAVEFLOAT
 
 	case CASE(OMINUS, TINT8):
 	case CASE(OMINUS, TUINT8):
@@ -1657,15 +1654,13 @@ optoas(int op, Type *t)
 		a = AUMULL; // for 64-bit multiplies, signedness doesn't matter.
 		break;
 
-#if HAVEFLOAT	// TODO(aram)
 	case CASE(OMUL, TFLOAT32):
 		a = AFMULS;
 		break;
 
 	case CASE(OMUL, TFLOAT64):
-		a = AFMUL;
+		a = AFMULD;
 		break;
-#endif // HAVEFLOAT
 
 	case CASE(ODIV, TINT8):
 	case CASE(ODIV, TINT16):
@@ -1683,16 +1678,13 @@ optoas(int op, Type *t)
 		a = AUDIV;
 		break;
 
-#if HAVEFLOAT	// TODO(aram)
 	case CASE(ODIV, TFLOAT32):
 		a = AFDIVS;
 		break;
 
 	case CASE(ODIV, TFLOAT64):
-		a = AFDIV;
+		a = AFDIVD;
 		break;
-#endif // HAVEFLOAT
-
 	}
 	return a;
 }
