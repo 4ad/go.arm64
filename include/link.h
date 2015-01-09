@@ -238,7 +238,6 @@ enum
 enum
 {
 	R_ADDR = 1,
-	R_ADDRARM64, // TODO(aram)
 	R_ADDRPOWER, // relocation for loading 31-bit address using addis and addi/ld/st for Power
 	R_SIZE,
 	R_CALL, // relocation for direct PC-relative call

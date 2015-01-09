@@ -142,10 +142,6 @@ archreloc(Reloc *r, LSym *s, vlong *val)
 	case R_CALLARM64: // bl XXXXXX or b YYYYYY
 		*val = (0xfc000000u & (uint32)r->add) | (uint32)((symaddr(r->sym) + ((uint32)r->add) * 4 - (s->value + r->off)) / 4);
 		return 0;
-	case R_ADDRARM64:
-		// TODO(aram): FIXME
-		diag("archreloc: R_ADDRARM64 FIXME");
-		return -1;
 	}
 	return -1;
 }

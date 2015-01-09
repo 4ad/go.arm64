@@ -89,7 +89,6 @@ static int32 opextr(Link*, int, int32, int, int, int);
 static int movesize(int);
 static void prasm(Prog*);
 static Mask* findmask(uvlong v);
-static void addaddrreloc(Link*, LSym*, int*, int*);
 
 #define	S32	(0U<<31)
 #define	S64	(1U<<31)
@@ -1719,21 +1718,6 @@ no:
 	return -1;
 }
 
-
-// add R_ADDRARM64 relocation to symbol s for the two instructions o1 and o2.
-static void
-addaddrreloc(Link *ctxt, LSym *s, int *o1, int *o2)
-{
-	Reloc *rel;
-
-	rel = addrel(ctxt->cursym);
-	rel->off = ctxt->pc;
-	rel->siz = 8;
-	rel->sym = s;
-	rel->add = ((uvlong)*o1<<32) | (uint32)*o2;
-	rel->type = R_ADDRARM64;
-}
-
 void
 asmout(Link *ctxt, Prog *p, Optab *o, int32 *out)
 {
@@ -2539,14 +2523,12 @@ asmout(Link *ctxt, Prog *p, Optab *o, int32 *out)
 		if(!o1)
 			break;
 		o2 = olsr12u(ctxt, opstr12(ctxt,p->as), 0, REGTMP, p->from.reg);
-		addaddrreloc(ctxt, p->from.sym, &o1, &o2);
 		break;
 	case 65: /* movT addr,R */
 		o1 = omovlit(ctxt, AMOV, p, &p->from, REGTMP);
 		if(!o1)
 			break;
 		o2 = olsr12u(ctxt, opldr12(ctxt, p->as), 0, REGTMP, p->to.reg);
-		addaddrreloc(ctxt, p->from.sym, &o1, &o2);
 		break;
 	case 90:
 		// This is supposed to be something that stops execution.
