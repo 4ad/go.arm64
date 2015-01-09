@@ -613,6 +613,7 @@ enum
 /*
  * this is the simulated IEEE floating point
  */
+typedef	struct	Ieee	Ieee;
 struct	Ieee
 {
 	int32	l;	/* contains ls-man	0xffffffff */

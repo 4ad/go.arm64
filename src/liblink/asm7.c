@@ -61,7 +61,7 @@ static Optab *oplook(Link*, Prog*);
 static int cmp(int, int);
 static int ocmp(const void*, const void*);
 void buildop(Link*);
-//int chipfloat7(Ieee*);	TODO(fix Ieee)
+int chipfloat7(Link*, float64);
 void asmout(Link*, Prog*, Optab*, int32 *);
 static int32 oprrr(Link*, int);
 static int32 opirr(Link*, int);
@@ -1678,21 +1678,45 @@ buildop(Link *ctxt)
 	}
 }
 
-// TODO(aram): re-enable floating point.
-#if 0
 int
-chipfloat7(Ieee *e)
+chipfloat7(Link *ctxt, float64 e)
 {
-	Ieee *p;
 	int n;
-	for(n = sizeof ((chipfloats)) / sizeof ((chipfloats[0])); --n >= 0;) {
-		p = &chipfloats[n];
-		if(p->l == e->l && p->h == e->h && 0)
-			return n; /* TO DO: return imm8 encoding */
-	}
+	ulong h1;
+	int32 l, h;
+	uint64 ei;
+
+	USED(ctxt);
+
+	memmove(&ei, &e, 8);
+	l = (int32)ei;
+	h = (int32)(ei>>32);
+
+	if(l != 0 || (h&0xffff) != 0)
+		goto no;
+	h1 = h & 0x7fc00000;
+	if(h1 != 0x40000000 && h1 != 0x3fc00000)
+		goto no;
+	n = 0;
+
+	// sign bit (a)
+	if(h & 0x80000000)
+		n |= 1<<7;
+
+	// exp sign bit (b)
+	if(h1 == 0x3fc00000)
+		n |= 1<<6;
+
+	// rest of exp and mantissa (cd-efgh)
+	n |= (h >> 16) & 0x3f;
+
+//print("match %.8lux %.8lux %d\n", l, h, n);
+	return n;
+
+no:
 	return -1;
 }
-#endif
+
 
 // add R_ADDRARM64 relocation to symbol s for the two instructions o1 and o2.
 static void
@@ -2419,13 +2443,10 @@ asmout(Link *ctxt, Prog *p, Optab *o, int32 *out)
 			ctxt->diag("invalid mask %#llux\n%P", p->from.offset, p); /* probably shouldn't happen */
 		o1 |= ((r << 5)) | rt;
 		break;
-
-// TODO(aram): re-enable floating point.
-#if 0
 	case 54: /* floating point arith */
 		o1 = oprrr(ctxt, p->as);
 		if(p->from.type == D_FCONST) {
-			rf = chipfloat7(p->from.u.ieee);
+			rf = chipfloat7(ctxt, p->from.u.dval);
 			if(rf < 0 || 1) {
 				ctxt->diag("invalid floating-point immediate\n%P", p);
 				rf = 0;
@@ -2446,8 +2467,6 @@ asmout(Link *ctxt, Prog *p, Optab *o, int32 *out)
 	case 56: /* floating point compare */
 		o1 = oprrr(ctxt, p->as);
 		if(p->from.type == D_FCONST) {
-			if(p->from.u.ieee->h != 0 || p->from.u.ieee->l != 0)
-				ctxt->diag("invalid floating-point immediate\n%P", p);
 			o1 |= 8; /* zero */
 			rf = 0;
 		} else
@@ -2467,8 +2486,6 @@ asmout(Link *ctxt, Prog *p, Optab *o, int32 *out)
 		rt = p->from3.reg;
 		o1 |= rf << 16 | cond << 12 | rt << 5 | nzcv;
 		break;
-
-#endif
 	case 58: /* ldxr */
 		o1 = opload(ctxt, p->as);
 		o1 |= 0x1F << 16;

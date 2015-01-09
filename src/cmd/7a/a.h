@@ -17,7 +17,6 @@
 #define	ungetc	ccungetc
 
 typedef	struct	Sym	Sym;
-typedef	struct	Ieee	Ieee;
 typedef	struct	Io	Io;
 
 #define	MAXALIGN	7
