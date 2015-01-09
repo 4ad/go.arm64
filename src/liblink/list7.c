@@ -96,7 +96,7 @@ Pconv(Fmt *fp)
 				s += sprint(s, ",R%d", p->reg);
 			sprint(s, ",%D", &p->to);
 		} else
-			sprint(s, "%.5lld (%L)	%A	%D,F%d,%D", a, &p->from, p->reg, &p->to);
+			sprint(s, "%.5lld (%L)	%A	%D,F%d,%D", p->pc, p->lineno, a, &p->from, p->reg, &p->to);
 		break;
 	case ATEXT:
 		if(p->reg != 0)
