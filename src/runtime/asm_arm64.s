@@ -32,10 +32,8 @@ TEXT runtime·memeq(SB),NOSPLIT,$-8-25
 loop:
 	CMP	R1, R6
 	BEQ	done
-	MOVB	(R1), R4
-	ADD 	$1, R1	// no idea how to do post indexed increments
-	MOVB	(R2), R5
-	ADD	$1, R2 	// ditto
+	MOVB	(R1)1!, R4
+	MOVB	(R2)1!, R5
 	CMP	R4, R5
 	BEQ	loop
 
