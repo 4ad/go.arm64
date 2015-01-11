@@ -246,6 +246,12 @@ cgen(Node *n, Node *res)
 		goto ret;
 
 	case OMINUS:
+		if(isfloat[nl->type->etype]) {
+			nr = nodintconst(-1);
+			convlit(&nr, n->type);
+			a = optoas(OMUL, nl->type);
+			goto sbop;
+		}
 		regalloc(&n1, nl->type, N);
 		cgen(nl, &n1);
 		nodconst(&n2, nl->type, 0);
