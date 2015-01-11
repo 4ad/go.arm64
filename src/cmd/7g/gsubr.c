@@ -1531,6 +1531,14 @@ optoas(int op, Type *t)
 		a = ANEG;
 		break;
 
+	case CASE(OMINUS, TFLOAT32):
+		a = AFNEGS;
+		break;
+
+	case CASE(OMINUS, TFLOAT64):
+		a = AFNEGD;
+		break;
+
 	case CASE(OAND, TINT8):
 	case CASE(OAND, TUINT8):
 	case CASE(OAND, TINT16):
