@@ -186,7 +186,7 @@ extern int yydebug;
 typedef union YYSTYPE YYSTYPE;
 union YYSTYPE
 {
-#line 9 "a.y" /* yacc.c:1915  */
+#line 9 "a.y" /* yacc.c:1909  */
 
 	Sym	*sym;
 	vlong	lval;
@@ -194,7 +194,7 @@ union YYSTYPE
 	char	sval[NSNAME];
 	Addr	addr;
 
-#line 198 "y.tab.h" /* yacc.c:1915  */
+#line 198 "y.tab.h" /* yacc.c:1909  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1

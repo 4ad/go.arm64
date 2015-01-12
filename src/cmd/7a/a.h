@@ -107,6 +107,7 @@ void	newio(void);
 void	newfile(char*, int);
 Sym*	slookup(char*);
 Sym*	lookup(void);
+Sym*	labellookup(Sym*);
 void	settext(LSym*);
 void	syminit(Sym*);
 int32	yylex(void);
