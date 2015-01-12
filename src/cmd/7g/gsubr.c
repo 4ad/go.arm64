@@ -606,31 +606,6 @@ ismem(Node *n)
 }
 
 /*
- * set up nodes representing 2^63
- */
-Node bigi;
-Node bigf;
-
-void
-bignodes(void)
-{
-	static int did;
-
-	if(did)
-		return;
-	did = 1;
-
-	nodconst(&bigi, types[TUINT64], 1);
-	mpshiftfix(bigi.val.u.xval, 63);
-
-	bigf = bigi;
-	bigf.type = types[TFLOAT64];
-	bigf.val.ctype = CTFLT;
-	bigf.val.u.fval = mal(sizeof *bigf.val.u.fval);
-	mpmovefixflt(bigf.val.u.fval, bigi.val.u.xval);
-}
-
-/*
  * generate move:
  *	t = f
  * hard part is conversions.
@@ -837,122 +812,99 @@ gmove(Node *f, Node *t)
 	* float to integer
 	*/
 	case CASE(TFLOAT32, TINT32):
+		a = AFCVTZSSW;
+		goto rdst;
+
 	case CASE(TFLOAT64, TINT32):
+		a = AFCVTZSDW;
+		goto rdst;
+
 	case CASE(TFLOAT32, TINT64):
+		a = AFCVTZSS;
+		goto rdst;
+
 	case CASE(TFLOAT64, TINT64):
+		a = AFCVTZSD;
+		goto rdst;
+
+	case CASE(TFLOAT32, TUINT32):
+		a = AFCVTZUSW;
+		goto rdst;
+
+	case CASE(TFLOAT64, TUINT32):
+		a = AFCVTZUDW;
+		goto rdst;
+
+	case CASE(TFLOAT32, TUINT64):
+		a = AFCVTZUS;
+		goto rdst;
+
+	case CASE(TFLOAT64, TUINT64):
+		a = AFCVTZUD;
+		goto rdst;
+
 	case CASE(TFLOAT32, TINT16):
 	case CASE(TFLOAT32, TINT8):
-	case CASE(TFLOAT32, TUINT16):
-	case CASE(TFLOAT32, TUINT8):
 	case CASE(TFLOAT64, TINT16):
 	case CASE(TFLOAT64, TINT8):
+		cvt = types[TINT32];
+		goto hard;
+
+	case CASE(TFLOAT32, TUINT16):
+	case CASE(TFLOAT32, TUINT8):
 	case CASE(TFLOAT64, TUINT16):
 	case CASE(TFLOAT64, TUINT8):
-	case CASE(TFLOAT32, TUINT32):
-	case CASE(TFLOAT64, TUINT32):
-	case CASE(TFLOAT32, TUINT64):
-	case CASE(TFLOAT64, TUINT64):
-		//warn("gmove: convert float to int not implemented: %N -> %N\n", f, t);
-		//return;
-		// algorithm is:
-		//	if small enough, use native float64 -> int64 conversion.
-		//	otherwise, subtract 2^63, convert, and add it back.
-		bignodes();
-		regalloc(&r1, types[ft], f);
-		gmove(f, &r1);
-		if(tt == TUINT64) {
-			regalloc(&r2, types[TFLOAT64], N);
-			gmove(&bigf, &r2);
-			gins(AFCMPD, &r1, &r2);
-			p1 = gbranch(optoas(OLT, types[TFLOAT64]), T, +1);
-			gins(AFSUBD, &r2, &r1);
-			patch(p1, pc);
-			regfree(&r2);
-		}
-		regalloc(&r2, types[TFLOAT64], N);
-		regalloc(&r3, types[TINT64], t);
-		gins(AFCVTZSD, &r1, &r2);
-		p1 = gins(AFMOVD, &r2, N);
-		p1->to.type = D_OREG;
-		p1->to.reg = REGSP;
-		p1->to.offset = -8;
-		p1 = gins(AMOV, N, &r3);
-		p1->from.type = D_OREG;
-		p1->from.reg = REGSP;
-		p1->from.offset = -8;
-		regfree(&r2);
-		regfree(&r1);
-		if(tt == TUINT64) {
-			p1 = gbranch(optoas(OLT, types[TFLOAT64]), T, +1); // use CR0 here again
-			nodreg(&r1, types[TINT64], D_R0+REGTMP);
-			gins(AMOV, &bigi, &r1);
-			gins(AADD, &r1, &r3);
-			patch(p1, pc);
-		}
-		gmove(&r3, t);
-		regfree(&r3);
-		return;
+		cvt = types[TUINT32];
+		goto hard;
 
 	/*
 	 * integer to float
 	 */
+	case CASE(TINT32, TFLOAT32):
+		a = ASCVTFWS;
+		goto rdst;
+
+	case CASE(TINT32, TFLOAT64):
+		a = ASCVTFWD;
+		goto rdst;
+
+	case CASE(TINT64, TFLOAT32):
+		a = ASCVTFS;
+		goto rdst;
+
 	case CASE(TINT64, TFLOAT64):
 		a = ASCVTFD;
-		break;
+		goto rdst;
 
-	case CASE(TINT32, TFLOAT32):
-	case CASE(TINT32, TFLOAT64):
-	case CASE(TINT64, TFLOAT32):
+	case CASE(TUINT32, TFLOAT32):
+		a = AUCVTFWS;
+		goto rdst;
+
+	case CASE(TUINT32, TFLOAT64):
+		a = AUCVTFWD;
+		goto rdst;
+
+	case CASE(TUINT64, TFLOAT32):
+		a = AUCVTFS;
+		goto rdst;
+
+	case CASE(TUINT64, TFLOAT64):
+		a = AUCVTFD;
+		goto rdst;
+
 	case CASE(TINT16, TFLOAT32):
 	case CASE(TINT16, TFLOAT64):
 	case CASE(TINT8, TFLOAT32):
 	case CASE(TINT8, TFLOAT64):
+		cvt = types[TINT32];
+		goto hard;
+
 	case CASE(TUINT16, TFLOAT32):
 	case CASE(TUINT16, TFLOAT64):
 	case CASE(TUINT8, TFLOAT32):
 	case CASE(TUINT8, TFLOAT64):
-	case CASE(TUINT32, TFLOAT32):
-	case CASE(TUINT32, TFLOAT64):
-	case CASE(TUINT64, TFLOAT32):
-	case CASE(TUINT64, TFLOAT64):
-		//warn("gmove: convert int to float not implemented: %N -> %N\n", f, t);
-		//return;
-		// algorithm is:
-		//	if small enough, use native int64 -> uint64 conversion.
-		//	otherwise, halve (rounding to odd?), convert, and double.
-		bignodes();
-		regalloc(&r1, types[TINT64], N);
-		gmove(f, &r1);
-		if(ft == TUINT64) {
-			nodreg(&r2, types[TUINT64], D_R0+REGTMP);
-			gmove(&bigi, &r2);
-			gins(AFCMPD, &r1, &r2);
-			p1 = gbranch(optoas(OLT, types[TUINT64]), T, +1);
-			p2 = gins(ALSR, N, &r1);
-			p2->from.type = D_CONST;
-			p2->from.offset = 1;
-			patch(p1, pc);
-		}
-		regalloc(&r2, types[TFLOAT64], t);
-		p1 = gins(AMOV, &r1, N);
-		p1->to.type = D_OREG;
-		p1->to.reg = REGSP;
-		p1->to.offset = -8;
-		p1 = gins(AFMOVD, N, &r2);
-		p1->from.type = D_OREG;
-		p1->from.reg = REGSP;
-		p1->from.offset = -8;
-		gins(ASCVTFS, &r2, &r2);
-		regfree(&r1);
-		if(ft == TUINT64) {
-			p1 = gbranch(optoas(OLT, types[TUINT64]), T, +1); // use CR0 here again
-			nodreg(&r1, types[TFLOAT64], D_F0+FREGTWO);
-			gins(AFMULD, &r1, &r2);
-			patch(p1, pc);
-		}
-		gmove(&r2, t);
-		regfree(&r2);
-		return;
+		cvt = types[TUINT32];
+		goto hard;
 
 	/*
 	 * float to float
