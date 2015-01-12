@@ -2,45 +2,44 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// System calls and other sys.stuff for linux/arm64
-// calling convention is documented as X0..X7, 64bit arguments, X8 syscall nr
-// http://code.metager.de/source/xref/lib/eglibc/libc/ports/sysdeps/unix/sysv/linux/aarch64/syscall.S
+//
+// System calls and other sys.stuff for arm64, Linux
+//
 
 #include "go_asm.h"
 #include "go_tls.h"
 #include "textflag.h"
 
-#define SYS_exit		  1
-#define SYS_read		  3
-#define SYS_write		  4
-#define SYS_open		  5
-#define SYS_close		  6
-#define SYS_fcntl		 55
-#define SYS_gettimeofday	 78
-#define SYS_select		 82	// always return -ENOSYS
-#define SYS_mmap		 90
-#define SYS_munmap		 91
-#define SYS_setitimer		104
-#define SYS_clone		120
-#define SYS_newselect		142
-#define SYS_sched_yield		158
-#define SYS_rt_sigreturn	172
-#define SYS_rt_sigaction	173
-#define SYS_rt_sigprocmask	174
-#define SYS_sigaltstack		185
-#define SYS_ugetrlimit		190
-#define SYS_madvise		205
-#define SYS_mincore		206
-#define SYS_gettid		207
-#define SYS_tkill		208
-#define SYS_futex		221
-#define SYS_sched_getaffinity	223
-#define SYS_exit_group		234
-#define SYS_epoll_create	236
-#define SYS_epoll_ctl		237
-#define SYS_epoll_wait		238
-#define SYS_clock_gettime	246
-#define SYS_epoll_create1	315
+#define SYS_exit		  93
+#define SYS_read		  63
+#define SYS_write		  64
+#define SYS_open		  1024
+#define SYS_close		  57
+#define SYS_fcntl		 1052
+#define SYS_gettimeofday	 169
+#define SYS_select		 1067
+#define SYS_mmap		 1058
+#define SYS_munmap		 215
+#define SYS_setitimer		103
+#define SYS_clone		220
+#define SYS_sched_yield		124
+#define SYS_rt_sigreturn	139
+#define SYS_rt_sigaction	134
+#define SYS_rt_sigprocmask	135
+#define SYS_sigaltstack		132
+#define SYS_getrlimit		163
+#define SYS_madvise		233
+#define SYS_mincore		132
+#define SYS_gettid		178
+#define SYS_tkill		130
+#define SYS_futex		98
+#define SYS_sched_getaffinity	123
+#define SYS_exit_group		94
+#define SYS_epoll_create	1042
+#define SYS_epoll_ctl		21
+#define SYS_epoll_wait		1069
+#define SYS_clock_gettime	113
+#define SYS_epoll_create1	20
 
 TEXT runtime·exit(SB),NOSPLIT,$-8-4
 	MOVW	code+0(FP), R0
@@ -91,7 +90,7 @@ TEXT runtime·read(SB),NOSPLIT,$-8-28
 TEXT runtime·getrlimit(SB),NOSPLIT,$-8-20
 	MOVW	kind+0(FP), R0
 	MOV	limit+8(FP), R1
-	MOV	$SYS_ugetrlimit, R8
+	MOV	$SYS_getrlimit, R8
 	SVC
 	MOVW	R0, ret+16(FP)
 	RETURN
