@@ -66,13 +66,32 @@ static ProgInfo progtable[ALAST] = {
 	[AFMULS]=	{SizeF | LeftRead | RegRead | RightWrite},
 	[AFDIVD]=	{SizeD | LeftRead | RegRead | RightWrite},
 	[AFDIVS]=	{SizeF | LeftRead | RegRead | RightWrite},
-	[AFCVTZSD]=	{SizeD | LeftRead | RegRead | RightWrite},
-	[ASCVTFS]=	{SizeF | LeftRead | RegRead | RightWrite},
 	[AFCMPD]=	{SizeD | LeftRead | RightRead},
 	[AFCMPS]=	{SizeF | LeftRead | RightRead},
+
+	// float -> integer
+	[AFCVTZSD]=	{SizeD | LeftRead | RightWrite | Conv},
+	[AFCVTZSS]=	{SizeF | LeftRead | RightWrite | Conv},
+	[AFCVTZSDW]=	{SizeD | LeftRead | RightWrite | Conv},
+	[AFCVTZSSW]=	{SizeF | LeftRead | RightWrite | Conv},
+	[AFCVTZUD]=	{SizeD | LeftRead | RightWrite | Conv},
+	[AFCVTZUS]=	{SizeF | LeftRead | RightWrite | Conv},
+	[AFCVTZUDW]=	{SizeD | LeftRead | RightWrite | Conv},
+	[AFCVTZUSW]=	{SizeF | LeftRead | RightWrite | Conv},
+
+	// float -> float
 	[AFCVTSD]=	{SizeD | LeftRead | RightWrite | Conv},
 	[AFCVTDS]=	{SizeD | LeftRead | RightWrite | Conv},
-	[ASCVTFD]=	{SizeQ | LeftRead | RightWrite},
+
+	// integer -> float
+	[ASCVTFD]=	{SizeQ | LeftRead | RightWrite | Conv},
+	[ASCVTFS]=	{SizeQ | LeftRead | RightWrite | Conv},
+	[ASCVTFWD]=	{SizeL | LeftRead | RightWrite | Conv},
+	[ASCVTFWS]=	{SizeL | LeftRead | RightWrite | Conv},
+	[AUCVTFD]=	{SizeQ | LeftRead | RightWrite | Conv},
+	[AUCVTFS]=	{SizeQ | LeftRead | RightWrite | Conv},
+	[AUCVTFWD]=	{SizeL | LeftRead | RightWrite | Conv},
+	[AUCVTFWS]=	{SizeL | LeftRead | RightWrite | Conv},
 
 	// Moves
 	// TODO(aram): remove duplicates here.
