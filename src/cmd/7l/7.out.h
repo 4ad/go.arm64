@@ -34,7 +34,6 @@ enum {
 	FREGMIN		= 7,	/* first register variable */
 	FREGMAX		= 26,	/* last register variable for 7g only */
 	FREGEXT		= 26,	/* first external register */
-	FREGCVI		= 27,	/* floating conversion constant */
 	FREGZERO	= 28,	/* both float and double */
 	FREGHALF	= 29,	/* double */
 	FREGONE		= 30,	/* double */
