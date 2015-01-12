@@ -687,6 +687,24 @@ gmove(Node *f, Node *t)
 		}
 	}
 
+	// value -> value copy, first operand in memory.
+	// any floating point operand requires register
+	// src, so goto hard to copy to register first.
+	if (ismem(f) && ft != tt) {
+		switch(ft) {
+		case TFLOAT32:
+		case TFLOAT64:
+			cvt = types[ft];
+			goto hard;
+		}
+		switch(tt) {
+		case TFLOAT32:
+		case TFLOAT64:
+			cvt = types[ft];
+			goto hard;
+		}
+	}
+
 	// value -> value copy, only one memory operand.
 	// figure out the instruction to use.
 	// break out of switch for one-instruction gins.
