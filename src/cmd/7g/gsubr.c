@@ -860,10 +860,14 @@ gmove(Node *f, Node *t)
 	/*
 	 * integer to float
 	 */
+	case CASE(TINT8, TFLOAT32):
+	case CASE(TINT16, TFLOAT32):
 	case CASE(TINT32, TFLOAT32):
 		a = ASCVTFWS;
 		goto rdst;
 
+	case CASE(TINT8, TFLOAT64):
+	case CASE(TINT16, TFLOAT64):
 	case CASE(TINT32, TFLOAT64):
 		a = ASCVTFWD;
 		goto rdst;
@@ -876,10 +880,14 @@ gmove(Node *f, Node *t)
 		a = ASCVTFD;
 		goto rdst;
 
+	case CASE(TUINT8, TFLOAT32):
+	case CASE(TUINT16, TFLOAT32):
 	case CASE(TUINT32, TFLOAT32):
 		a = AUCVTFWS;
 		goto rdst;
 
+	case CASE(TUINT8, TFLOAT64):
+	case CASE(TUINT16, TFLOAT64):
 	case CASE(TUINT32, TFLOAT64):
 		a = AUCVTFWD;
 		goto rdst;
@@ -891,20 +899,6 @@ gmove(Node *f, Node *t)
 	case CASE(TUINT64, TFLOAT64):
 		a = AUCVTFD;
 		goto rdst;
-
-	case CASE(TINT16, TFLOAT32):
-	case CASE(TINT16, TFLOAT64):
-	case CASE(TINT8, TFLOAT32):
-	case CASE(TINT8, TFLOAT64):
-		cvt = types[TINT32];
-		goto hard;
-
-	case CASE(TUINT16, TFLOAT32):
-	case CASE(TUINT16, TFLOAT64):
-	case CASE(TUINT8, TFLOAT32):
-	case CASE(TUINT8, TFLOAT64):
-		cvt = types[TUINT32];
-		goto hard;
 
 	/*
 	 * float to float
