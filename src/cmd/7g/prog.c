@@ -72,6 +72,7 @@ static ProgInfo progtable[ALAST] = {
 	[AFCMPS]=	{SizeF | LeftRead | RightRead},
 	[AFCVTSD]=	{SizeD | LeftRead | RightWrite | Conv},
 	[AFCVTDS]=	{SizeD | LeftRead | RightWrite | Conv},
+	[ASCVTFD]=	{SizeQ | LeftRead | RightWrite},
 
 	// Moves
 	// TODO(aram): remove duplicates here.

@@ -896,10 +896,13 @@ gmove(Node *f, Node *t)
 	/*
 	 * integer to float
 	 */
+	case CASE(TINT64, TFLOAT64):
+		a = ASCVTFD;
+		break;
+
 	case CASE(TINT32, TFLOAT32):
 	case CASE(TINT32, TFLOAT64):
 	case CASE(TINT64, TFLOAT32):
-	case CASE(TINT64, TFLOAT64):
 	case CASE(TINT16, TFLOAT32):
 	case CASE(TINT16, TFLOAT64):
 	case CASE(TINT8, TFLOAT32):
