@@ -271,7 +271,7 @@ TEXT runtime·futex(SB),NOSPLIT,$-8
 	MOVW	val+12(FP), R2
 	MOV	ts+16(FP), R3
 	MOV	addr2+24(FP), R4
-	MOV	val3+32(FP), R5
+	MOVW	val3+32(FP), R5
 	MOV	$SYS_futex, R8
 	MOVW	R0, ret+40(FP)
 	RETURN
