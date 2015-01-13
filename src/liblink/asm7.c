@@ -533,11 +533,9 @@ static Optab optab[] = {
 
 	{ ALDXR,		C_ZOREG,	C_NONE,	C_REG,		58, 4, 0 },
 	{ ALDAXR,		C_ZOREG,	C_NONE,	C_REG,		58, 4, 0 },
-	{ ALDAXRW,		C_ZOREG,	C_NONE,	C_REG,		58, 4, 0 },
 	{ ALDXP,		C_ZOREG,	C_REG,	C_REG,		58, 4, 0 },
 	{ ASTXR,		C_REG,	C_REG,	C_ZOREG,		59, 4, 0 },
 	{ ASTLXR,		C_REG,	C_REG,	C_ZOREG,		59, 4, 0 },
-	{ ASTLXRW,		C_REG,	C_REG,	C_ZOREG,		59, 4, 0 },
 	{ ASTXP,		C_REG, C_REG,	C_ZOREG,		59, 4, 0 },
 
 	{ AAESD,	C_VREG,	C_NONE,	C_VREG,	29, 4, 0 },
@@ -1645,6 +1643,9 @@ buildop(Link *ctxt)
 			oprange[ALDXRH] = t;
 			oprange[ALDXRW] = t;
 			break;
+		case ALDAXR:
+			oprange[ALDAXRW] = t;
+			break;
 		case ALDXP:
 			oprange[ALDXPW] = t;
 			break;
@@ -1652,6 +1653,9 @@ buildop(Link *ctxt)
 			oprange[ASTXRB] = t;
 			oprange[ASTXRH] = t;
 			oprange[ASTXRW] = t;
+			break;
+		case ASTLXR:
+			oprange[ASTLXRW] = t;
 			break;
 		case ASTXP:
 			oprange[ASTXPW] = t;
