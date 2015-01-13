@@ -70,4 +70,3 @@ eq:
 	MOV	$1, R7
 	MOVB	R7, v+32(FP)
 	RETURN
-
