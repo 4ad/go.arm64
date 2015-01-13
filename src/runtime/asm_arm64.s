@@ -92,3 +92,26 @@ ok:
 	CSET	EQ, R0
 	MOVB	R0, ret+16(FP)
 	RETURN
+
+// bool	runtime·cas64(uint64 *ptr, uint64 old, uint64 new)
+// Atomically:
+//	if(*val == *old){
+//		*val = new;
+//		return 1;
+//	} else {
+//		return 0;
+//	}
+TEXT runtime·cas64(SB), NOSPLIT, $0-25
+	MOV	ptr+0(FP), R0
+	MOV	old+8(FP), R1
+	MOV	new+16(FP), R2
+again:
+	LDAXR	(R0), R3
+	CMP	R3, R1
+	BNE	ok
+	STLXR	R2, (R0), R3
+	CBNZ	R3, again
+ok:
+	CSET	EQ, R0
+	MOVB	R0, ret+24(FP)
+	RETURN
