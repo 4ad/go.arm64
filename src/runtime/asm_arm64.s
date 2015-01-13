@@ -42,33 +42,32 @@ loop:
 done:
 	RETURN
 
-
 // eqstring tests whether two strings are equal.
 // See runtime_test.go:eqstring_generic for
 // equivalent Go code.
 TEXT runtime·eqstring(SB),NOSPLIT,$-8-33
 	MOV	s1len+8(FP), R0
 	MOV	s2len+24(FP), R1
-        CMP     R0, R1	// are the strings the same length ?
+	CMP	R0, R1	// are the strings the same length ?
 	BNE	noteq	// nope
-        MOVW    s1str+0(FP), R2
-        MOVW    s2str+16(FP), R3
-        CMP     R2, R3	// same base ptr ?
-        BEQ	eq
-        ADD     R2, R0, R6
+	MOVW	s1str+0(FP), R2
+	MOVW	s2str+16(FP), R3
+	CMP	R2, R3	// same base ptr ?
+	BEQ	eq
+	ADD	R2, R0, R6
 loop:
-        CMP     R2, R6	// reached the end ?
-        BEQ	eq	// strings are equal
-        MOVBU	(R2)1!, R4
-        MOVBU	(R3)1!, R5
-        CMP     R4, R5	// bytes are the same ?
-        BEQ     loop	// yup, otherwise fall through
+	CMP	R2, R6	// reached the end ?
+	BEQ	eq	// strings are equal
+	MOVBU	(R2)1!, R4
+	MOVBU	(R3)1!, R5
+	CMP	R4, R5	// bytes are the same ?
+	BEQ	loop	// yup, otherwise fall through
 noteq:
-        MOV	$0, R7
-        MOVB	R7, v+32(FP)
+	MOV	$0, R7
+	MOVB	R7, v+32(FP)
 	RETURN
 eq:
-        MOV	$1, R7
+	MOV	$1, R7
 	MOVB	R7, v+32(FP)
-        RETURN
+	RETURN
 
