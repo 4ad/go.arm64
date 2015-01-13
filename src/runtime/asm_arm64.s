@@ -41,3 +41,112 @@ loop:
 	MOVB	R0, ret+24(FP)
 done:
 	RETURN
+
+TEXT runtime·getcallerpc(SB),NOSPLIT,$-8-16
+	MOV	0(SP), R0
+	MOV	R0, ret+8(FP)
+	RETURN
+
+TEXT runtime·gogetcallerpc(SB),NOSPLIT,$-8-16
+	MOV	0(SP), R0
+	MOV	R0,ret+8(FP)
+	RETURN
+
+TEXT runtime·setcallerpc(SB),NOSPLIT,$-8-16
+	MOV	pc+8(FP), R0
+	MOV	R0, 0(SP)		// set calling pc
+	RETURN
+
+TEXT runtime·getcallersp(SB),NOSPLIT,$0-16
+	MOV	argp+0(FP), R3
+	SUB	$8, R0
+	MOV	R0, ret+8(FP)
+	RETURN
+
+// func gogetcallersp(p unsafe.Pointer) uintptr
+TEXT runtime·gogetcallersp(SB),NOSPLIT,$0-16
+	MOV	sp+0(FP), R0
+	SUB	$8, R0
+	MOV	R0,ret+8(FP)
+	RETURN
+
+TEXT runtime·abort(SB),NOSPLIT,$-8-0
+	MOVW	(ZR), ZR
+	UNDEF
+
+// eqstring tests whether two strings are equal.
+// See runtime_test.go:eqstring_generic for
+// equivalent Go code.
+TEXT runtime·eqstring(SB),NOSPLIT,$-8-33
+	MOV	s1len+8(FP), R0
+	MOV	s2len+24(FP), R1
+	CMP	R0, R1	// are the strings the same length ?
+	BNE	noteq	// nope
+	MOVW	s1str+0(FP), R2
+	MOVW	s2str+16(FP), R3
+	CMP	R2, R3	// same base ptr ?
+	BEQ	eq
+	ADD	R2, R0, R6
+loop:
+	CMP	R2, R6	// reached the end ?
+	BEQ	eq	// strings are equal
+	MOVBU	(R2)1!, R4
+	MOVBU	(R3)1!, R5
+	CMP	R4, R5	// bytes are the same ?
+	BEQ	loop	// yup, otherwise fall through
+noteq:
+	MOV	$0, R7
+	MOVB	R7, v+32(FP)
+	RETURN
+eq:
+	MOV	$1, R7
+	MOVB	R7, v+32(FP)
+	RETURN
+
+// bool cas(uint32 *ptr, uint32 old, uint32 new)
+// Atomically:
+//	if(*val == old){
+//		*val = new;
+//		return 1;
+//	} else
+//		return 0;
+TEXT runtime·cas(SB), NOSPLIT, $0-17
+	MOV	ptr+0(FP), R0
+	MOVW	old+8(FP), R1
+	MOVW	new+12(FP), R2
+again:
+	LDAXRW	(R0), R3
+	CMPW	R3, R1
+	BNE	ok
+	STLXRW	R2, (R0), R3
+	CBNZ	R3, again
+ok:
+	CSET	EQ, R0
+	MOVB	R0, ret+16(FP)
+	RETURN
+
+TEXT runtime·casuintptr(SB), NOSPLIT, $0-25
+	B	runtime·cas64(SB)
+
+TEXT runtime·atomicloaduintptr(SB), NOSPLIT, $-8-16
+	B	runtime·atomicload64(SB)
+
+TEXT runtime·atomicloaduint(SB), NOSPLIT, $-8-16
+	B	runtime·atomicload64(SB)
+
+TEXT runtime·atomicstoreuintptr(SB), NOSPLIT, $0-16
+	B	runtime·atomicstore64(SB)
+
+// bool casp(void **val, void *old, void *new)
+// Atomically:
+//	if(*val == old){
+//		*val = new;
+//		return 1;
+//	} else
+//		return 0;
+TEXT runtime·casp1(SB), NOSPLIT, $0-25
+	B runtime·cas64(SB)
+
+TEXT runtime·getg(SB),NOSPLIT,$-8-8
+	MOV	g, ret+0(FP)
+	RETURN
