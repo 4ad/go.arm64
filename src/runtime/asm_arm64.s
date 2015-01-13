@@ -146,3 +146,7 @@ TEXT runtime·atomicstoreuintptr(SB), NOSPLIT, $0-16
 //		return 0;
 TEXT runtime·casp1(SB), NOSPLIT, $0-25
 	B runtime·cas64(SB)
+
+TEXT runtime·getg(SB),NOSPLIT,$-8-8
+	MOV	g, ret+0(FP)
+	RETURN
