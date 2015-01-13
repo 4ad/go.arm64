@@ -532,8 +532,12 @@ static Optab optab[] = {
 	{ AHINT,		C_LCON,	C_NONE,	C_NONE,		52, 4, 0 },
 
 	{ ALDXR,		C_ZOREG,	C_NONE,	C_REG,		58, 4, 0 },
+	{ ALDAXR,		C_ZOREG,	C_NONE,	C_REG,		58, 4, 0 },
+	{ ALDAXRW,		C_ZOREG,	C_NONE,	C_REG,		58, 4, 0 },
 	{ ALDXP,		C_ZOREG,	C_REG,	C_REG,		58, 4, 0 },
 	{ ASTXR,		C_REG,	C_REG,	C_ZOREG,		59, 4, 0 },
+	{ ASTLXR,		C_REG,	C_REG,	C_ZOREG,		59, 4, 0 },
+	{ ASTLXRW,		C_REG,	C_REG,	C_ZOREG,		59, 4, 0 },
 	{ ASTXP,		C_REG, C_REG,	C_ZOREG,		59, 4, 0 },
 
 	{ AAESD,	C_VREG,	C_NONE,	C_VREG,	29, 4, 0 },
@@ -2472,7 +2476,7 @@ asmout(Link *ctxt, Prog *p, Optab *o, int32 *out)
 		rt = p->from3.reg;
 		o1 |= rf << 16 | cond << 12 | rt << 5 | nzcv;
 		break;
-	case 58: /* ldxr */
+	case 58: /* ldxr/ldaxr */
 		o1 = opload(ctxt, p->as);
 		o1 |= 0x1F << 16;
 		o1 |= p->from.reg << 5;
@@ -2482,7 +2486,7 @@ asmout(Link *ctxt, Prog *p, Optab *o, int32 *out)
 			o1 |= 0x1F << 10;
 		o1 |= p->to.reg;
 		break;
-	case 59: /* stxr */
+	case 59: /* stxr/stlxr */
 		o1 = opstore(ctxt, p->as);
 		o1 |= p->reg << 16;
 		if(p->from3.type != D_NONE)
