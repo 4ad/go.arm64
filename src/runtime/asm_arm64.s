@@ -42,6 +42,38 @@ loop:
 done:
 	RETURN
 
+TEXT runtime·getcallerpc(SB),NOSPLIT,$-8-16
+	MOV	0(SP), R0
+	MOV	R0, ret+8(FP)
+	RETURN
+
+TEXT runtime·gogetcallerpc(SB),NOSPLIT,$-8-16
+	MOV	0(SP), R0
+	MOV	R0,ret+8(FP)
+	RETURN
+
+TEXT runtime·setcallerpc(SB),NOSPLIT,$-8-16
+	MOV	pc+8(FP), R0
+	MOV	R0, 0(SP)		// set calling pc
+	RETURN
+
+TEXT runtime·getcallersp(SB),NOSPLIT,$0-16
+	MOV	argp+0(FP), R3
+	SUB	$8, R0
+	MOV	R0, ret+8(FP)
+	RETURN
+
+// func gogetcallersp(p unsafe.Pointer) uintptr
+TEXT runtime·gogetcallersp(SB),NOSPLIT,$0-16
+	MOV	sp+0(FP), R0
+	SUB	$8, R0
+	MOV	R0,ret+8(FP)
+	RETURN
+
+TEXT runtime·abort(SB),NOSPLIT,$-8-0
+	MOVW	(ZR), ZR
+	UNDEF
+
 // eqstring tests whether two strings are equal.
 // See runtime_test.go:eqstring_generic for
 // equivalent Go code.
