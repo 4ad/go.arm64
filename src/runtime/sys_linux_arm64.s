@@ -142,36 +142,34 @@ TEXT runtime·mincore(SB),NOSPLIT,$-8-28
 	MOVW	R0, ret+24(FP)
 	RETURN
 
-/*
-// TODO(dfc) blergh, math is hard
-
 // func now() (sec int64, nsec int32)
 TEXT time·now(SB),NOSPLIT,$16
-	MOVD	$0(R1), R3
-	MOVD	$0, R4
-	SYSCALL	$SYS_gettimeofday
-	MOVD	0(R1), R3	// sec
-	MOVD	8(R1), R5	// usec
-	MOVD	$1000, R4
-	MULLD	R4, R5
-	MOVD	R3, sec+0(FP)
+	MOV	$0(SP), R0
+	MOV	$0, R1
+	MOV	$SYS_gettimeofday, R8
+	SVC
+	MOV	0(SP), R3	// sec
+	MOV	8(SP), R5	// usec
+	MOV	$1000, R4
+	MUL	R4, R5
+	MOV	R3, sec+0(FP)
 	MOVW	R5, nsec+8(FP)
 	RETURN
 
 TEXT runtime·nanotime(SB),NOSPLIT,$16
-	MOVW	$1, R3 // CLOCK_MONOTONIC
-	MOVD	$0(R1), R4
-	SYSCALL	$SYS_clock_gettime
-	MOVD	0(R1), R3	// sec
-	MOVD	8(R1), R5	// nsec
+	MOVW	$1, R0 // CLOCK_MONOTONIC
+	MOV	$0(SP), R1
+	MOV	$SYS_clock_gettime, R8
+	SVC
+	MOV	0(SP), R3	// sec
+	MOV	8(SP), R5	// nsec
 	// sec is in R3, nsec in R5
 	// return nsec in R3
-	MOVD	$1000000000, R4
-	MULLD	R4, R3
+	MOV	$1000000000, R4
+	MUL	R4, R3
 	ADD	R5, R3
-	MOVD	R3, ret+0(FP)
+	MOV	R3, ret+0(FP)
 	RETURN
-*/
 
 TEXT runtime·rtsigprocmask(SB),NOSPLIT,$-8-28
 	MOVW	sig+0(FP), R0
