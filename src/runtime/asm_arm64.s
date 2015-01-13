@@ -70,3 +70,25 @@ eq:
 	MOV	$1, R7
 	MOVB	R7, v+32(FP)
 	RETURN
+
+// bool cas(uint32 *ptr, uint32 old, uint32 new)
+// Atomically:
+//	if(*val == old){
+//		*val = new;
+//		return 1;
+//	} else
+//		return 0;
+TEXT runtime·cas(SB), NOSPLIT, $0-17
+	MOV	ptr+0(FP), R0
+	MOVW	old+8(FP), R1
+	MOVW	new+12(FP), R2
+again:
+	LDAXRW	(R0), R3
+	CMPW	R3, R1
+	BNE	ok
+	STLXRW	R2, (R0), R3
+	CBNZ	R3, again
+ok:
+	CSET	EQ, R0
+	MOVB	R0, ret+16(FP)
+	RETURN
