@@ -115,3 +115,25 @@ ok:
 	CSET	EQ, R0
 	MOVB	R0, ret+24(FP)
 	RETURN
+
+TEXT runtime·casuintptr(SB), NOSPLIT, $0-25
+	B	runtime·cas64(SB)
+
+TEXT runtime·atomicloaduintptr(SB), NOSPLIT, $-8-16
+	B	runtime·atomicload64(SB)
+
+TEXT runtime·atomicloaduint(SB), NOSPLIT, $-8-16
+	B	runtime·atomicload64(SB)
+
+TEXT runtime·atomicstoreuintptr(SB), NOSPLIT, $0-16
+	B	runtime·atomicstore64(SB)
+
+// bool casp(void **val, void *old, void *new)
+// Atomically:
+//	if(*val == old){
+//		*val = new;
+//		return 1;
+//	} else
+//		return 0;
+TEXT runtime·casp1(SB), NOSPLIT, $0-25
+	B runtime·cas64(SB)
