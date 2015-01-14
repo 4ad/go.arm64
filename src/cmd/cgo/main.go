@@ -133,6 +133,7 @@ var ptrSizeMap = map[string]int64{
 	"386":     4,
 	"amd64":   8,
 	"arm":     4,
+	"arm64":   8,
 	"ppc64":   8,
 	"ppc64le": 8,
 }
@@ -141,6 +142,7 @@ var intSizeMap = map[string]int64{
 	"386":     4,
 	"amd64":   8,
 	"arm":     4,
+	"arm64":   8,
 	"ppc64":   8,
 	"ppc64le": 8,
 }
