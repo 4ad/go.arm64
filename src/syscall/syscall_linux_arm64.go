@@ -75,9 +75,9 @@ func NsecToTimeval(nsec int64) (tv Timeval) {
 	return
 }
 
-func (r *PtraceRegs) PC() uint64 { return r.Nip }
+func (r *PtraceRegs) PC() uint64 { return r.Pc }
 
-func (r *PtraceRegs) SetPC(pc uint64) { r.Nip = pc }
+func (r *PtraceRegs) SetPC(pc uint64) { r.Pc = pc }
 
 func (iov *Iovec) SetLen(length int) {
 	iov.Len = uint64(length)
