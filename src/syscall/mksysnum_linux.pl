@@ -24,7 +24,10 @@ sub fmt {
 
 my $prev;
 while(<>){
-	if(/^#define __NR_(\w+)\s+([0-9]+)/){
+	if(/^#define __NR_syscalls\s+/) {
+		# ignore redefinitions of __NR_syscalls
+	}
+	elsif(/^#define __NR_(\w+)\s+([0-9]+)/){
 		$prev = $2;
 		fmt($1, $2);
 	}
