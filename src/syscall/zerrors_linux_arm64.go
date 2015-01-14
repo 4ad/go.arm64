@@ -965,6 +965,7 @@ const (
 	PTRACE_EVENT_VFORK               = 0x2
 	PTRACE_EVENT_VFORK_DONE          = 0x5
 	PTRACE_GETEVENTMSG               = 0x4201
+	PTRACE_GETREGS                   = 0xc
 	PTRACE_GETREGSET                 = 0x4204
 	PTRACE_GETSIGINFO                = 0x4202
 	PTRACE_GETSIGMASK                = 0x420a
@@ -991,6 +992,7 @@ const (
 	PTRACE_POKEUSR                   = 0x6
 	PTRACE_SEIZE                     = 0x4206
 	PTRACE_SETOPTIONS                = 0x4200
+	PTRACE_SETREGS                   = 0xd
 	PTRACE_SETREGSET                 = 0x4205
 	PTRACE_SETSIGINFO                = 0x4203
 	PTRACE_SETSIGMASK                = 0x420b
