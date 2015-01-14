@@ -513,7 +513,12 @@ type InotifyEvent struct {
 
 const SizeofInotifyEvent = 0x10
 
-type PtraceRegs struct{}
+type PtraceRegs struct {
+	Regs   [31]uint64
+	Sp     uint64
+	Pc     uint64
+	Pstate uint64
+}
 
 type FdSet struct {
 	Bits [16]int64
