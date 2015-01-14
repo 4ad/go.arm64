@@ -178,7 +178,7 @@ linux_arm)
 	mktypes="GOARCH=$GOARCH go tool cgo -godefs"
 	;;
 linux_arm64)
-	unistd_h=$(ls -1 /usr/include/asm/unistd.h /usr/include/aarch64-linux-gnu/asm/unistd.h 2>/dev/null | head -1)
+	unistd_h=$(ls -1 /usr/include/asm/unistd.h /usr/include/asm-generic/unistd.h 2>/dev/null | head -1)
 	if [ "$unistd_h" = "" ]; then
 		echo >&2 cannot find unistd_64.h
 		exit 1
