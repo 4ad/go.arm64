@@ -1,5 +1,5 @@
 // Created by cgo -godefs - DO NOT EDIT
-// cgo -godefs types_linux.go
+// cgo -godefs -- -fsigned-char types_linux.go
 
 package syscall
 
@@ -135,7 +135,7 @@ type Dirent struct {
 	Off       int64
 	Reclen    uint16
 	Type      uint8
-	Name      [256]uint8
+	Name      [256]int8
 	Pad_cgo_0 [5]byte
 }
 
@@ -170,7 +170,7 @@ type RawSockaddrInet6 struct {
 
 type RawSockaddrUnix struct {
 	Family uint16
-	Path   [108]uint8
+	Path   [108]int8
 }
 
 type RawSockaddrLinklayer struct {
@@ -192,12 +192,12 @@ type RawSockaddrNetlink struct {
 
 type RawSockaddr struct {
 	Family uint16
-	Data   [14]uint8
+	Data   [14]int8
 }
 
 type RawSockaddrAny struct {
 	Addr RawSockaddr
-	Pad  [96]uint8
+	Pad  [96]int8
 }
 
 type _Socklen uint32
@@ -508,7 +508,7 @@ type InotifyEvent struct {
 	Mask   uint32
 	Cookie uint32
 	Len    uint32
-	Name   [0]uint8
+	Name   [0]int8
 }
 
 const SizeofInotifyEvent = 0x10
@@ -539,25 +539,25 @@ type Sysinfo_t struct {
 	Totalhigh uint64
 	Freehigh  uint64
 	Unit      uint32
-	X_f       [0]uint8
+	X_f       [0]int8
 	Pad_cgo_1 [4]byte
 }
 
 type Utsname struct {
-	Sysname    [65]uint8
-	Nodename   [65]uint8
-	Release    [65]uint8
-	Version    [65]uint8
-	Machine    [65]uint8
-	Domainname [65]uint8
+	Sysname    [65]int8
+	Nodename   [65]int8
+	Release    [65]int8
+	Version    [65]int8
+	Machine    [65]int8
+	Domainname [65]int8
 }
 
 type Ustat_t struct {
 	Tfree     int32
 	Pad_cgo_0 [4]byte
 	Tinode    uint64
-	Fname     [6]uint8
-	Fpack     [6]uint8
+	Fname     [6]int8
+	Fpack     [6]int8
 	Pad_cgo_1 [4]byte
 }
 
