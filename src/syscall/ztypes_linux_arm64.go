@@ -97,23 +97,22 @@ type Rlimit struct {
 type _Gid_t uint32
 
 type Stat_t struct {
-	Dev                uint64
-	Ino                uint64
-	Nlink              uint64
-	Mode               uint32
-	Uid                uint32
-	Gid                uint32
-	X__pad2            int32
-	Rdev               uint64
-	Size               int64
-	Blksize            int64
-	Blocks             int64
-	Atim               Timespec
-	Mtim               Timespec
-	Ctim               Timespec
-	X__glibc_reserved4 uint64
-	X__glibc_reserved5 uint64
-	X__glibc_reserved6 uint64
+	Dev               uint64
+	Ino               uint64
+	Mode              uint32
+	Nlink             uint32
+	Uid               uint32
+	Gid               uint32
+	Rdev              uint64
+	X__pad1           uint64
+	Size              int64
+	Blksize           int32
+	X__pad2           int32
+	Blocks            int64
+	Atim              Timespec
+	Mtim              Timespec
+	Ctim              Timespec
+	X__glibc_reserved [2]int32
 }
 
 type Statfs_t struct {
@@ -171,7 +170,7 @@ type RawSockaddrInet6 struct {
 
 type RawSockaddrUnix struct {
 	Family uint16
-	Path   [108]int8
+	Path   [108]uint8
 }
 
 type RawSockaddrLinklayer struct {
@@ -514,21 +513,7 @@ type InotifyEvent struct {
 
 const SizeofInotifyEvent = 0x10
 
-type PtraceRegs struct {
-	Gpr       [32]uint64
-	Nip       uint64
-	Msr       uint64
-	Orig_gpr3 uint64
-	Ctr       uint64
-	Link      uint64
-	Xer       uint64
-	Ccr       uint64
-	Softe     uint64
-	Trap      uint64
-	Dar       uint64
-	Dsisr     uint64
-	Result    uint64
-}
+type PtraceRegs struct{}
 
 type FdSet struct {
 	Bits [16]int64
@@ -549,7 +534,7 @@ type Sysinfo_t struct {
 	Totalhigh uint64
 	Freehigh  uint64
 	Unit      uint32
-	X_f       [0]byte
+	X_f       [0]uint8
 	Pad_cgo_1 [4]byte
 }
 
@@ -594,9 +579,9 @@ type Termios struct {
 }
 
 const (
-	IUCLC  = 0x1000
-	OLCUC  = 0x4
-	TCGETS = 0x403c7413
-	TCSETS = 0x803c7414
-	XCASE  = 0x4000
+	IUCLC  = 0x200
+	OLCUC  = 0x2
+	TCGETS = 0x5401
+	TCSETS = 0x5402
+	XCASE  = 0x4
 )
