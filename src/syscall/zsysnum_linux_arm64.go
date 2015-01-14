@@ -257,7 +257,6 @@ const (
 	SYS_SCHED_GETATTR          = 275
 	SYS_RENAMEAT2              = 276
 	SYS_SECCOMP                = 277
-	SYS_SYSCALLS               = 278
 	SYS_OPEN                   = 1024
 	SYS_LINK                   = 1025
 	SYS_UNLINK                 = 1026
@@ -272,14 +271,12 @@ const (
 	SYS_READLINK               = 1035
 	SYS_SYMLINK                = 1036
 	SYS_UTIMES                 = 1037
-	SYS_SYSCALLS               = 1038
 	SYS_PIPE                   = 1040
 	SYS_DUP2                   = 1041
 	SYS_EPOLL_CREATE           = 1042
 	SYS_INOTIFY_INIT           = 1043
 	SYS_EVENTFD                = 1044
 	SYS_SIGNALFD               = 1045
-	SYS_SYSCALLS               = 1046
 	SYS_SENDFILE               = 1046
 	SYS_FTRUNCATE              = 1047
 	SYS_TRUNCATE               = 1048
@@ -293,7 +290,6 @@ const (
 	SYS_STATFS                 = 1056
 	SYS_LSEEK                  = 1057
 	SYS_MMAP                   = 1058
-	SYS_SYSCALLS               = 1059
 	SYS_ALARM                  = 1059
 	SYS_GETPGRP                = 1060
 	SYS_PAUSE                  = 1061
@@ -315,5 +311,4 @@ const (
 	SYS_USELIB                 = 1077
 	SYS__SYSCTL                = 1078
 	SYS_FORK                   = 1079
-	SYS_SYSCALLS               = 1080
 )
