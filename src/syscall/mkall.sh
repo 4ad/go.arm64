@@ -177,6 +177,15 @@ linux_arm)
 	mksysnum="curl -s 'http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/plain/arch/arm/include/uapi/asm/unistd.h' | ./mksysnum_linux.pl"
 	mktypes="GOARCH=$GOARCH go tool cgo -godefs"
 	;;
+linux_arm64)
+	unistd_h=$(ls -1 /usr/include/asm/unistd.h /usr/include/aarch64-linux-gnu/asm/unistd.h 2>/dev/null | head -1)
+	if [ "$unistd_h" = "" ]; then
+		echo >&2 cannot find unistd_64.h
+		exit 1
+	fi
+	mksysnum="./mksysnum_linux.pl $unistd_h"
+	mktypes="GOARCH=$GOARCH go tool cgo -godefs"
+	;;
 linux_ppc64)
 	GOOSARCH_in=syscall_linux_ppc64x.go
 	unistd_h=/usr/include/asm/unistd.h
