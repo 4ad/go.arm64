@@ -490,6 +490,7 @@ static char *proto_gccargs[] = {
 	"-Werror",
 	"-fno-common",
 	"-ggdb",
+	"-g3",
 	"-pipe",
 };
 
@@ -505,7 +506,7 @@ static char *proto_gccargs2[] = {
 	// Fix available at http://patchwork.ozlabs.org/patch/64562/.
 	"-O1",
 #else
-	"-O2",
+	"-O0",
 #endif
 };
 
