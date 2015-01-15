@@ -273,66 +273,67 @@ TEXT runtime·futex(SB),NOSPLIT,$-8
 	MOVW	R0, ret+40(FP)
 	RETURN
 
-/*
-// TODO(dfc) hard
 // int64 clone(int32 flags, void *stk, M *mp, G *gp, void (*fn)(void));
 TEXT runtime·clone(SB),NOSPLIT,$-8
-	MOVW	flags+0(FP), R3
-	MOVD	stk+8(FP), R4
+	MOVW	flags+0(FP), R0
+	MOV	stk+8(FP), R1
 
 	// Copy mp, gp, fn off parent stack for use by child.
-	// Careful: Linux system call clobbers ???.
-	MOVD	mm+16(FP), R7
-	MOVD	gg+24(FP), R8
-	MOVD	fn+32(FP), R12
+	MOV	mm+16(FP), R10
+	MOV	gg+24(FP), R11
+	MOV	fn+32(FP), R12
 
-	MOVD	R7, -8(R4)
-	MOVD	R8, -16(R4)
-	MOVD	R12, -24(R4)
-	MOVD	$1234, R7
-	MOVD	R7, -32(R4)
+	MOV	R10, -8(R1)
+	MOV	R11, -16(R1)
+	MOV	R12, -24(R1)
+	MOV	$1234, R10
+	MOV	R10, -32(R1)
 
-	SYSCALL $SYS_clone
+	MOV	$SYS_clone, R8
+	SVC
 
 	// In parent, return.
-	CMP	R3, $0
-	BEQ	3(PC)
-	MOVW	R3, ret+40(FP)
+	CMP	ZR, R0
+	BEQ	child
+	MOV	R0, ret+40(FP)
 	RETURN
+child:
 
 	// In child, on new stack.
-	// initialize essential registers
-	BL	runtime·reginit(SB)
-	MOVD	-32(R1), R7
-	CMP	R7, $1234
-	BEQ	2(PC)
-	MOVD	R0, 0(R0)
+	MOV	-32(SP), R10
+	MOV	$1234, R0
+	CMP	R0, R10
+	BEQ	good
+	MOV	R0, 0(R0) // crash
 
 	// Initialize m->procid to Linux tid
-	SYSCALL $SYS_gettid
+good:
+	MOV	$SYS_gettid, R8
+	SVC
 
-	MOVD	-24(R1), R12
-	MOVD	-16(R1), R8
-	MOVD	-8(R1), R7
+	MOV	-24(SP), R12
+	MOV	-16(SP), R11
+	MOV	-8(SP), R10
 
-	MOVD	R3, m_procid(R7)
+	MOV	R0, m_procid(R7)
 
 	// TODO: setup TLS.
 
 	// In child, set up new stack
-	MOVD	R7, g_m(R8)
-	MOVD	R8, g
+	MOV	R10, g_m(R8)
+	MOV	R11, g
 	//CALL	runtime·stackcheck(SB)
 
 	// Call fn
-	MOVD	R12, CTR
-	BL	(CTR)
+	MOV	R12, R0
+	BL	(R0)
 
 	// It shouldn't return.  If it does, exit
-	MOVW	$111, R3
-	SYSCALL $SYS_exit_group
-	BR	-2(PC)	// keep exiting
-*/
+	MOVW	$111, R0
+again:
+	MOV	$SYS_exit_group, R8
+	SVC
+	B	again	// keep exiting
 
 TEXT runtime·sigaltstack(SB),NOSPLIT,$-8
 	MOV	new+0(FP), R0
