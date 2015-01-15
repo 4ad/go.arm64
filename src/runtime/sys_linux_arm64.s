@@ -94,27 +94,26 @@ TEXT runtime·getrlimit(SB),NOSPLIT,$-8-20
 	SVC
 	MOVW	R0, ret+16(FP)
 	RETURN
-/*
-// TODO(dfc) not done yet, looks hard
+
 TEXT runtime·usleep(SB),NOSPLIT,$16-4
 	MOVW	usec+0(FP), R3
-	MOVD	R3, R5
+	MOV	R3, R5
 	MOVW	$1000000, R4
-	DIVD	R4, R3
-	MOVD	R3, 8(R1)
-	MULLD	R3, R4
+	UDIV	R4, R3
+	MOV	R3, 8(SP)
+	MUL	R3, R4
 	SUB	R4, R5
-	MOVD	R5, 16(R1)
+	MOV	R5, 16(SP)
 
 	// select(0, 0, 0, 0, &tv)
-	MOVW	$0, R3
-	MOVW	$0, R4
-	MOVW	$0, R5
-	MOVW	$0, R6
-	ADD	$8, R1, R7
-	SYSCALL	$SYS_newselect
+	MOV	ZR, R0
+	MOV	ZR, R1
+	MOV	ZR, R2
+	MOV	ZR, R3
+	ADD	$8, SP, R4
+	MOV	$SYS_select, R8
+	SVC
 	RETURN
-*/
 
 TEXT runtime·raise(SB),NOSPLIT,$-8
 	MOV	$SYS_gettid, R8
