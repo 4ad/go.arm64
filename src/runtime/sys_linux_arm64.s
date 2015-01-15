@@ -192,41 +192,33 @@ TEXT runtime·rt_sigaction(SB),NOSPLIT,$-8-36
 	MOVW	R0, ret+32(FP)
 	RETURN
 
-/* 
-// TODO(dfc) hard
 TEXT runtime·sigtramp(SB),NOSPLIT,$64
-	// initialize essential registers (just in case)
-	BL	runtime·reginit(SB)
-
 	// check that g exists
-	CMP	g, $0
+	CMP	g, ZR
 	BNE	6(PC)
-	MOVD	R3, 8(R1)
-	MOVD	$runtime·badsignal(SB), R31
-	MOVD	R31, CTR
-	BL	(CTR)
+	MOV	R3, 8(SP)
+	MOV	$runtime·badsignal(SB), R0
+	BL	(R0)
 	RETURN
 
 	// save g
-	MOVD	g, 40(R1)
-	MOVD	g, R6
+	MOV	g, 40(SP)
+	MOV	g, R6
 
 	// g = m->gsignal
-	MOVD	g_m(g), R7
-	MOVD	m_gsignal(R7), g
+	MOV	g_m(g), R7
+	MOV	m_gsignal(R7), g
 
-	MOVW	R3, 8(R1)
-	MOVD	R4, 16(R1)
-	MOVD	R5, 24(R1)
-	MOVD	R6, 32(R1)
+	MOVW	R3, 8(SP)
+	MOV	R4, 16(SP)
+	MOV	R5, 24(SP)
+	MOV	R6, 32(SP)
 
 	BL	runtime·sighandler(SB)
 
 	// restore g
-	MOVD	40(R1), g
-
+	MOV	40(SP), g
 	RETURN
-*/
 
 TEXT runtime·mmap(SB),NOSPLIT,$-8
 	MOV	addr+0(FP), R0
