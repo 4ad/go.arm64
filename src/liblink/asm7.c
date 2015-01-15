@@ -268,6 +268,7 @@ static Optab optab[] = {
 	{ ADWORD,	C_NONE,	C_NONE,	C_VCON,		11, 8, 0 },
 	{ ADWORD,	C_NONE,	C_NONE,	C_LEXT,		11, 8, 0 },
 	{ ADWORD,	C_NONE,	C_NONE,	C_ADDR,		11, 8, 0 },
+	{ ADWORD,	C_NONE,	C_NONE,	C_LACON,		11, 8, 0 },	
 
 	{ AWORD,	C_NONE,	C_NONE,	C_LCON,		14, 4, 0 },
 	{ AWORD,	C_NONE,	C_NONE,	C_LEXT,		14, 4, 0 },
@@ -807,9 +808,10 @@ addpool(Link *ctxt, Prog *p, Addr *a)
 	case C_NSOREG:
 	case C_NPOREG:
 	case C_LOREG:
+	case C_LACON:
+	case C_AACON:
 		t.to.type = D_CONST;
 		t.to.offset = ctxt->instoffset;
-		sz = 4;
 		break;
 	}
 	for(q = ctxt->blitrl; q != nil; q = q->link) /* could hash on t.t0.offset */
