@@ -376,6 +376,9 @@ static Optab optab[] = {
 	{ AMOVB,	C_REG,	C_NONE,	C_LEXT,		30, 8, REGSB },  // 
 	{ AMOVB,	C_REG,	C_NONE,	C_LAUTO,	30, 8, REGSP },  // 
 	{ AMOVB,	C_REG,	C_NONE,	C_LOREG,	30, 8, 0 },  // 
+	{ AMOVBU,	C_REG,	C_NONE,	C_LEXT,		30, 8, REGSB },  // 
+	{ AMOVBU,	C_REG,	C_NONE,	C_LAUTO,	30, 8, REGSP },  // 
+	{ AMOVBU,	C_REG,	C_NONE,	C_LOREG,	30, 8, 0 },  // 
 	{ AMOVH,	C_REG,	C_NONE,	C_LEXT,		30, 8, REGSB },  // 
 	{ AMOVH,	C_REG,	C_NONE,	C_LAUTO,	30, 8, REGSP },  // 
 	{ AMOVH,	C_REG,	C_NONE,	C_LOREG,	30, 8, 0 },  // 
@@ -391,6 +394,10 @@ static Optab optab[] = {
 	{ AMOVB,		C_LAUTO,C_NONE,	C_REG,		31, 8, REGSP },  // 
 	{ AMOVB,		C_LOREG,C_NONE,	C_REG,		31, 8, 0 },  // 
 	{ AMOVB,		C_LOREG,C_NONE,	C_REG,		31, 8, 0 },	//
+	{ AMOVBU,		C_LEXT,	C_NONE,	C_REG,		31, 8, REGSB },  // 
+	{ AMOVBU,		C_LAUTO,C_NONE,	C_REG,		31, 8, REGSP },  // 
+	{ AMOVBU,		C_LOREG,C_NONE,	C_REG,		31, 8, 0 },  // 
+	{ AMOVBU,		C_LOREG,C_NONE,	C_REG,		31, 8, 0 },	//
 	{ AMOVH,		C_LEXT,	C_NONE,	C_REG,		31, 8, REGSB },  // 
 	{ AMOVH,		C_LAUTO,C_NONE,	C_REG,		31, 8, REGSP },  // 
 	{ AMOVH,		C_LOREG,C_NONE,	C_REG,		31, 8, 0 },  // 
@@ -1434,6 +1441,9 @@ buildop(Link *ctxt)
 			oprange[AUMULH] = t;
 			oprange[AUMULL] = t;
 			break;
+		case AMOVB:
+			oprange[AMOVBU] = t;
+			break;
 		case AMOVH:
 			oprange[AMOVHU] = t;
 			break;
@@ -1502,7 +1512,6 @@ buildop(Link *ctxt)
 			oprange[ACSETMW] = t;
 			break;
 		case AMOV:
-		case AMOVB:
 		case AMOVBU:
 		case AB:
 		case ABL:
