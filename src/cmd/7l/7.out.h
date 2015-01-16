@@ -57,7 +57,7 @@ enum {
 	BIG = 2048-8,
 };
 
-enum
+enum cs
 {
 	C_NONE,
 	C_REG,
@@ -541,7 +541,7 @@ int SYSARG4(int, int, int, int);
 */
 
 /* type/name */
-enum
+enum ds
 {
 	D_GOK	= 0,
 	D_NONE,
