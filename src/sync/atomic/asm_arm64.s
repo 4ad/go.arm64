@@ -111,3 +111,18 @@ TEXT ·LoadUint32(SB),NOSPLIT,$0-12
 	LDARW	(R0), R0
 	MOVW	R0, val+8(FP)
 	RETURN
+
+TEXT ·LoadInt64(SB),NOSPLIT,$0-16
+	B	·LoadUint64(SB)
+
+TEXT ·LoadUint64(SB),NOSPLIT,$0-16
+	MOV	addr+0(FP), R0
+	LDAR	(R0), R0
+	MOV	R0, val+8(FP)
+	RETURN
+
+TEXT ·LoadUintptr(SB),NOSPLIT,$0-16
+	B	·LoadPointer(SB)
+
+TEXT ·LoadPointer(SB),NOSPLIT,$0-16
+	B	·LoadUint64(SB)
