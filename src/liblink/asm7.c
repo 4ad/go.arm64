@@ -542,6 +542,7 @@ static Optab optab[] = {
 	{ ADMB,		C_LCON,	C_NONE, 	C_NONE,		51, 4, 0 },
 	{ AHINT,		C_LCON,	C_NONE,	C_NONE,		52, 4, 0 },
 
+	{ ALDAR,		C_ZOREG,	C_NONE,	C_REG,		58, 4, 0 },
 	{ ALDXR,		C_ZOREG,	C_NONE,	C_REG,		58, 4, 0 },
 	{ ALDAXR,		C_ZOREG,	C_NONE,	C_REG,		58, 4, 0 },
 	{ ALDXP,		C_ZOREG,	C_REG,	C_REG,		58, 4, 0 },
@@ -1652,6 +1653,8 @@ buildop(Link *ctxt)
 		case AMRS:
 		case AMSR:
 			break;
+		case ALDAR:
+			oprange[ALDARW] = t;
 		case ALDXR:
 			oprange[ALDXRB] = t;
 			oprange[ALDXRH] = t;
@@ -2494,7 +2497,7 @@ asmout(Link *ctxt, Prog *p, Optab *o, int32 *out)
 		rt = p->from3.reg;
 		o1 |= rf << 16 | cond << 12 | rt << 5 | nzcv;
 		break;
-	case 58: /* ldxr/ldaxr */
+	case 58: /* ldar/ldxr/ldaxr */
 		o1 = opload(ctxt, p->as);
 		o1 |= 0x1F << 16;
 		o1 |= p->from.reg << 5;
