@@ -102,3 +102,12 @@ again:
 	CBNZ	R3, again
 	MOV	R2, new+16(FP)
 	RETURN
+
+TEXT ·LoadInt32(SB),NOSPLIT,$0-12
+	B	·LoadUint32(SB)
+
+TEXT ·LoadUint32(SB),NOSPLIT,$0-12
+	MOV	addr+0(FP), R0
+	LDARW	(R0), R0
+	MOVW	R0, val+8(FP)
+	RETURN
