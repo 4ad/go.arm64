@@ -71,3 +71,17 @@ ok:
 	CSET	EQ, R0
 	MOVB	R0, swapped+24(FP)
 	RETURN
+
+TEXT ·AddInt32(SB),NOSPLIT,$0-20
+	B	·AddUint32(SB)
+
+TEXT ·AddUint32(SB),NOSPLIT,$0-20
+again:
+	MOV	addr+0(FP), R0
+	MOVW	delta+8(FP), R1
+	LDAXRW	(R0), R2
+	ADDW	R2, R1, R2
+	STLXRW	R2, (R0), R3
+	CBNZ	R3, again
+	MOVW	R2, new+16(FP)
+	RETURN
