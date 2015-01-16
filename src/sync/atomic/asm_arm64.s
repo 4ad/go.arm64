@@ -16,3 +16,16 @@ again:
 	CBNZ	R3, again
 	MOVW	R2, old+16(FP)
 	RETURN
+
+TEXT ·SwapInt64(SB),NOSPLIT,$0-24
+	B	·SwapUint32(SB)
+
+TEXT ·SwapUint64(SB),NOSPLIT,$0-24
+again:
+	MOV	addr+0(FP), R0
+	MOV	new+8(FP), R1
+	LDAXR	(R0), R2
+	STLXR	R1, (R0), R3
+	CBNZ	R3, again
+	MOV	R2, old+16(FP)
+	RETURN
