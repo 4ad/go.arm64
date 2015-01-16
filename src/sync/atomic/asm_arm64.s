@@ -85,3 +85,20 @@ again:
 	CBNZ	R3, again
 	MOVW	R2, new+16(FP)
 	RETURN
+
+TEXT ·AddUintptr(SB),NOSPLIT,$0-24
+	B	·AddUint64(SB)
+
+TEXT ·AddInt64(SB),NOSPLIT,$0-24
+	B	·AddUint64(SB)
+
+TEXT ·AddUint64(SB),NOSPLIT,$0-24
+again:
+	MOV	addr+0(FP), R0
+	MOV	delta+8(FP), R1
+	LDAXR	(R0), R2
+	ADD	R2, R1, R2
+	STLXR	R2, (R0), R3
+	CBNZ	R3, again
+	MOV	R2, new+16(FP)
+	RETURN
