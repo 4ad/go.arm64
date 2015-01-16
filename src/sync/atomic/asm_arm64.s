@@ -50,3 +50,24 @@ ok:
 	CSET	EQ, R0
 	MOVB	R0, swapped+16(FP)
 	RETURN
+
+TEXT ·CompareAndSwapUintptr(SB),NOSPLIT,$0-25
+	B	·CompareAndSwapUint64(SB)
+
+TEXT ·CompareAndSwapInt64(SB),NOSPLIT,$0-25
+	B	·CompareAndSwapUint64(SB)
+
+TEXT ·CompareAndSwapUint64(SB),NOSPLIT,$0-25
+	MOV	addr+0(FP), R0
+	MOV	old+8(FP), R1
+	MOV	new+16(FP), R2
+again:
+	LDAXR	(R0), R3
+	CMP	R3, R1
+	BNE	ok
+	STLXR	R2, (R0), R3
+	CBNZ	R3, again
+ok:
+	CSET	EQ, R0
+	MOVB	R0, swapped+24(FP)
+	RETURN
