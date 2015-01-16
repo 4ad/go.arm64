@@ -29,3 +29,6 @@ again:
 	CBNZ	R3, again
 	MOV	R2, old+16(FP)
 	RETURN
+
+TEXT ·SwapUintptr(SB),NOSPLIT,$0-24
+	B	·SwapUint64(SB)
