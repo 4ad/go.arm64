@@ -32,3 +32,21 @@ again:
 
 TEXT ·SwapUintptr(SB),NOSPLIT,$0-24
 	B	·SwapUint64(SB)
+
+TEXT ·CompareAndSwapInt32(SB),NOSPLIT,$0-17
+	B	·CompareAndSwapUint32(SB)
+
+TEXT ·CompareAndSwapUint32(SB),NOSPLIT,$0-17
+	MOV	addr+0(FP), R0
+	MOVW	old+8(FP), R1
+	MOVW	new+12(FP), R2
+again:
+	LDAXRW	(R0), R3
+	CMPW	R3, R1
+	BNE	ok
+	STLXRW	R2, (R0), R3
+	CBNZ	R3, again
+ok:
+	CSET	EQ, R0
+	MOVB	R0, swapped+16(FP)
+	RETURN
