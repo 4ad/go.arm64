@@ -84,8 +84,8 @@ TEXT runtime·mcall(SB), NOSPLIT, $-8-8
 	MOV	fn+0(FP), R11			// context
 	MOV	0(R11), R4			// code pointer
 	MOV	(g_sched+gobuf_sp)(g), R1	// sp = m->g0->sched.sp
-	MOV	R3, -8(R1)
-	MOV	R0, -8(R1)
+	MOV	R3, (R1)-8!
+	MOV	R0, (R1)-8!
 	BL	(R4)
 	B	runtime·badmcall2(SB)
 
