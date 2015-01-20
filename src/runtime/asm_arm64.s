@@ -225,7 +225,8 @@ TEXT ·cgocallback_gofunc(SB),NOSPLIT,$16-24
 	MOVB	runtime·iscgo(SB), R3
 	CMP	$0, R3 
 	BEQ	nocgo
-	BL	runtime·load_g(SB)
+	// TODO(aram):
+	BL runtime·abort(SB)
 nocgo:
 
 	// If g is nil, Go did not create the current thread.
@@ -587,7 +588,141 @@ TEXT runtime·duffzero(SB), NOSPLIT, $-8-0
 	MOV	ZR, (R2)8!
 	RETURN
 
-
 TEXT runtime·return0(SB), NOSPLIT, $0
 	MOVW	$0, R0
 	RETURN
+
+// void setg(G*); set g. for use by needm.
+TEXT runtime·setg(SB), NOSPLIT, $0-8
+	MOV	gg+0(FP), g
+	// This only happens if iscgo, so jump straight to save_g
+	BL	runtime·save_g(SB)
+	RETURN
+
+// reflectcall: call a function with the given argument list
+// func call(argtype *_type, f *FuncVal, arg *byte, argsize, retoffset uint32).
+// we don't have variable-sized frames, so we use a small number
+// of constant-sized-frame functions to encode a few bits of size in the pc.
+// Caution: ugly multiline assembly macros in your future!
+
+#define DISPATCH(NAME,MAXSIZE)		\
+	MOV	$MAXSIZE, R0;		\
+	CMP	R3, R0;		\
+	BGT	4(PC);			\
+	MOV	$NAME(SB), R1;	\
+	B	(R1)
+// Note: can't just "B NAME(SB)" - bad inlining results.
+
+TEXT reflect·call(SB), NOSPLIT, $0-0
+	BL	·reflectcall(SB)
+
+TEXT ·reflectcall(SB), NOSPLIT, $-8-32
+	MOVWU argsize+24(FP), R3
+	// NOTE(rsc): No call16, because CALLFN needs four words
+	// of argument space to invoke callwritebarrier.
+	DISPATCH(runtime·call32, 32)
+	DISPATCH(runtime·call64, 64)
+	DISPATCH(runtime·call128, 128)
+	DISPATCH(runtime·call256, 256)
+	DISPATCH(runtime·call512, 512)
+	DISPATCH(runtime·call1024, 1024)
+	DISPATCH(runtime·call2048, 2048)
+	DISPATCH(runtime·call4096, 4096)
+	DISPATCH(runtime·call8192, 8192)
+	DISPATCH(runtime·call16384, 16384)
+	DISPATCH(runtime·call32768, 32768)
+	DISPATCH(runtime·call65536, 65536)
+	DISPATCH(runtime·call131072, 131072)
+	DISPATCH(runtime·call262144, 262144)
+	DISPATCH(runtime·call524288, 524288)
+	DISPATCH(runtime·call1048576, 1048576)
+	DISPATCH(runtime·call2097152, 2097152)
+	DISPATCH(runtime·call4194304, 4194304)
+	DISPATCH(runtime·call8388608, 8388608)
+	DISPATCH(runtime·call16777216, 16777216)
+	DISPATCH(runtime·call33554432, 33554432)
+	DISPATCH(runtime·call67108864, 67108864)
+	DISPATCH(runtime·call134217728, 134217728)
+	DISPATCH(runtime·call268435456, 268435456)
+	DISPATCH(runtime·call536870912, 536870912)
+	DISPATCH(runtime·call1073741824, 1073741824)
+	MOV	$runtime·badreflectcall(SB), R0
+	B	(R0)
+
+#define CALLFN(NAME,MAXSIZE)			\
+TEXT NAME(SB), WRAPPER, $MAXSIZE-24;		\
+	NO_LOCAL_POINTERS;			\
+	/* copy arguments to stack */		\
+	MOV	arg+16(FP), R3;			\
+	MOVWU	argsize+24(FP), R4;			\
+	MOV	SP, R5;				\
+	ADD	$(8-1), R5;			\
+	SUB	$1, R3;				\
+	ADD	R5, R4;				\
+	CMP	R5, R4;				\
+	BEQ	4(PC);				\
+	MOVBU	(R3)1!, R6;			\
+	MOVBU	R6, (R5)1!;			\
+	B	-4(PC);				\
+	/* call function */			\
+	MOV	f+8(FP), R11;			\
+	MOV	(R11), R0;			\
+	PCDATA  $PCDATA_StackMapIndex, $0;	\
+	BL	(R0);				\
+	/* copy return values back */		\
+	MOV	arg+16(FP), R3;			\
+	MOVWU	n+24(FP), R4;			\
+	MOVWU	retoffset+28(FP), R6;		\
+	MOV	SP, R5;				\
+	ADD	R6, R5; 			\
+	ADD	R6, R3;				\
+	SUB	R6, R4;				\
+	ADD	$(8-1), R5;			\
+	SUB	$1, R3;				\
+	ADD	R5, R4;				\
+loop:						\
+	CMP	R5, R4;				\
+	BEQ	end;				\
+	MOVBU	(R5)1!, R6;			\
+	MOVBU	R6, (R3)1!;			\
+	B	loop;				\
+end:						\
+	/* execute write barrier updates */	\
+	MOV	argtype+0(FP), R7;		\
+	MOV	arg+16(FP), R3;			\
+	MOVWU	n+24(FP), R4;			\
+	MOVWU	retoffset+28(FP), R6;		\
+	MOV	R7, 8(R1);			\
+	MOV	R3, 16(R1);			\
+	MOV	R4, 24(R1);			\
+	MOV	R6, 32(R1);			\
+	BL	runtime·callwritebarrier(SB);	\
+	RETURN
+
+CALLFN(·call16, 16)
+CALLFN(·call32, 32)
+CALLFN(·call64, 64)
+CALLFN(·call128, 128)
+CALLFN(·call256, 256)
+CALLFN(·call512, 512)
+CALLFN(·call1024, 1024)
+CALLFN(·call2048, 2048)
+CALLFN(·call4096, 4096)
+CALLFN(·call8192, 8192)
+CALLFN(·call16384, 16384)
+CALLFN(·call32768, 32768)
+CALLFN(·call65536, 65536)
+CALLFN(·call131072, 131072)
+CALLFN(·call262144, 262144)
+CALLFN(·call524288, 524288)
+CALLFN(·call1048576, 1048576)
+CALLFN(·call2097152, 2097152)
+CALLFN(·call4194304, 4194304)
+CALLFN(·call8388608, 8388608)
+CALLFN(·call16777216, 16777216)
+CALLFN(·call33554432, 33554432)
+CALLFN(·call67108864, 67108864)
+CALLFN(·call134217728, 134217728)
+CALLFN(·call268435456, 268435456)
+CALLFN(·call536870912, 536870912)
+CALLFN(·call1073741824, 1073741824)
