@@ -135,3 +135,15 @@ TEXT ·StoreUint32(SB),NOSPLIT,$0-12
 	MOVW	val+8(FP), R1
 	STLRW	R1, (R0)
 	RETURN
+
+TEXT ·StoreInt64(SB),NOSPLIT,$0-16
+	B	·StoreUint64(SB)
+
+TEXT ·StoreUint64(SB),NOSPLIT,$0-16
+	MOV	addr+0(FP), R0
+	MOV	val+8(FP), R1
+	STLR	R1, (R0)
+	RETURN
+
+TEXT ·StoreUintptr(SB),NOSPLIT,$0-16
+	B	·StoreUint64(SB)
