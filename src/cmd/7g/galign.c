@@ -44,6 +44,7 @@ betypeinit(void)
 	zprog.from.reg = NREG;
 	zprog.to = zprog.from;
 	zprog.from3 = zprog.from;
+	zprog.to3 = zprog.from;
 
 	listinit7();
 }
