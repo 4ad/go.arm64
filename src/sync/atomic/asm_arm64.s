@@ -126,3 +126,12 @@ TEXT ·LoadUintptr(SB),NOSPLIT,$0-16
 
 TEXT ·LoadPointer(SB),NOSPLIT,$0-16
 	B	·LoadUint64(SB)
+
+TEXT ·StoreInt32(SB),NOSPLIT,$0-12
+	B	·StoreUint32(SB)
+
+TEXT ·StoreUint32(SB),NOSPLIT,$0-12
+	MOV	addr+0(FP), R0
+	MOVW	val+8(FP), R1
+	STLRW	R1, (R0)
+	RETURN
