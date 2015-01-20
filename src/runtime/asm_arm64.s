@@ -7,6 +7,159 @@
 #include "funcdata.h"
 #include "textflag.h"
 
+DATA	runtime·main·f+0(SB)/8,$runtime·main(SB)
+GLOBL	runtime·main·f(SB),RODATA,$8
+
+TEXT runtime·breakpoint(SB),NOSPLIT,$-8-0
+	MOV	ZR, (ZR) // TODO: TD
+	RETURN
+
+TEXT runtime·asminit(SB),NOSPLIT,$-8-0
+	RETURN
+
+TEXT runtime·reginit(SB),NOSPLIT,$-8-0
+	// initialize essential FP registers
+	FMOVD	$4503601774854144.0, F27
+	FMOVD	$0.5, F29
+	FSUBD	F29, F29, F28
+	FADDD	F29, F29, F30
+	FADDD	F30, F30, F31
+	RETURN
+
+/*
+ *  go-routine
+ */
+
+// void gosave(Gobuf*)
+// save state in Gobuf; setjmp
+TEXT runtime·gosave(SB), NOSPLIT, $-8-8
+	MOV	buf+0(FP), R3
+	MOV	R1, gobuf_sp(R3)
+	MOV	LR, gobuf_pc(R3)
+	MOV	g, gobuf_g(R3)
+	MOV	R0, gobuf_lr(R3)
+	MOV	R0, gobuf_ret(R3)
+	MOV	R0, gobuf_ctxt(R3)
+	RETURN
+
+// void gogo(Gobuf*)
+// restore state from Gobuf; longjmp
+TEXT runtime·gogo(SB), NOSPLIT, $-8-8
+	MOV	buf+0(FP), R5
+	MOV	gobuf_g(R5), g	// make sure g is not nil
+	BL	runtime·save_g(SB)
+
+	MOV	0(g), R4
+	MOV	gobuf_sp(R5), R1
+	MOV	gobuf_lr(R5), LR
+	MOV	gobuf_ret(R5), R3
+	MOV	gobuf_ctxt(R5), R11
+	MOV	$0, gobuf_sp(R5)
+	MOV	$0, gobuf_ret(R5)
+	MOV	$0, gobuf_lr(R5)
+	MOV	$0, gobuf_ctxt(R5)
+	CMP	ZR, ZR // set condition codes for == test, needed by stack split
+	MOV	gobuf_pc(R5), R6
+	B	(R6)
+
+// void mcall(fn func(*g))
+// Switch to m->g0's stack, call fn(g).
+// Fn must never return.  It should gogo(&g->sched)
+// to keep running g.
+TEXT runtime·mcall(SB), NOSPLIT, $-8-8
+	// Save caller state in g->sched
+	MOV	R1, (g_sched+gobuf_sp)(g)
+	MOV	LR, (g_sched+gobuf_pc)(g)
+	MOV	$0, (g_sched+gobuf_lr)(g)
+	MOV	g, (g_sched+gobuf_g)(g)
+
+	// Switch to m->g0 & its stack, call fn.
+	MOV	g, R3
+	MOV	g_m(g), R8
+	MOV	m_g0(R8), g
+	BL	runtime·save_g(SB)
+	CMP	g, R3
+	BNE	2(PC)
+	B	runtime·badmcall(SB)
+	MOV	fn+0(FP), R11			// context
+	MOV	0(R11), R4			// code pointer
+	MOV	(g_sched+gobuf_sp)(g), R1	// sp = m->g0->sched.sp
+	MOV	R3, -8(R1)
+	MOV	R0, -8(R1)
+	BL	(R4)
+	B	runtime·badmcall2(SB)
+
+// systemstack_switch is a dummy routine that systemstack leaves at the bottom
+// of the G stack.  We need to distinguish the routine that
+// lives at the bottom of the G stack from the one that lives
+// at the top of the system stack because the one at the top of
+// the system stack terminates the stack walk (see topofstack()).
+TEXT runtime·systemstack_switch(SB), NOSPLIT, $0-0
+	UNDEF
+	BL	(LR)	// make sure this function is not leaf
+	RETURN
+
+// func systemstack(fn func())
+TEXT runtime·systemstack(SB), NOSPLIT, $0-8
+	MOV	fn+0(FP), R3	// R3 = fn
+	MOV	R3, R11		// context
+	MOV	g_m(g), R4	// R4 = m
+
+	MOV	m_gsignal(R4), R5	// R5 = gsignal
+	CMP	g, R5
+	BEQ	noswitch
+
+	MOV	m_g0(R4), R5	// R5 = g0
+	CMP	g, R5
+	BEQ	noswitch
+
+	MOV	m_curg(R4), R6
+	CMP	g, R6
+	BEQ	switch
+
+	// Bad: g is not gsignal, not g0, not curg. What is it?
+	// Hide call from linker nosplit analysis.
+	MOV	$runtime·badsystemstack(SB), R3
+	BL	(R3)
+
+switch:
+	// save our state in g->sched.  Pretend to
+	// be systemstack_switch if the G stack is scanned.
+	MOV	$runtime·systemstack_switch(SB), R6
+	ADD	$8, R6	// get past prologue
+	MOV	R6, (g_sched+gobuf_pc)(g)
+	MOV	R1, (g_sched+gobuf_sp)(g)
+	MOV	R0, (g_sched+gobuf_lr)(g)
+	MOV	g, (g_sched+gobuf_g)(g)
+
+	// switch to g0
+	MOV	R5, g
+	BL	runtime·save_g(SB)
+	MOV	(g_sched+gobuf_sp)(g), R3
+	// make it look like mstart called systemstack on g0, to stop traceback
+	SUB	$8, R3
+	MOV	$runtime·mstart(SB), R4
+	MOV	R4, 0(R3)
+	MOV	R3, R1
+
+	// call target function
+	MOV	0(R11), R3	// code pointer
+	BL	(R3)
+
+	// switch back to g
+	MOV	g_m(g), R3
+	MOV	m_curg(R3), g
+	BL	runtime·save_g(SB)
+	MOV	(g_sched+gobuf_sp)(g), R1
+	MOV	$0, (g_sched+gobuf_sp)(g)
+	RETURN
+
+noswitch:
+	// already on m stack, just call directly
+	MOV	0(R11), R3	// code pointer
+	BL	(R3)
+	RETURN
+
 TEXT runtime·rt0_go(SB),NOSPLIT,$0-0
 	BL	main·main(SB)
 	RETURN
