@@ -31,6 +31,11 @@ static Prog zprg = {
 		.type = D_NONE,
 		.reg = NREG,
 	},
+	.to3 = {
+		.name = D_NONE,
+		.type = D_NONE,
+		.reg = NREG,
+	},
 };
 
 // Prog.mark

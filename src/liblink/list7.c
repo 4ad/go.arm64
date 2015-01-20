@@ -89,7 +89,6 @@ Pconv(Fmt *fp)
 		if(p->reg == NREG && p->from3.type == D_NONE && p->to3.type == D_NONE)
 			sprint(s, "%.5lld (%L)	%A	%D,%D", p->pc, p->lineno, a, &p->from, &p->to);
 		else if(p->from.type != D_FREG) {
-			print("[debug]: from: %D, from3: %D , reg: R%d, to: %D, to3: %D\n", &p->from, &p->from3, p->reg, &p->to, &p->to3);
 			s += sprint(s, "%.5lld (%L)	%A	%D", p->pc, p->lineno, a, &p->from);
 			if(p->from3.type != D_NONE)
 				s += sprint(s, ",%D", &p->from3);
