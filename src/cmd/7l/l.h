@@ -51,16 +51,6 @@ enum
 #define	P		((Prog*)0)
 #define	S		((LSym*)0)
 
-enum
-{
-/* mark flags */
-	FOLL		= 1<<0,
-	LABEL		= 1<<1,
-	LEAF		= 1<<2,
-
-	MINLC	= 4,
-};
-
 EXTERN	int32	autosize;
 EXTERN	LSym*	datap;
 EXTERN	int	debug[128];

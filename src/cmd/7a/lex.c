@@ -150,6 +150,7 @@ assemble(char *file)
 	Bprint(&obuf, "!\n");
 
 	for(pass = 1; pass <= 2; pass++) {
+		nosched = 0;
 		pinit(file);
 		for(i=0; i<nDlist; i++)
 			dodefine(Dlist[i]);
@@ -728,9 +729,15 @@ struct
 	"END",		LTYPEE, AEND,
 	"WORD",		LTYPEH, AWORD,
 	"DWORD",		LTYPEH, ADWORD,
+	"SCHED",	LSCHED, 0,
+	"NOSCHED",	LSCHED,	0x80,
 	"NOP",		LTYPEQ, ANOP,
 	"UNDEF",	LTYPEQ, AUNDEF,
 	"RETURN",	LTYPEA,	ARETURN,
+
+	"PCDATA",	LPCDAT,	APCDATA,
+	"FUNCDATA",	LFUNCDAT,	AFUNCDATA,
+
 	0
 };
 
@@ -800,6 +807,8 @@ outcode(int a, Addr *g1, int reg, Addr *g2)
 	p = ctxt->arch->prg();
 	p->as = a;
 	p->lineno = lineno;
+	if(nosched)
+		p->mark |= NOSCHED;
 	p->from = *g1;
 	p->reg = reg;
 	p->to = *g2;
@@ -828,6 +837,8 @@ outgcode(int a, Addr *g1, int reg, Addr *g2, Addr *g3)
 	p = ctxt->arch->prg();
 	p->as = a;
 	p->lineno = lineno;
+	if(nosched)
+		p->mark |= NOSCHED;
 	p->from = *g1;
 	p->reg = reg;
 	p->to = *g2;
@@ -858,6 +869,8 @@ outtcode(int a, Addr *from, Addr *to, Addr *to3)
 	p = ctxt->arch->prg();
 	p->as = a;
 	p->lineno = lineno;
+	if(nosched)
+		p->mark |= NOSCHED;
 	p->from = *from;
 	p->to = *to;
 	p->to3 = *to3;

@@ -38,14 +38,6 @@ static Prog zprg = {
 	},
 };
 
-// Prog.mark
-enum
-{
-	FOLL = 1<<0,
-	LABEL = 1<<1,
-	LEAF = 1<<2,
-};
-
 static int
 symtype(Addr *a)
 {

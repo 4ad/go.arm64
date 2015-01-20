@@ -106,11 +106,14 @@ extern int yydebug;
     LSPR = 316,
     LSPREG = 317,
     LVTYPE = 318,
-    LFCONST = 319,
-    LSCONST = 320,
-    LNAME = 321,
-    LLAB = 322,
-    LVAR = 323
+    LPCDAT = 319,
+    LFUNCDAT = 320,
+    LSCHED = 321,
+    LFCONST = 322,
+    LSCONST = 323,
+    LNAME = 324,
+    LLAB = 325,
+    LVAR = 326
   };
 #endif
 /* Tokens.  */
@@ -175,11 +178,14 @@ extern int yydebug;
 #define LSPR 316
 #define LSPREG 317
 #define LVTYPE 318
-#define LFCONST 319
-#define LSCONST 320
-#define LNAME 321
-#define LLAB 322
-#define LVAR 323
+#define LPCDAT 319
+#define LFUNCDAT 320
+#define LSCHED 321
+#define LFCONST 322
+#define LSCONST 323
+#define LNAME 324
+#define LLAB 325
+#define LVAR 326
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -194,7 +200,7 @@ union YYSTYPE
 	char	sval[NSNAME];
 	Addr	addr;
 
-#line 198 "y.tab.h" /* yacc.c:1909  */
+#line 204 "y.tab.h" /* yacc.c:1909  */
 };
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1

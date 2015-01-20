@@ -29,6 +29,7 @@
 %token	<lval>	LCONST LSP LSB LFP LPC
 %token	<lval>	LR LREG LF LFREG LV LVREG LC LCREG LFCR LFCSEL
 %token	<lval>	LCOND LS LAT LEXT LSPR LSPREG LVTYPE
+%token	<lval>	LPCDAT LFUNCDAT LSCHED
 %token	<dval>	LFCONST
 %token	<sval>	LSCONST
 %token	<sym>	LNAME LLAB LVAR
@@ -60,6 +61,10 @@ line:
 		if($1->value != $3)
 			yyerror("redeclaration of %s", $1->name);
 		$1->value = $3;
+	}
+|	LSCHED ';'
+	{
+		nosched = $1;
 	}
 |	';'
 |	inst ';'
@@ -293,6 +298,26 @@ inst:
 |	LTYPEH comma ximm
 	{
 		outcode($1, &nullgen, NREG, &$3);
+	}
+/*
+ * PCDATA
+ */
+|	LPCDAT imm ',' imm
+	{
+		if($2.type != D_CONST || $4.type != D_CONST)
+			yyerror("arguments to PCDATA must be integer constants");
+		outcode($1, &$2, NREG, &$4);
+	}
+/*
+ * FUNCDATA
+ */
+|	LFUNCDAT imm ',' addr
+	{
+		if($2.type != D_CONST)
+			yyerror("index for FUNCDATA must be integer constant");
+		if($4.type != D_EXTERN && $4.type != D_STATIC && $4.type != D_OREG)
+			yyerror("value for FUNCDATA must be symbol reference");
+ 		outcode($1, &$2, NREG, &$4);
 	}
 /*
  * floating-point

@@ -82,6 +82,7 @@ EXTERN	Io*	iostack;
 EXTERN	int32	lineno;
 EXTERN	int	nerrors;
 EXTERN	int32	nhunk;
+EXTERN	int	nosched;
 EXTERN	int	ninclude;
 EXTERN	int32	nsymb;
 EXTERN	Addr	nullgen;
