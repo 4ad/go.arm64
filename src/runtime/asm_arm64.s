@@ -319,3 +319,147 @@ TEXT runtime·jmpdefer(SB), NOSPLIT, $-8-16
 	SUB	$8, R1
 	MOV	0(R11), R3
 	B	(R3)
+
+// A Duff's device for zeroing memory.
+// The compiler jumps to computed addresses within
+// this routine to zero chunks of memory.  Do not
+// change this code without also changing the code
+// in ../cmd/7g/ggen.c:/^clearfat.
+// ZR: always zero
+// R2 (aka REGRT1): ptr to memory to be zeroed - 8
+// On return, R2 points to the last zeroed dword.
+TEXT runtime·duffzero(SB), NOSPLIT, $-8-0
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	MOV	ZR, (R2)8!
+	RETURN
+
+
+TEXT runtime·return0(SB), NOSPLIT, $0
+	MOVW	$0, R0
+	RETURN
