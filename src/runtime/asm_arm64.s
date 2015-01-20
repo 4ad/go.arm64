@@ -34,12 +34,13 @@ TEXT runtime·reginit(SB),NOSPLIT,$-8-0
 // save state in Gobuf; setjmp
 TEXT runtime·gosave(SB), NOSPLIT, $-8-8
 	MOV	buf+0(FP), R3
-	MOV	R1, gobuf_sp(R3)
+	MOV	SP, R0
+	MOV	R0, gobuf_sp(R3)
 	MOV	LR, gobuf_pc(R3)
 	MOV	g, gobuf_g(R3)
-	MOV	R0, gobuf_lr(R3)
-	MOV	R0, gobuf_ret(R3)
-	MOV	R0, gobuf_ctxt(R3)
+	MOV	ZR, gobuf_lr(R3)
+	MOV	ZR, gobuf_ret(R3)
+	MOV	ZR, gobuf_ctxt(R3)
 	RETURN
 
 // void gogo(Gobuf*)
@@ -50,7 +51,8 @@ TEXT runtime·gogo(SB), NOSPLIT, $-8-8
 	BL	runtime·save_g(SB)
 
 	MOV	0(g), R4
-	MOV	gobuf_sp(R5), R1
+	MOV	gobuf_sp(R5), R0
+	MOV	R0, SP
 	MOV	gobuf_lr(R5), LR
 	MOV	gobuf_ret(R5), R3
 	MOV	gobuf_ctxt(R5), R11
@@ -68,7 +70,8 @@ TEXT runtime·gogo(SB), NOSPLIT, $-8-8
 // to keep running g.
 TEXT runtime·mcall(SB), NOSPLIT, $-8-8
 	// Save caller state in g->sched
-	MOV	R1, (g_sched+gobuf_sp)(g)
+	MOV	SP, R0
+	MOV	R0, (g_sched+gobuf_sp)(g)
 	MOV	LR, (g_sched+gobuf_pc)(g)
 	MOV	$0, (g_sched+gobuf_lr)(g)
 	MOV	g, (g_sched+gobuf_g)(g)
@@ -83,9 +86,11 @@ TEXT runtime·mcall(SB), NOSPLIT, $-8-8
 	B	runtime·badmcall(SB)
 	MOV	fn+0(FP), R11			// context
 	MOV	0(R11), R4			// code pointer
-	MOV	(g_sched+gobuf_sp)(g), R1	// sp = m->g0->sched.sp
-	MOV	R3, (R1)-8!
-	MOV	R0, (R1)-8!
+	MOV	(g_sched+gobuf_sp)(g), R0
+	MOV	R0, SP	// sp = m->g0->sched.sp
+	MOV	R3, -8(SP)
+	MOV	R0, -16(SP)
+	SUB $16, SP
 	BL	(R4)
 	B	runtime·badmcall2(SB)
 
@@ -128,8 +133,9 @@ switch:
 	MOV	$runtime·systemstack_switch(SB), R6
 	ADD	$8, R6	// get past prologue
 	MOV	R6, (g_sched+gobuf_pc)(g)
-	MOV	R1, (g_sched+gobuf_sp)(g)
-	MOV	R0, (g_sched+gobuf_lr)(g)
+	MOV	SP, R0
+	MOV	R0, (g_sched+gobuf_sp)(g)
+	MOV	$0, (g_sched+gobuf_lr)(g)
 	MOV	g, (g_sched+gobuf_g)(g)
 
 	// switch to g0
@@ -140,7 +146,7 @@ switch:
 	SUB	$8, R3
 	MOV	$runtime·mstart(SB), R4
 	MOV	R4, 0(R3)
-	MOV	R3, R1
+	MOV	R3, SP
 
 	// call target function
 	MOV	0(R11), R3	// code pointer
@@ -150,7 +156,8 @@ switch:
 	MOV	g_m(g), R3
 	MOV	m_curg(R3), g
 	BL	runtime·save_g(SB)
-	MOV	(g_sched+gobuf_sp)(g), R1
+	MOV	(g_sched+gobuf_sp)(g), R0
+	MOV	R0, SP
 	MOV	$0, (g_sched+gobuf_sp)(g)
 	RETURN
 
@@ -245,7 +252,8 @@ nocgo:
 	// will not be usable.
 	MOV	g_m(g), R3
 	MOV	m_g0(R3), R3
-	MOV	R1, (g_sched+gobuf_sp)(R3)
+	MOV	SP, R0
+	MOV	R0, (g_sched+gobuf_sp)(R3)
 
 havem:
 	MOV	g_m(g), R8
@@ -258,7 +266,8 @@ havem:
 	MOV	m_g0(R8), R3
 	MOV	(g_sched+gobuf_sp)(R3), R4
 	MOV	R4, savedsp-16(SP)
-	MOV	R1, (g_sched+gobuf_sp)(R3)
+	MOV	SP, R0
+	MOV	R0, (g_sched+gobuf_sp)(R3)
 
 	// Switch to m->curg stack and call runtime.cgocallbackg.
 	// Because we are taking over the execution of m->curg
@@ -296,7 +305,8 @@ havem:
 	MOV	g_m(g), R8
 	MOV	m_g0(R8), g
 	BL	runtime·save_g(SB)
-	MOV	(g_sched+gobuf_sp)(g), R1
+	MOV	(g_sched+gobuf_sp)(g), R0
+	MOV	R0, SP
 	MOV	savedsp-16(SP), R4
 	MOV	R4, (g_sched+gobuf_sp)(g)
 
@@ -427,13 +437,14 @@ TEXT runtime·getg(SB),NOSPLIT,$-8-8
 // 2. sub 4 bytes to get back to BL deferreturn
 // 3. BR to fn
 TEXT runtime·jmpdefer(SB), NOSPLIT, $-8-16
-	MOV	0(R1), R0
+	MOV	0(SP), R0
 	SUB	$4, R0
 	MOV	R0, LR
 
 	MOV	fv+0(FP), R11
-	MOV	argp+8(FP), R1
-	SUB	$8, R1
+	MOV	argp+8(FP), R0
+	MOV	R0, SP
+	SUB	$8, SP
 	MOV	0(R11), R3
 	B	(R3)
 

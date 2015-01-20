@@ -169,6 +169,9 @@ static Optab optab[] = {
 	{ AADD,		C_ADDCON,	C_RSP,	C_RSP,		 2, 4, 0 },
 	{ AADD,		C_ADDCON,	C_NONE,	C_RSP,		 2, 4, 0 },
 	{ ACMP,		C_ADDCON,	C_RSP,	C_NONE,		 2, 4, 0 },
+	{ AADD,		C_MBCON,	C_RSP,	C_RSP,		 2, 4, 0 },
+	{ AADD,		C_MBCON,	C_NONE,	C_RSP,		 2, 4, 0 },
+	{ ACMP,		C_MBCON,	C_RSP,	C_NONE,		 2, 4, 0 },
 
 	{ AADD,		C_LCON,	C_REG,	C_REG,		13, 8, 0,	LFROM },
 	{ AADD,		C_LCON,	C_NONE,	C_REG,		13, 8, 0,	LFROM },
