@@ -63,7 +63,7 @@ const (
 	bucketCnt     = 1 << bucketCntBits
 
 	// Maximum average load of a bucket that triggers growth.
-	loadFactor = 6.5 * 8
+	loadFactor = 6.5
 
 	// Maximum key or value size to keep inline (instead of mallocing per element).
 	// Must fit in a uint8.
@@ -206,7 +206,7 @@ func makemap(t *maptype, hint int64) *hmap {
 
 	// find size parameter which will hold the requested # of elements
 	B := uint8(0)
-	for ; hint > bucketCnt && hint > (loadFactor*(1<<B))>>3; B++ {
+	for ; hint > bucketCnt && float32(hint) > loadFactor*float32(uintptr(1)<<B); B++ {
 	}
 
 	// allocate initial hash table
@@ -452,7 +452,7 @@ again:
 	}
 
 	// did not find mapping for key.  Allocate new cell & add entry.
-	if h.count >= bucketCnt && h.count >= (loadFactor*(1<<h.B))>>3 {
+	if float32(h.count) >= loadFactor*float32((uintptr(1)<<h.B)) && h.count >= bucketCnt {
 		hashGrow(t, h)
 		goto again // Growing the table invalidates everything, so try again
 	}

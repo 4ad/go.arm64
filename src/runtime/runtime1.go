@@ -148,8 +148,8 @@ func check() {
 		f     uint32
 		g     int64
 		h     uint64
-		// i, i1 float32
-		// j, j1 float64
+		i, i1 float32
+		j, j1 float64
 		k, k1 unsafe.Pointer
 		l     *uint16
 		m     [4]byte
@@ -188,14 +188,12 @@ func check() {
 	if unsafe.Sizeof(h) != 8 {
 		throw("bad h")
 	}
-	/*
 	if unsafe.Sizeof(i) != 4 {
 		throw("bad i")
 	}
 	if unsafe.Sizeof(j) != 8 {
 		throw("bad j")
 	}
-	*/
 	if unsafe.Sizeof(k) != ptrSize {
 		throw("bad k")
 	}
@@ -262,7 +260,6 @@ func check() {
 		throw("atomicor8")
 	}
 
-	/*
 	*(*uint64)(unsafe.Pointer(&j)) = ^uint64(0)
 	if j == j {
 		throw("float64nan")
@@ -294,7 +291,7 @@ func check() {
 	if i == i1 {
 		throw("float32nan3")
 	}
-	*/
+
 	testAtomic64()
 
 	if _FixedStack != round2(_FixedStack) {
