@@ -802,6 +802,7 @@ addpool(Link *ctxt, Prog *p, Addr *a)
 		t.to.sym = a->sym;
 		t.to.type = a->type;
 		t.to.name = a->name;
+		t.to3.type = D_NONE;
 		break;
 	case C_PSAUTO:
 	case C_PPAUTO:
