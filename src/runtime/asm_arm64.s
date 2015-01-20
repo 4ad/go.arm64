@@ -303,3 +303,19 @@ TEXT runtime·casp1(SB), NOSPLIT, $0-25
 TEXT runtime·getg(SB),NOSPLIT,$-8-8
 	MOV	g, ret+0(FP)
 	RETURN
+
+// void jmpdefer(fv, sp);
+// called from deferreturn.
+// 1. grab stored LR for caller
+// 2. sub 4 bytes to get back to BL deferreturn
+// 3. BR to fn
+TEXT runtime·jmpdefer(SB), NOSPLIT, $-8-16
+	MOV	0(R1), R0
+	SUB	$4, R0
+	MOV	R0, LR
+
+	MOV	fv+0(FP), R11
+	MOV	argp+8(FP), R1
+	SUB	$8, R1
+	MOV	0(R11), R3
+	B	(R3)
