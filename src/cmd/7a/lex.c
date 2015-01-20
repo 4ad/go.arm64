@@ -846,5 +846,33 @@ out:
 		pc++;
 }
 
+void
+outtcode(int a, Addr *from, Addr *to, Addr *to3)
+{
+	Prog *p;
+	Plist *pl;
+
+	if(pass == 1)
+		goto out;
+
+	p = ctxt->arch->prg();
+	p->as = a;
+	p->lineno = lineno;
+	p->from = *from;
+	p->to = *to;
+	p->to3 = *to3;
+	p->pc = pc;
+
+	if(lastpc == nil) {
+		pl = linknewplist(ctxt);
+		pl->firstpc = p;
+	} else
+		lastpc->link = p;
+	lastpc = p;
+out:
+	if(a != AGLOBL && a != ADATA)
+		pc++;
+}
+
 #include "../cc/lexbody"
 #include "../cc/macbody"

@@ -390,9 +390,9 @@ inst:
 /*
  * STXR
  */
-|	LSTXR reg ',' addr ',' sreg
+|	LSTXR reg ',' addr ',' reg
 	{
-		outcode($1, &$2, $6, &$4);
+		outtcode($1, &$2, &$4, &$6);
 	}
 /*
  * END

@@ -546,9 +546,9 @@ static Optab optab[] = {
 	{ ALDXR,		C_ZOREG,	C_NONE,	C_REG,		58, 4, 0 },
 	{ ALDAXR,		C_ZOREG,	C_NONE,	C_REG,		58, 4, 0 },
 	{ ALDXP,		C_ZOREG,	C_REG,	C_REG,		58, 4, 0 },
-	{ ASTXR,		C_REG,	C_REG,	C_ZOREG,		59, 4, 0 },
-	{ ASTLXR,		C_REG,	C_REG,	C_ZOREG,		59, 4, 0 },
-	{ ASTXP,		C_REG, C_REG,	C_ZOREG,		59, 4, 0 },
+	{ ASTXR,		C_REG,	C_NONE,	C_ZOREG,		59, 4, 0 }, // to3=C_REG
+	{ ASTLXR,		C_REG,	C_NONE,	C_ZOREG,		59, 4, 0 }, // to3=C_REG
+	{ ASTXP,		C_REG, C_NONE,	C_ZOREG,		59, 4, 0 }, // to3=C_REG
 
 	{ AAESD,	C_VREG,	C_NONE,	C_VREG,	29, 4, 0 },
 	{ ASHA1C,	C_VREG,	C_REG,	C_VREG,	1, 4, 0 },
@@ -2509,7 +2509,7 @@ asmout(Link *ctxt, Prog *p, Optab *o, int32 *out)
 		break;
 	case 59: /* stxr/stlxr */
 		o1 = opstore(ctxt, p->as);
-		o1 |= p->reg << 16;
+		o1 |= p->to3.reg << 16;
 		if(p->from3.type != D_NONE)
 			o1 |= p->from3.reg << 10;
 		else

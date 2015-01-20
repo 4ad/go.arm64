@@ -98,6 +98,7 @@ struct	Prog
 		     // starts at 0 for both GPRs and FPRs;
 		     // also used for ADATA width on arm, ppc64
 	Addr	from3; // arm64, ppc64 only (e.g., RLWM/FMADD from, reg, from3, to)
+	Addr	to3;	// arm64 only (e.g. STLXR from, to, to3)
 	Addr	to;
 	
 	// for 5g, 6g, 8g internal use

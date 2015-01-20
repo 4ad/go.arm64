@@ -120,6 +120,7 @@ void	pinit(char*);
 void	cclean(void);
 void	outcode(int, Addr*, int, Addr*);
 void	outgcode(int, Addr*, int, Addr*, Addr*);
+void	outtcode(int, Addr*, Addr*, Addr*);
 int	filbuf(void);
 Sym*	getsym(void);
 void	domacro(void);
