@@ -826,6 +826,8 @@ addpool(Link *ctxt, Prog *p, Addr *a)
 	case C_LOREG:
 	case C_LACON:
 	case C_AACON:
+	case C_ABCON:
+	case C_MBCON:
 		t.to.type = D_CONST;
 		t.to.offset = ctxt->instoffset;
 		break;
