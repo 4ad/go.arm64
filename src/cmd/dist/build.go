@@ -611,6 +611,7 @@ var gentab = []struct {
 	{"opnames.h", gcopnames},
 	{"anames5.c", mkanames},
 	{"anames6.c", mkanames},
+	{"anames7.c", mkanames},
 	{"anames8.c", mkanames},
 	{"anames9.c", mkanames},
 	{"zdefaultcc.go", mkzdefaultcc},

@@ -51,6 +51,11 @@ enum
 #define	P		((Prog*)0)
 #define	S		((LSym*)0)
 
+enum
+{
+	MINLC		= 4,
+};
+
 EXTERN	int32	autosize;
 EXTERN	LSym*	datap;
 EXTERN	int	debug[128];
