@@ -824,8 +824,11 @@ addpool(Link *ctxt, Prog *p, Addr *a)
 	case C_NSOREG:
 	case C_NPOREG:
 	case C_LOREG:
+	// TODO(aram): why are these needed?
 	case C_LACON:
 	case C_AACON:
+	case C_ABCON:
+	case C_MBCON:
 		t.to.type = D_CONST;
 		t.to.offset = ctxt->instoffset;
 		break;
