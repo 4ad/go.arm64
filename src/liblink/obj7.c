@@ -128,24 +128,6 @@ progedit(Link *ctxt, Prog *p)
 		}
 		break;
 	}
-
-	// Rewrite SUB constants into ADD.
-	switch(p->as) {
-	case ASUBS:
-		if(p->from.type == D_CONST) {
-			p->from.offset = -p->from.offset;
-			p->as = AADDS;
-		}
-		break;
-
-	case ASUB:
-		if(p->from.type == D_CONST) {
-			p->from.offset = -p->from.offset;
-			p->as = AADD;
-		}
-		break;
-	}
-
 }
 
 static void
