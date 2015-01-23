@@ -796,3 +796,66 @@ g0:
 	SUB	R6, R5
 	MOV	R5, SP
 	RET
+
+// TODO(aram): doc..
+TEXT runtime·save_g(SB),NOSPLIT,$-8-0
+	MOVB	runtime·iscgo(SB), R0
+	CMP	$0, R0
+	BEQ	nocgo
+
+	BL	runtime·abort(SB)
+
+nocgo:
+	RET
+
+// Save state of caller into g->sched. Smashes R0.
+TEXT gosave<>(SB),NOSPLIT,$-8
+	MOV	LR, (g_sched+gobuf_pc)(g)
+	MOV SP, R0
+	MOV	R0, (g_sched+gobuf_sp)(g)
+	MOV	LR, (g_sched+gobuf_lr)(g)
+	MOV	LR, (g_sched+gobuf_ret)(g)
+	MOV	LR, (g_sched+gobuf_ctxt)(g)
+	RETURN
+
+// memequal_varlen(a, b unsafe.Pointer) bool
+TEXT runtime·memequal_varlen(SB),NOSPLIT,$40-17
+	MOV	a+0(FP), R3
+	MOV	b+8(FP), R4
+	CMP	R3, R4
+	BEQ	eq
+	MOV	8(R0), R5    // compiler stores size at offset 8 in the closure
+	MOV	R3, 8(SP)
+	MOV	R4, 16(SP)
+	MOV	R5, 24(SP)
+	BL	runtime·memeq(SB)
+	MOVBU	32(SP), R3
+	MOVB	R3, ret+16(FP)
+	RETURN
+eq:
+	MOV	$1, R3
+	MOVB	R3, ret+16(FP)
+	RETURN
+
+// memhash_varlen(p unsafe.Pointer, h seed) uintptr
+// redirects to memhash(p, h, size) using the size
+// stored in the closure.
+TEXT runtime·memhash_varlen(SB),NOSPLIT,$40-24
+	GO_ARGS
+	NO_LOCAL_POINTERS
+	MOV	p+0(FP), R3
+	MOV	h+8(FP), R4
+	MOV	8(R0), R5
+	MOV	R3, 8(SP)
+	MOV	R4, 16(SP)
+	MOV	R5, 24(SP)
+	BL	runtime·memhash(SB)
+	MOV	32(SP), R3
+	MOV	R3, ret+16(FP)
+	RETURN
+
+// The top-most function running on a goroutine
+// returns to goexit+PCQuantum.
+TEXT runtime·goexit(SB),NOSPLIT,$-8-0
+	MOV	R0, R0	// NOP
+	BL	runtime·goexit1(SB)	// does not return
