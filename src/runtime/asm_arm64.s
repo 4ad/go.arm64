@@ -167,8 +167,70 @@ noswitch:
 	BL	(R3)
 	RETURN
 
-TEXT runtime·rt0_go(SB),NOSPLIT,$0-0
-	BL	main·main(SB)
+TEXT runtime·rt0_go(SB),NOSPLIT,$0
+	// SP = stack; R0 = argc; R1 = argv
+
+	// initialize essential registers
+	BL	runtime·reginit(SB)
+
+	SUB	$24, SP
+	MOVW	R0, 8(SP) // argc
+	MOV	R1, 16(SP) // argv
+
+	// create istack out of the given (operating system) stack.
+	// _cgo_init may update stackguard.
+	MOV	$runtime·g0(SB), g
+	MOV	$(-64*1024), R7
+	ADD	R7, SP, R0
+	MOV	R0, g_stackguard0(g)
+	MOV	R0, g_stackguard1(g)
+	MOV	R0, (g_stack+stack_lo)(g)
+	MOV	SP, R7
+	MOV	R7, (g_stack+stack_hi)(g)
+
+	// if there is a _cgo_init, call it using the gcc ABI.
+	MOV	_cgo_init(SB), R12
+	CMP	R0, R12
+	BEQ	nocgo
+
+	BL	runtime·abort(SB)
+
+nocgo:
+	// update stackguard after _cgo_init
+	MOV	(g_stack+stack_lo)(g), R0
+	ADD	$const__StackGuard, R0
+	MOV	R0, g_stackguard0(g)
+	MOV	R0, g_stackguard1(g)
+
+	// set the per-goroutine and per-mach "registers"
+	MOV	$runtime·m0(SB), R0
+
+	// save m->g0 = g0
+	MOV	g, m_g0(R0)
+	// save m0 to g0->m
+	MOV	R0, g_m(g)
+
+	BL	runtime·check(SB)
+
+	// args are already prepared
+	BL	runtime·args(SB)
+	BL	runtime·osinit(SB)
+	BL	runtime·schedinit(SB)
+
+	// create a new goroutine to start program
+	MOV	$runtime·main·f(SB), R0		// entry
+	MOV	SP, R7
+	MOV	R0, (R7)-8!
+	MOV	R0, (R7)-8!
+	MOV	R0, (R7)-8!
+	MOV	R7, SP
+	BL	runtime·newproc(SB)
+	ADD	$24, SP
+
+	// start this M
+	BL	runtime·mstart(SB)
+
+	MOV	$0, (ZR)
 	RETURN
 
 TEXT runtime·fastrand1(SB),NOSPLIT,$-8-4
@@ -859,3 +921,19 @@ TEXT runtime·memhash_varlen(SB),NOSPLIT,$40-24
 TEXT runtime·goexit(SB),NOSPLIT,$-8-0
 	MOV	R0, R0	// NOP
 	BL	runtime·goexit1(SB)	// does not return
+
+TEXT runtime·prefetcht0(SB),NOSPLIT,$0-8
+	RETURN
+
+TEXT runtime·prefetcht1(SB),NOSPLIT,$0-8
+	RETURN
+
+TEXT runtime·prefetcht2(SB),NOSPLIT,$0-8
+	RETURN
+
+TEXT runtime·prefetchnta(SB),NOSPLIT,$0-8
+	RETURN
+
+// TODO(aram):
+TEXT runtime·morestack(SB),NOSPLIT,$-8-0
+	RET
