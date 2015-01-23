@@ -726,3 +726,73 @@ CALLFN(·call134217728, 134217728)
 CALLFN(·call268435456, 268435456)
 CALLFN(·call536870912, 536870912)
 CALLFN(·call1073741824, 1073741824)
+
+TEXT runtime·procyield(SB),NOSPLIT,$0-0
+	MOVW	cycles+0(FP), R0
+again:
+	YIELD
+	SUBW	$1, R0
+	CBNZ	R0, again
+	RETURN
+
+// asmcgocall(void(*fn)(void*), void *arg)
+// Call fn(arg) on the scheduler stack,
+// aligned appropriately for the gcc ABI.
+// See cgocall.c for more details.
+TEXT ·asmcgocall(SB),NOSPLIT,$0-16
+	MOV	fn+0(FP), R3
+	MOV	arg+8(FP), R4
+	BL	asmcgocall<>(SB)
+	RET
+
+TEXT ·asmcgocall_errno(SB),NOSPLIT,$0-24
+	MOV	fn+0(FP), R3
+	MOV	arg+8(FP), R4
+	BL	asmcgocall<>(SB)
+	MOV	R0, ret+16(FP)
+	RET
+
+// asmcgocall common code. fn in R3, arg in R4. returns errno in R0.
+TEXT asmcgocall<>(SB),NOSPLIT,$0-0
+	MOV	SP, R2		// save original stack pointer
+	MOV	g, R5
+
+	// Figure out if we need to switch to m->g0 stack.
+	// We get called to create new OS threads too, and those
+	// come in on the m->g0 stack already.
+	MOV	g_m(g), R6
+	MOV	m_g0(R6), R6
+	CMP	R6, g
+	BEQ	g0
+	BL	gosave<>(SB)
+	MOV	R6, g
+	BL	runtime·save_g(SB)
+	MOV	(g_sched+gobuf_sp)(g), R13
+	MOV	R13, SP
+
+	// Now on a scheduling stack (a pthread-created stack).
+g0:
+	// Save room for two of our pointers, plus 32 bytes of callee
+	// save area that lives on the caller stack.
+	MOV	SP, R13
+	SUB	$48, R13
+	AND	$~15, R13	// 16-byte alignment for gcc ABI
+	MOV	R13, SP
+	MOV	R5, 40(SP)	// save old g on stack
+	MOV	(g_stack+stack_hi)(R5), R5
+	SUB	R2, R5
+	MOV	R5, 32(SP)	// save depth in old g stack (can't just save SP, as stack might be copied during a callback)
+	MOV	R0, 0(SP)	// clear back chain pointer (TODO can we give it real back trace information?)
+	// This is a "global call", so put the global entry point in r12
+	MOV	R3, R12
+	MOV	R4, R0
+	BL	(R12)
+
+	// Restore g, stack pointer.  R0 is errno, so don't touch it
+	MOV	40(SP), g
+	BL	runtime·save_g(SB)
+	MOV	(g_stack+stack_hi)(g), R5
+	MOV	32(SP), R6
+	SUB	R6, R5
+	MOV	R5, SP
+	RET
