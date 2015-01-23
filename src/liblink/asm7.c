@@ -152,10 +152,10 @@ enum
 static Optab optab[] = {
         /* struct Optab:
           OPCODE,       from, prog->reg, to,             type,size,param,flag */
-	{ ATEXT,	C_LEXT,	C_NONE,	C_LCON, 	 0, 0, 0 },
-	{ ATEXT,	C_LEXT,	C_REG,	C_LCON, 	 0, 0, 0 },
-	{ ATEXT,	C_ADDR,	C_NONE,	C_LCON, 	 0, 0, 0 },
-	{ ATEXT,	C_ADDR,	C_REG,	C_LCON, 	 0, 0, 0 },
+	{ ATEXT,	C_LEXT,	C_NONE,	C_VCON, 	 0, 0, 0 },
+	{ ATEXT,	C_LEXT,	C_REG,	C_VCON, 	 0, 0, 0 },
+	{ ATEXT,	C_ADDR,	C_NONE,	C_VCON, 	 0, 0, 0 },
+	{ ATEXT,	C_ADDR,	C_REG,	C_VCON, 	 0, 0, 0 },
 
 	/* arithmetic operations */
 	{ AADD,		C_REG,	C_REG,	C_REG,		 1, 4, 0 },
@@ -173,9 +173,12 @@ static Optab optab[] = {
 	{ AADD,		C_MBCON,	C_NONE,	C_RSP,		 2, 4, 0 },
 	{ ACMP,		C_MBCON,	C_RSP,	C_NONE,		 2, 4, 0 },
 
-	{ AADD,		C_LCON,	C_REG,	C_REG,		13, 8, 0,	LFROM },
-	{ AADD,		C_LCON,	C_NONE,	C_REG,		13, 8, 0,	LFROM },
-	{ ACMP,		C_LCON,	C_REG,	C_NONE,		13, 8, 0,	LFROM },
+	{ AADD,		C_VCON,	C_REG,	C_REG,		13, 8, 0,	LFROM },
+	{ AADD,		C_VCON,	C_NONE,	C_REG,		13, 8, 0,	LFROM },
+	{ ACMP,		C_VCON,	C_REG,	C_NONE,		13, 8, 0,	LFROM },
+	{ AADD,		C_ADDR,	C_REG,	C_REG,		13, 8, 0,	LFROM },
+	{ AADD,		C_ADDR,	C_NONE,	C_REG,		13, 8, 0,	LFROM },
+	{ ACMP,		C_ADDR,	C_REG,	C_NONE,		13, 8, 0,	LFROM },
 
 	{ AADD,		C_SHIFT,C_REG,	C_REG,		 3, 4, 0 },
 	{ AADD,		C_SHIFT,C_NONE,	C_REG,		 3, 4, 0 },
@@ -204,10 +207,14 @@ static Optab optab[] = {
 	{ ABIC,		C_BITCON,	C_REG,	C_REG,		53, 4, 0 },
 	{ ABIC,		C_BITCON,	C_NONE,	C_REG,		53, 4, 0 },
 
-	{ AAND,		C_LCON,	C_REG,	C_REG,		28, 8, 0,	LFROM },
-	{ AAND,		C_LCON,	C_NONE,	C_REG,		28, 8, 0,	LFROM },
-	{ ABIC,		C_LCON,	C_REG,	C_REG,		28, 8, 0,	LFROM },
-	{ ABIC,		C_LCON,	C_NONE,	C_REG,		28, 8, 0,	LFROM },
+	{ AAND,		C_VCON,	C_REG,	C_REG,		28, 8, 0,	LFROM },
+	{ AAND,		C_VCON,	C_NONE,	C_REG,		28, 8, 0,	LFROM },
+	{ ABIC,		C_VCON,	C_REG,	C_REG,		28, 8, 0,	LFROM },
+	{ ABIC,		C_VCON,	C_NONE,	C_REG,		28, 8, 0,	LFROM },
+	{ AAND,		C_ADDR,	C_REG,	C_REG,		28, 8, 0,	LFROM },
+	{ AAND,		C_ADDR,	C_NONE,	C_REG,		28, 8, 0,	LFROM },
+	{ ABIC,		C_ADDR,	C_REG,	C_REG,		28, 8, 0,	LFROM },
+	{ ABIC,		C_ADDR,	C_NONE,	C_REG,		28, 8, 0,	LFROM },
 
 	{ AAND,		C_SHIFT,C_REG,	C_REG,		 3, 4, 0 },
 	{ AAND,		C_SHIFT,C_NONE,	C_REG,		 3, 4, 0 },
@@ -227,10 +234,10 @@ static Optab optab[] = {
 	{ AMOV,		C_MOVCON,	C_NONE,	C_REG,		32, 4, 0 },
 //	{ AMOVW,		C_ADDCON,	C_NONE,	C_REG,		2, 4, 0 },
 //	{ AMOV,		C_ADDCON,	C_NONE,	C_REG,		2, 4, 0 },
-//	{ AMOVW,		C_BITCON,	C_NONE,	C_REG,		53, 4, 0 },
-//	{ AMOV,		C_BITCON,	C_NONE,	C_REG,		53, 4, 0 },
+	{ AMOVW,		C_BITCON,	C_NONE,	C_REG,		53, 4, 0 },
+	{ AMOV,		C_BITCON,	C_NONE,	C_REG,		53, 4, 0 },
 
-	{ AMOVK,		C_LCON,	C_NONE,	C_REG,			33, 4, 0 },
+	{ AMOVK,		C_VCON,	C_NONE,	C_REG,			33, 4, 0 },
 
 	{ AMOV,	C_AECON,C_NONE,	C_REG,		 4, 4, REGSB },
 	{ AMOV,	C_AACON,C_NONE,	C_REG,		 4, 4, REGSP },
@@ -250,22 +257,22 @@ static Optab optab[] = {
 	{ AADRP,	C_SBRA,	C_NONE,	C_REG,		60, 4, 0 },
 	{ AADR,	C_SBRA,	C_NONE,	C_REG,		61, 4, 0 },
 
-	{ ABFM,	C_LCON, C_REG, C_REG,		42, 4, 0 },
-	{ ABFI,	C_LCON, C_REG, C_REG,		43, 4, 0 },
+	{ ABFM,	C_VCON, C_REG, C_REG,		42, 4, 0 },
+	{ ABFI,	C_VCON, C_REG, C_REG,		43, 4, 0 },
 
-	{ AEXTR,	C_LCON, C_REG, C_REG,		44, 4, 0 },
+	{ AEXTR,	C_VCON, C_REG, C_REG,		44, 4, 0 },
 	{ ASXTB,	C_REG,	C_NONE,	C_REG,	45, 4, 0 },
 	{ ACLS,	C_REG,	C_NONE,	C_REG,	46, 4, 0 },
 
 	{ ABEQ,	C_NONE,	C_NONE,	C_SBRA,		 7, 4, 0 },
 
-	{ ALSL,		C_LCON,	C_REG,	C_REG,		 8, 4, 0 },
-	{ ALSL,		C_LCON,	C_NONE,	C_REG,		 8, 4, 0 },
+	{ ALSL,		C_VCON,	C_REG,	C_REG,		 8, 4, 0 },
+	{ ALSL,		C_VCON,	C_NONE,	C_REG,		 8, 4, 0 },
 
 	{ ALSL,		C_REG,	C_NONE,	C_REG,		 9, 4, 0 },
 	{ ALSL,		C_REG,	C_REG,	C_REG,		 9, 4, 0 },
 
-	{ ASVC,		C_NONE,	C_NONE,	C_LCON,		10, 4, 0 },
+	{ ASVC,		C_NONE,	C_NONE,	C_VCON,		10, 4, 0 },
 	{ ASVC,		C_NONE,	C_NONE,	C_NONE,		10, 4, 0 },
 
 	{ ADWORD,	C_NONE,	C_NONE,	C_VCON,		11, 8, 0 },
@@ -277,8 +284,9 @@ static Optab optab[] = {
 	{ AWORD,	C_NONE,	C_NONE,	C_LEXT,		14, 4, 0 },
 	{ AWORD,	C_NONE,	C_NONE,	C_ADDR,		14, 4, 0 },
 
-	{ AMOVW,	C_LCON,	C_NONE,	C_REG,		12, 4, 0,	LFROM },
-	{ AMOV,	C_LCON,	C_NONE,	C_REG,		12, 4, 0,	LFROM },
+	{ AMOVW,	C_VCON,	C_NONE,	C_REG,		12, 4, 0,	LFROM },
+	{ AMOV,	C_VCON,	C_NONE,	C_REG,		12, 4, 0,	LFROM },
+	{ AMOV,	C_ADDR,	C_NONE,	C_REG,		12, 4, 0,	LFROM },
 
 	{ AMOVB,	C_REG,	C_NONE,	C_ADDR,		64, 8, 0,	LTO },
 	{ AMOVBU,	C_REG,	C_NONE,	C_ADDR,		64, 8, 0,	LTO },
@@ -301,7 +309,7 @@ static Optab optab[] = {
 	{ ACSEL,		C_COND,	C_REG,	C_REG,		18, 4, 0 },	/* from3 optional */
 	{ ACSET,		C_COND,	C_NONE,	C_REG,		18, 4, 0 },
 
-	{ ACCMN,		C_COND,	C_REG,	C_LCON,		19, 4, 0 },	/* from3 either C_REG or C_LCON */
+	{ ACCMN,		C_COND,	C_REG,	C_VCON,		19, 4, 0 },	/* from3 either C_REG or C_VCON */
 
 	/* scaled 12-bit unsigned displacement store */
 
@@ -461,8 +469,8 @@ static Optab optab[] = {
 	{ AMOV,		C_REG,	C_NONE,	C_SPR,		36, 4, 0 },
 	{ AMSR,		C_REG,	C_NONE,	C_SPR,		36, 4, 0 },
 
-	{ AMOV,		C_LCON,	C_NONE,	C_SPR,		37, 4, 0 },
-	{ AMSR,		C_LCON,	C_NONE,	C_SPR,		37, 4, 0 },
+	{ AMOV,		C_VCON,	C_NONE,	C_SPR,		37, 4, 0 },
+	{ AMSR,		C_VCON,	C_NONE,	C_SPR,		37, 4, 0 },
 
 	{ AERET,		C_NONE,	C_NONE,	C_NONE,		41, 4, 0 },
 
@@ -523,7 +531,7 @@ static Optab optab[] = {
 	{ AFCMPS,		C_FREG,	C_REG,	C_NONE,		56, 4, 0 },
 	{ AFCMPS,		C_FCON,	C_REG,	C_NONE,		56, 4, 0 },
 
-	{ AFCCMPS,	C_COND,	C_REG,	C_LCON,		57, 4, 0 },
+	{ AFCCMPS,	C_COND,	C_REG,	C_VCON,		57, 4, 0 },
 
 	{ AFCSELD,	C_COND,	C_REG,	C_FREG,		18, 4, 0 },
 
@@ -532,18 +540,18 @@ static Optab optab[] = {
 	{ ACASE,	C_REG,	C_NONE,	C_REG,		62, 4*4, 0 },
 	{ ABCASE,	C_NONE, C_NONE, C_SBRA,		63, 4, 0 },
 
-	{ ACLREX,		C_NONE,	C_NONE,	C_LCON,		38, 4, 0 },
+	{ ACLREX,		C_NONE,	C_NONE,	C_VCON,		38, 4, 0 },
 	{ ACLREX,		C_NONE,	C_NONE,	C_NONE,		38, 4, 0 },
 
 	{ ACBZ,		C_REG,	C_NONE,	C_SBRA,		39, 4, 0 },
-	{ ATBZ,		C_LCON,	C_REG,	C_SBRA,		40, 4, 0 },
+	{ ATBZ,		C_VCON,	C_REG,	C_SBRA,		40, 4, 0 },
 
-	{ ASYS,		C_LCON,	C_NONE,	C_NONE,		50, 4, 0 },
-	{ ASYS,		C_LCON,	C_REG,	C_NONE,		50, 4, 0 },
-	{ ASYSL,		C_LCON,	C_NONE,	C_REG,		50, 4, 0 },
+	{ ASYS,		C_VCON,	C_NONE,	C_NONE,		50, 4, 0 },
+	{ ASYS,		C_VCON,	C_REG,	C_NONE,		50, 4, 0 },
+	{ ASYSL,		C_VCON,	C_NONE,	C_REG,		50, 4, 0 },
 
-	{ ADMB,		C_LCON,	C_NONE, 	C_NONE,		51, 4, 0 },
-	{ AHINT,		C_LCON,	C_NONE,	C_NONE,		52, 4, 0 },
+	{ ADMB,		C_VCON,	C_NONE, 	C_NONE,		51, 4, 0 },
+	{ AHINT,		C_VCON,	C_NONE,	C_NONE,		52, 4, 0 },
 
 	{ ALDAR,		C_ZOREG,	C_NONE,	C_REG,		58, 4, 0 },
 	{ ALDXR,		C_ZOREG,	C_NONE,	C_REG,		58, 4, 0 },
@@ -560,8 +568,8 @@ static Optab optab[] = {
 	{ AUNDEF,		C_NONE,	C_NONE,	C_NONE,		90, 4, 0 },
 
 	{ AUSEFIELD,	C_ADDR,	C_NONE,	C_NONE, 	 0, 0, 0 },
-	{ APCDATA,	C_LCON,	C_NONE,	C_LCON,		0, 0, 0 },
-	{ AFUNCDATA,	C_LCON,	C_NONE,	C_ADDR,	0, 0, 0 },
+	{ APCDATA,	C_VCON,	C_NONE,	C_VCON,		0, 0, 0 },
+	{ AFUNCDATA,	C_VCON,	C_NONE,	C_ADDR,	0, 0, 0 },
 	
 	{ ADUFFZERO,	C_NONE,	C_NONE,	C_SBRA,		 5, 4, 0 },	// same as AB/ABL
 	{ ADUFFCOPY,	C_NONE,	C_NONE,	C_SBRA,		 5, 4, 0 },	// same as AB/ABL
@@ -792,18 +800,42 @@ addpool(Link *ctxt, Prog *p, Addr *a)
 	//	MOV addr, REGTEMP
 	//	MOVW REGTEMP, R
 	// where addr is the address of the DWORD containing the address of foo.
-	if(p->as == AMOV || c == C_ADDR) {
+	if(p->as == AMOV || c == C_ADDR || c == C_VCON) {
 		t.as = ADWORD;
 		sz = 8;
 	}
 	switch(c) {
 	default:
+		// TODO(aram): remove.
+		if(a->name != D_EXTERN) {
+			print("addpool: %^ in %P shouldn't go to default case\n", c, p);
+		}
 		t.to.offset = a->offset;
 		t.to.sym = a->sym;
 		t.to.type = a->type;
 		t.to.name = a->name;
 		t.to3.type = D_NONE;
 		break;
+	case C_MOVCON:
+		// TODO(aram):
+		//	This is here to work around a bug where we generate negative
+		//	operands that match C_MOVCON, but we use them with
+		//	instructions that only accept unsigned immediates. This
+		//	will cause oplook to return a variant of the instruction
+		//	that loads the negative constant from memory, rather than
+		//	using the immediate form. Because of that load, we get here,
+		//	so we need to know what to do with C_MOVCON.
+		//
+		//	The correct fix is to use the "negation" instruction variant,
+		//	e.g. CMN $0, R instead of CMP $-1, R, or SUB $1, R instead
+		//	of ADD $-1, R.
+		//
+		/* fallthrough */
+	case C_ADDCON:
+		// TODO(aram):
+		//	This is here because MOV uint12<<12, R is disabled in optab.
+		//	Because of this, we need to load the constant from memory.
+		/* fallthrough */
 	case C_PSAUTO:
 	case C_PPAUTO:
 	case C_UAUTO4K:
@@ -824,13 +856,15 @@ addpool(Link *ctxt, Prog *p, Addr *a)
 	case C_NSOREG:
 	case C_NPOREG:
 	case C_LOREG:
-	// TODO(aram): why are these needed?
 	case C_LACON:
-	case C_AACON:
-	case C_ABCON:
-	case C_MBCON:
+	case C_LCON:
+	case C_VCON:
+		if(a->name == D_EXTERN) {
+			print("addpool: %^ in %P needs reloc\n", c, p);
+		}
 		t.to.type = D_CONST;
 		t.to.offset = ctxt->instoffset;
+		t.to3.type = D_NONE;
 		break;
 	}
 	for(q = ctxt->blitrl; q != nil; q = q->link) /* could hash on t.t0.offset */
@@ -1020,7 +1054,7 @@ aclass(Link *ctxt, Addr *a)
 			ctxt->instoffset = a->offset;
 			if(a->sym != nil) // use relocation
 				return C_ADDR;
-			return C_LCON;
+			return C_VCON;
 		}
 		return C_GOK;
 	case D_FCONST:
@@ -1035,10 +1069,10 @@ aclass(Link *ctxt, Addr *a)
 			if(v == 0)
 				return C_ZCON;
 			if(isaddcon(v)) {
-				if(isbitcon(v))
-					return C_ABCON;
 				if(v <= 0xFFF)
 					return C_ADDCON0;
+				if(isbitcon(v))
+					return C_ABCON;
 				return C_ADDCON;
 			}
 			t = movcon(v);
@@ -1055,19 +1089,14 @@ aclass(Link *ctxt, Addr *a)
 			}
 			if(isbitcon(v))
 				return C_BITCON;
-			return C_LCON;
+			return C_VCON;
 		case D_EXTERN:
 		case D_STATIC:
 			s = a->sym;
 			if(s == nil)
 				break;
-			if(s->type == SCONST) {
-				ctxt->instoffset = s->value + a->offset;
-				goto aconsize;
-			}
-			ctxt->instoffset = s->value + a->offset;
-			/* not sure why this barfs */
-			return C_LCON;
+			ctxt->instoffset = a->offset;
+			return C_ADDR;
 		case D_AUTO:
 			ctxt->instoffset = ctxt->autosize + a->offset;
 			goto aconsize;
@@ -1916,10 +1945,10 @@ asmout(Link *ctxt, Prog *p, Optab *o, int32 *out)
 			o1 = o2 = 0;
 		}
 		break;
-	case 12: /* movT $lcon, reg */
+	case 12: /* movT $vcon, reg */
 		o1 = omovlit(ctxt, p->as, p, &p->from, p->to.reg);
 		break;
-	case 13: /* addop $lcon, [R], R (64 bit literal); cmp $lcon,R -> addop $lcon,R, ZR */
+	case 13: /* addop $vcon, [R], R (64 bit literal); cmp $lcon,R -> addop $lcon,R, ZR */
 		o1 = omovlit(ctxt, AMOV, p, &p->from, REGTMP);
 		if(!o1)
 			break;
@@ -2120,7 +2149,7 @@ asmout(Link *ctxt, Prog *p, Optab *o, int32 *out)
 			r = rt;
 		o1 |= ((r << 5)) | rt;
 		break;
-	case 28: /* logop $lcon, [R], R (64 bit literal) */
+	case 28: /* logop $vcon, [R], R (64 bit literal) */
 		o1 = omovlit(ctxt, AMOV, p, &p->from, REGTMP);
 		if(!o1)
 			break;
