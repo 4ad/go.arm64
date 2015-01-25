@@ -2320,8 +2320,8 @@ asmout(Link *ctxt, Prog *p, Optab *o, int32 *out)
 		if(p->from3.type != D_NONE) {
 			if(p->from3.type != D_CONST)
 				ctxt->diag("missing bit position\n%P", p);
-			s = p->from3.offset;
-			if(((s & 0xF)) != 0 || ((s /= 16)) >= 4 || ((o1 & S64)) == 0 && s >= 2)
+			s = p->from3.offset/16;
+			if(((s*16 & 0xF)) != 0 || s >= 4 || ((o1 & S64)) == 0 && s >= 2)
 				ctxt->diag("illegal bit position\n%P", p);
 		}
 		rt = p->to.reg;
