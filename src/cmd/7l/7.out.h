@@ -2,20 +2,15 @@
  * arm64
  */
 
-#define	NSNAME		8
-#define	NSYM		50
-#define	NREG		32
-#define	NFREG		32
 #include "../ld/textflag.h"
 
-/*c2go
 enum
 {
 	NSNAME = 8,
 	NSYM = 50,
-	NREG = 32
+	NREG = 32,
+	NFREG = 32,
 };
-*/
 
 enum {
 	REGENV	= 0,	/* environment for closures */

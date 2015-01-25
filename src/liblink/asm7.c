@@ -90,12 +90,17 @@ static int movesize(int);
 static void prasm(Prog*);
 static Mask* findmask(uvlong v);
 
-#define	S32	(0U<<31)
-#define	S64	(1U<<31)
+enum {
+	S32 = 0U<<31,
+	S64 = 1U<<31,
+	Sbit = 1U<<29,
+	LSL0_32 = 2<<13,
+	LSL0_64 = 3<<13,
+};
+
 #define	Rm(X)	(((X)&31)<<16)
 #define	Rn(X)	(((X)&31)<<5)
 #define	Rd(X)	(((X)&31)<<0)
-#define	Sbit	(1U<<29)
 
 #define	OPDP2(x)	(0<<30 | 0 << 29 | 0xd6<<21 | (x)<<10)
 #define	OPDP3(sf,op54,op31,o0)	((sf)<<31 | (op54)<<29 | 0x1B<<24 | (op31)<<21 | (o0)<<15)
@@ -116,9 +121,6 @@ static Mask* findmask(uvlong v);
 #define	FPCVTI(sf,s,type,rmode,op)	((sf)<<31 | (s)<<29 | 0x1E<<24 | (type)<<22 | 1<<21 | (rmode)<<19 | (op)<<16 | 0<<10)
 #define	FPCVTF(sf,s,type,rmode,op,scale)	((sf)<<31 | (s)<<29 | 0x1E<<24 | (type)<<22 | 0<<21 | (rmode)<<19 | (op)<<16 | (scale)<<10)
 #define	ADR(p,o,rt)	((p)<<31 | ((o)&3)<<29 | (0x10<<24) | (((o>>2)&0x7FFFF)<<5) | (rt))
-
-#define	LSL0_32	(2<<13)
-#define	LSL0_64	(3<<13)
 
 #define	OPBIT(x)	(1<<30 | 0<<29 | 0xD6<<21 | 0<<16 | (x)<<10)
 
