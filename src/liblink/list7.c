@@ -89,15 +89,15 @@ Pconv(Fmt *fp)
 		if(p->reg == NREG && p->from3.type == D_NONE && p->to3.type == D_NONE)
 			sprint(s, "%.5lld (%L)	%A	%D,%D", p->pc, p->lineno, a, &p->from, &p->to);
 		else if(p->from.type != D_FREG) {
-			s += sprint(s, "%.5lld (%L)	%A	%D", p->pc, p->lineno, a, &p->from);
+			sprint(s, "%.5lld (%L)	%A	%D", p->pc, p->lineno, a, &p->from);
 			if(p->from3.type != D_NONE)
-				s += sprint(s, ",%D", &p->from3);
+				sprint(strchr(s, 0), ",%D", &p->from3);
 			if(p->reg != NREG)
-				s += sprint(s, ",R%d", p->reg);
+				sprint(strchr(s, 0), ",R%d", p->reg);
 			if(p->to3.type != D_NONE)
-				sprint(s, ",%D,%D", &p->to, &p->to3);
+				sprint(strchr(s, 0), ",%D,%D", &p->to, &p->to3);
 			else
-				sprint(s, ",%D", &p->to);
+				sprint(strchr(s, 0), ",%D", &p->to);
 		} else
 			sprint(s, "%.5lld (%L)	%A	%D,F%d,%D", p->pc, p->lineno, a, &p->from, p->reg, &p->to);
 		break;
