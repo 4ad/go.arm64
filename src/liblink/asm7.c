@@ -98,31 +98,108 @@ enum {
 	LSL0_64 = 3<<13,
 };
 
-#define	Rm(X)	(((X)&31)<<16)
-#define	Rn(X)	(((X)&31)<<5)
-#define	Rd(X)	(((X)&31)<<0)
+static uint32
+OPDP2(uint32 x)
+{
+	return (0<<30 | 0 << 29 | 0xd6<<21 | (x)<<10);
+}
 
-#define	OPDP2(x)	(0<<30 | 0 << 29 | 0xd6<<21 | (x)<<10)
-#define	OPDP3(sf,op54,op31,o0)	((sf)<<31 | (op54)<<29 | 0x1B<<24 | (op31)<<21 | (o0)<<15)
-#define	OPBcc(x)	(0x2A<<25 | 0<<24 | 0<<4 | ((x)&15))
-#define	OPBLR(x)	(0x6B<<25 | 0<<23 | (x)<<21 | 0x1F<<16 | 0<<10)	/* x=0, JMP; 1, CALL; 2, RET */
-#define	SYSOP(l,op0,op1,crn,crm,op2,rt)	(0x354<<22 | (l)<<21 | (op0)<<19 | (op1)<<16 | (crn)<<12 | (crm)<<8 | (op2)<<5 | (rt))
-#define	SYSHINT(x)	SYSOP(0,0,3,2,0,(x),0x1F)
+static uint32
+OPDP3(uint32 sf, uint32 op54, uint32 op31, uint32 o0)
+{
+	return ((sf)<<31 | (op54)<<29 | 0x1B<<24 | (op31)<<21 | (o0)<<15);
+}
 
-#define	LDSTR12U(sz,v,opc)	((sz)<<30 | 7<<27 | (v)<<26 | 1<<24 | (opc)<<22)
-#define	LDSTR9S(sz,v,opc)	((sz)<<30 | 7<<27 | (v)<<26 | 0<<24 | (opc)<<22)
-#define	LD2STR(o)	((o) & ~(3<<22))
-#define	LDSTX(sz,o2,l,o1,o0)	((sz)<<30 | 0x8<<24 | (o2)<<23 | (l)<<22 | (o1)<<21 | (o0)<<15)
+static uint32
+OPBcc(uint32 x)
+{
+	return (0x2A<<25 | 0<<24 | 0<<4 | ((x)&15));
+}
 
-#define	FPCMP(m,s,type,op,op2)	((m)<<31 | (s)<<29 | 0x1E<<24 | (type)<<22 | 1<<21 | (op)<<14 | 8<<10 | (op2))
-#define	FPCCMP(m,s,type,op)	((m)<<31 | (s)<<29 | 0x1E<<24 | (type)<<22 | 1<<21 | 1<<10 | (op)<<4)
-#define	FPOP1S(m,s,type,op)	((m)<<31 | (s)<<29 | 0x1E<<24 | (type)<<22 | 1<<21 | (op)<<15 | 0x10<<10)
-#define	FPOP2S(m,s,type,op)	((m)<<31 | (s)<<29 | 0x1E<<24 | (type)<<22 | 1<<21 | (op)<<12 | 2<<10)
-#define	FPCVTI(sf,s,type,rmode,op)	((sf)<<31 | (s)<<29 | 0x1E<<24 | (type)<<22 | 1<<21 | (rmode)<<19 | (op)<<16 | 0<<10)
-#define	FPCVTF(sf,s,type,rmode,op,scale)	((sf)<<31 | (s)<<29 | 0x1E<<24 | (type)<<22 | 0<<21 | (rmode)<<19 | (op)<<16 | (scale)<<10)
-#define	ADR(p,o,rt)	((p)<<31 | ((o)&3)<<29 | (0x10<<24) | (((o>>2)&0x7FFFF)<<5) | (rt))
+static uint32
+OPBLR(uint32 x)
+{
+	/* x=0, JMP; 1, CALL; 2, RET */
+	return (0x6B<<25 | 0<<23 | (x)<<21 | 0x1F<<16 | 0<<10);
+}
 
-#define	OPBIT(x)	(1<<30 | 0<<29 | 0xD6<<21 | 0<<16 | (x)<<10)
+static uint32
+SYSOP(uint32 l, uint32 op0, uint32 op1, uint32 crn, uint32 crm, uint32 op2 , uint32 rt)
+{
+	return (0x354<<22 | (l)<<21 | (op0)<<19 | (op1)<<16 | (crn)<<12 | (crm)<<8 | (op2)<<5 | (rt));
+}
+
+static uint32
+SYSHINT(uint32 x)
+{
+	return SYSOP(0,0,3,2,0,(x),0x1F);
+}
+
+static uint32
+LDSTR12U(uint32 sz, uint32 v, uint32 opc)
+{
+	return ((sz)<<30 | 7<<27 | (v)<<26 | 1<<24 | (opc)<<22);
+}
+
+static uint32
+LDSTR9S(uint32 sz, uint32 v, uint32 opc)
+{
+	return ((sz)<<30 | 7<<27 | (v)<<26 | 0<<24 | (opc)<<22);
+}
+
+static uint32
+LD2STR(uint32 o)
+{
+	return ((o) & ~(3<<22));
+}
+
+static uint32
+LDSTX(uint32 sz, uint32 o2, uint32 l, uint32 o1, uint32 o0)
+{
+	return ((sz)<<30 | 0x8<<24 | (o2)<<23 | (l)<<22 | (o1)<<21 | (o0)<<15);
+}
+
+static uint32
+FPCMP(uint32 m, uint32 s, uint32 type, uint32 op, uint32 op2)
+{
+	return ((m)<<31 | (s)<<29 | 0x1E<<24 | (type)<<22 | 1<<21 | (op)<<14 | 8<<10 | (op2));
+}
+
+static uint32
+FPCCMP(uint32 m, uint32 s, uint32 type, uint32 op)
+{
+	return ((m)<<31 | (s)<<29 | 0x1E<<24 | (type)<<22 | 1<<21 | 1<<10 | (op)<<4);
+}
+
+static uint32
+FPOP1S(uint32 m, uint32 s, uint32 type, uint32 op)
+{
+	return ((m)<<31 | (s)<<29 | 0x1E<<24 | (type)<<22 | 1<<21 | (op)<<15 | 0x10<<10);
+}
+
+static uint32
+FPOP2S(uint32 m, uint32 s, uint32 type, uint32 op)
+{
+	return ((m)<<31 | (s)<<29 | 0x1E<<24 | (type)<<22 | 1<<21 | (op)<<12 | 2<<10);
+}
+
+static uint32
+FPCVTI(uint32 sf, uint32 s, uint32 type, uint32 rmode, uint32 op)
+{
+	return ((sf)<<31 | (s)<<29 | 0x1E<<24 | (type)<<22 | 1<<21 | (rmode)<<19 | (op)<<16 | 0<<10);
+}
+
+static uint32
+ADR(uint32 p, uint32 o, uint32 rt)
+{
+	return ((p)<<31 | ((o)&3)<<29 | (0x10<<24) | (((o>>2)&0x7FFFF)<<5) | (rt));
+}
+
+static uint32
+OPBIT(uint32 x)
+{
+	return (1<<30 | 0<<29 | 0xD6<<21 | 0<<16 | (x)<<10);
+}
 
 static Prog zprg = {
 	.as = AGOK,
