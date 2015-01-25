@@ -900,26 +900,28 @@ addpool(Link *ctxt, Prog *p, Addr *a)
 		t.to.name = a->name;
 		t.to3.type = D_NONE;
 		break;
+
+	/* This is here to work around a bug where we generate negative
+	operands that match C_MOVCON, but we use them with
+	instructions that only accept unsigned immediates. This
+	will cause oplook to return a variant of the instruction
+	that loads the negative constant from memory, rather than
+	using the immediate form. Because of that load, we get here,
+	so we need to know what to do with C_MOVCON.
+	
+	The correct fix is to use the "negation" instruction variant,
+	e.g. CMN $0, R instead of CMP $-1, R, or SUB $1, R instead
+	of ADD $-1, R. */
 	case C_MOVCON:
 		// TODO(aram):
-		//	This is here to work around a bug where we generate negative
-		//	operands that match C_MOVCON, but we use them with
-		//	instructions that only accept unsigned immediates. This
-		//	will cause oplook to return a variant of the instruction
-		//	that loads the negative constant from memory, rather than
-		//	using the immediate form. Because of that load, we get here,
-		//	so we need to know what to do with C_MOVCON.
-		//
-		//	The correct fix is to use the "negation" instruction variant,
-		//	e.g. CMN $0, R instead of CMP $-1, R, or SUB $1, R instead
-		//	of ADD $-1, R.
-		//
-		/* fallthrough */
+		goto cnst;
+
+	/* This is here because MOV uint12<<12, R is disabled in optab.
+	Because of this, we need to load the constant from memory. */
 	case C_ADDCON:
 		// TODO(aram):
-		//	This is here because MOV uint12<<12, R is disabled in optab.
-		//	Because of this, we need to load the constant from memory.
-		/* fallthrough */
+		goto cnst;
+
 	case C_PSAUTO:
 	case C_PPAUTO:
 	case C_UAUTO4K:
@@ -943,6 +945,7 @@ addpool(Link *ctxt, Prog *p, Addr *a)
 	case C_LACON:
 	case C_LCON:
 	case C_VCON:
+cnst:
 		if(a->name == D_EXTERN) {
 			print("addpool: %^ in %P needs reloc\n", c, p);
 		}
