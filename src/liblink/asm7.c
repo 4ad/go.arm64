@@ -1873,7 +1873,8 @@ no:
 void
 asmout(Link *ctxt, Prog *p, Optab *o, int32 *out)
 {
-	uint32 o1, o2, o3, o4, o5, v, hi;
+	uint32 o1, o2, o3, o4, o5;
+	int32 v, hi;
 	ulong u;
 	vlong d;
 	int r, s, rf, rt, ra, nzcv, cond, i, as;
