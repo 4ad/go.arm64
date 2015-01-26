@@ -726,7 +726,7 @@ span7(Link *ctxt, LSym *cursym)
 	Optab *o;
 	int m, bflag, i, j;
 	int32 c, psz;
-	int32 out[6];
+	uint32 out[6];
 	uchar *bp, *cast;
 	
 	p = cursym->text;
@@ -1896,7 +1896,7 @@ no:
 }
 
 void
-asmout(Link *ctxt, Prog *p, Optab *o, int32 *out)
+asmout(Link *ctxt, Prog *p, Optab *o, uint32 *out)
 {
 	uint32 o1, o2, o3, o4, o5;
 	int32 v, hi;
@@ -3708,7 +3708,7 @@ omovlit(Link *ctxt, int as, Prog *p, Addr *a, int dr)
 	int fp;
 	if(p->pcond == nil) { /* not in literal pool */
 		aclass(ctxt, a);
-		fprint(2, "omovlit add %lld (%#llux)\n", ctxt->instoffset, ctxt->instoffset);
+		Bprint(ctxt->bso, "omovlit add %lld (%#llux)\n", ctxt->instoffset, ctxt->instoffset);
 		/* TO DO: could be clever, and use general constant builder */
 		o1 = opirr(ctxt, AADD);
 		v = ctxt->instoffset;
