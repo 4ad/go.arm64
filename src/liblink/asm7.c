@@ -1836,7 +1836,7 @@ chipfloat7(Link *ctxt, float64 e)
 {
 	int n;
 	ulong h1;
-	int32 l, h;
+	uint32 l, h;
 	uint64 ei;
 
 	USED(ctxt);
@@ -1847,17 +1847,17 @@ chipfloat7(Link *ctxt, float64 e)
 
 	if(l != 0 || (h&0xffff) != 0)
 		goto no;
-	h1 = h & 0x7fc00000;
-	if(h1 != 0x40000000 && h1 != 0x3fc00000)
+	h1 = h & 0x7fc00000u;
+	if(h1 != 0x40000000u && h1 != 0x3fc00000u)
 		goto no;
 	n = 0;
 
 	// sign bit (a)
-	if(h & 0x80000000)
+	if(h & 0x80000000u)
 		n |= 1<<7;
 
 	// exp sign bit (b)
-	if(h1 == 0x3fc00000)
+	if(h1 == 0x3fc00000u)
 		n |= 1<<6;
 
 	// rest of exp and mantissa (cd-efgh)
@@ -1873,7 +1873,7 @@ no:
 void
 asmout(Link *ctxt, Prog *p, Optab *o, int32 *out)
 {
-	int32 o1, o2, o3, o4, o5, v, hi;
+	uint32 o1, o2, o3, o4, o5, v, hi;
 	ulong u;
 	vlong d;
 	int r, s, rf, rt, ra, nzcv, cond, i, as;
@@ -2098,7 +2098,7 @@ asmout(Link *ctxt, Prog *p, Optab *o, int32 *out)
 			r = rt;
 		o1 |= ((rf << 16)) | ((r << 5)) | REGTMP;
 		o2 = oprrr(ctxt, AMSUBW);
-		o2 |= o1 & ((1 << 31)); /* same size */
+		o2 |= o1 & ((1 << 31u)); /* same size */
 		o2 |= ((rf << 16)) | ((r << 10)) | ((REGTMP << 5)) | rt;
 		break;
 	case 17: /* op Rm,[Rn],Rd; default Rn=ZR */
@@ -2688,7 +2688,7 @@ asmout(Link *ctxt, Prog *p, Optab *o, int32 *out)
 		// like to be able to tell how we got there.  Assemble as
 		// 0xbea71700 which is guaranteed to raise undefined instruction
 		// exception.
-		o1 = 0xbea71700;
+		o1 = 0xbea71700u;
 		break;
 	}
 	out[0] = o1;
@@ -3653,7 +3653,7 @@ olsxrr(Link *ctxt, int as, int rt, int r1, int r2)
 	USED(r1);
 	USED(r2);
 	ctxt->diag("need load/store extended register\n%P", ctxt->curp);
-	return -1;
+	return (uint32)-1;
 }
 
 static uint32
@@ -3723,8 +3723,8 @@ omovlit(Link *ctxt, int as, Prog *p, Addr *a, int dr)
 static uint32
 opbfm(Link *ctxt, int a, int r, int s, int rf, int rt)
 {
-	int32 o;
-	int32 c;
+	uint32 o;
+	uint32 c;
 	o = opirr(ctxt, a);
 	if(((o & ((1 << 31)))) == 0)
 		c = 32;
@@ -3743,8 +3743,8 @@ opbfm(Link *ctxt, int a, int r, int s, int rf, int rt)
 static uint32
 opextr(Link *ctxt, int a, int32 v, int rn, int rm, int rt)
 {
-	int32 o;
-	int32 c;
+	uint32 o;
+	uint32 c;
 	o = opirr(ctxt, a);
 	c = ((o & ((1 << 31)))) != 0 ? 63 : 31;
 	if(v < 0 || v > c)
