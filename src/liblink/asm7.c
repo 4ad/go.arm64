@@ -43,7 +43,7 @@ struct	Mask
 static Oprang	oprange[ALAST];
 static Opcross	opcross[8];
 static uchar	repop[ALAST];
-static	char	xcmp[C_NCLASS][C_NCLASS];
+static	uchar	xcmp[C_NCLASS][C_NCLASS];
 
 static void checkpool(Link*, Prog*, int);
 static void flushpool(Link*, Prog*, int);
@@ -1207,9 +1207,9 @@ oplook(Link *ctxt, Prog *p)
 	int a2;
 	int a3;
 	int r;
-	char *c1;
-	char *c2;
-	char *c3;
+	uchar *c1;
+	uchar *c2;
+	uchar *c3;
 	Optab *o;
 	Optab *e;
 	a1 = p->optab;
