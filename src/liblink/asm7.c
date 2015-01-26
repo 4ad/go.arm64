@@ -940,14 +940,10 @@ addpool(Link *ctxt, Prog *p, Addr *a)
 	e.g. CMN $0, R instead of CMP $-1, R, or SUB $1, R instead
 	of ADD $-1, R. */
 	case C_MOVCON:
-		// TODO(aram):
-		goto cnst;
 
 	/* This is here because MOV uint12<<12, R is disabled in optab.
 	Because of this, we need to load the constant from memory. */
 	case C_ADDCON:
-		// TODO(aram):
-		goto cnst;
 
 	case C_PSAUTO:
 	case C_PPAUTO:
@@ -972,7 +968,6 @@ addpool(Link *ctxt, Prog *p, Addr *a)
 	case C_LACON:
 	case C_LCON:
 	case C_VCON:
-cnst:
 		if(a->name == D_EXTERN) {
 			print("addpool: %^ in %P needs reloc\n", c, p);
 		}
@@ -1216,12 +1211,15 @@ aclass(Link *ctxt, Addr *a)
 			goto aconsize;
 		case D_PARAM:
 			ctxt->instoffset = ctxt->autosize + a->offset + 8;
-		aconsize:
-			if(isaddcon(ctxt->instoffset))
-				return C_AACON;
-			return C_LACON;
+			goto aconsize;
 		}
 		return C_GOK;
+
+	aconsize:
+		if(isaddcon(ctxt->instoffset))
+			return C_AACON;
+		return C_LACON;
+
 	case D_BRANCH:
 		return C_SBRA;
 	}
