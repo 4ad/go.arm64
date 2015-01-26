@@ -37,6 +37,7 @@ var (
 	oldgoarch        string
 	oldgochar        string
 	slash            string
+	exe              string
 	defaultcc        string
 	defaultcflags    string
 	defaultldflags   string
@@ -357,6 +358,7 @@ var oldtool = []string{
 // not be in release branches.
 var unreleased = []string{
 	"src/cmd/link",
+	"src/cmd/objwriter",
 	"src/debug/goobj",
 	"src/old",
 }
@@ -668,13 +670,20 @@ func install(dir string) {
 		ldargs = splitfields(defaultldflags)
 	}
 
-	islib := strings.HasPrefix(dir, "lib") || dir == "cmd/gc"
-	ispkg := !islib && !strings.HasPrefix(dir, "cmd/")
-	isgo := ispkg || dir == "cmd/go" || dir == "cmd/cgo"
+	isgo := true
+	ispkg := !strings.HasPrefix(dir, "cmd/") || strings.HasPrefix(dir, "cmd/internal/")
+	islib := false
 
-	exe := ""
-	if gohostos == "windows" {
-		exe = ".exe"
+	// Legacy C exceptions.
+	switch dir {
+	case "lib9", "libbio", "liblink", "cmd/gc":
+		islib = true
+		isgo = false
+	case "cmd/5a", "cmd/5g", "cmd/5l",
+		"cmd/6a", "cmd/6g", "cmd/6l",
+		"cmd/8a", "cmd/8g", "cmd/8l",
+		"cmd/9a", "cmd/9g", "cmd/9l":
+		isgo = false
 	}
 
 	// Start final link command line.
@@ -944,6 +953,8 @@ func install(dir string) {
 				compile = append(compile,
 					"-D", fmt.Sprintf("GOOS=%q", goos),
 					"-D", fmt.Sprintf("GOARCH=%q", goarch),
+					"-D", fmt.Sprintf("GOHOSTOS=%q", gohostos),
+					"-D", fmt.Sprintf("GOHOSTARCH=%q", gohostarch),
 					"-D", fmt.Sprintf("GOROOT=%q", goroot_final),
 					"-D", fmt.Sprintf("GOVERSION=%q", goversion),
 					"-D", fmt.Sprintf("GOARM=%q", goarm),
@@ -1139,7 +1150,10 @@ func dopack(dst, src string, extra []string) {
 }
 
 // buildorder records the order of builds for the 'go bootstrap' command.
+// The Go packages and commands must be in dependency order,
+// maintained by hand, but the order doesn't change often.
 var buildorder = []string{
+	// Legacy C programs.
 	"lib9",
 	"libbio",
 	"liblink",
@@ -1149,10 +1163,7 @@ var buildorder = []string{
 	"cmd/%sa",
 	"cmd/%sg",
 
-	// The dependency order here was copied from a buildscript
-	// back when there were build scripts.  Will have to
-	// be maintained by hand, but shouldn't change very
-	// often.
+	// Go libraries and programs for bootstrap.
 	"runtime",
 	"errors",
 	"sync/atomic",
@@ -1175,6 +1186,7 @@ var buildorder = []string{
 	"reflect",
 	"fmt",
 	"encoding",
+	"encoding/binary",
 	"encoding/json",
 	"flag",
 	"path/filepath",
@@ -1194,6 +1206,12 @@ var buildorder = []string{
 	"text/template",
 	"go/doc",
 	"go/build",
+	"cmd/internal/obj",
+	"cmd/internal/obj/arm",
+	"cmd/internal/obj/i386",
+	"cmd/internal/obj/ppc64",
+	"cmd/internal/obj/x86",
+	"cmd/objwriter",
 	"cmd/go",
 }
 
@@ -1392,6 +1410,8 @@ func cmdbootstrap() {
 
 	setup()
 
+	bootstrapBuildTools()
+
 	// For the main bootstrap, building for host os/arch.
 	oldgoos = goos
 	oldgoarch = goarch
@@ -1404,6 +1424,31 @@ func cmdbootstrap() {
 	os.Setenv("GOARCH", goarch)
 	os.Setenv("GOOS", goos)
 
+	// TODO(rsc): Enable when appropriate.
+	// This step is only needed if we believe that the Go compiler built from Go 1.4
+	// will produce different object files than the Go compiler built from itself.
+	// In the absence of bugs, that should not happen.
+	// And if there are bugs, they're more likely in the current development tree
+	// than in a standard release like Go 1.4, so don't do this rebuild by default.
+	if false {
+		xprintf("##### Building Go toolchain using itself.\n")
+		for _, pattern := range buildorder {
+			if pattern == "cmd/go" {
+				break
+			}
+			dir := pattern
+			if strings.Contains(pattern, "%s") {
+				dir = fmt.Sprintf(pattern, gohostchar)
+			}
+			install(dir)
+			if oldgochar != gohostchar && strings.Contains(pattern, "%s") {
+				install(fmt.Sprintf(pattern, oldgochar))
+			}
+		}
+		xprintf("\n")
+	}
+
+	xprintf("##### Building compilers and go_bootstrap for host, %s/%s.\n", gohostos, gohostarch)
 	for _, pattern := range buildorder {
 		dir := pattern
 		if strings.Contains(pattern, "%s") {

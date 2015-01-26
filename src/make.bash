@@ -141,7 +141,6 @@ if [ "$1" = "--dist-tool" ]; then
 	exit 0
 fi
 
-echo "##### Building compilers and Go bootstrap tool for host, $GOHOSTOS/$GOHOSTARCH."
 buildall="-a"
 if [ "$1" = "--no-clean" ]; then
 	buildall=""
@@ -150,7 +149,6 @@ fi
 ./cmd/dist/dist bootstrap $buildall $GO_DISTFLAGS -v # builds go_bootstrap
 # Delay move of dist tool to now, because bootstrap may clear tool directory.
 mv cmd/dist/dist "$GOTOOLDIR"/dist
-"$GOTOOLDIR"/go_bootstrap clean -i std
 echo
 
 if [ "$GOHOSTARCH" != "$GOARCH" -o "$GOHOSTOS" != "$GOOS" ]; then
