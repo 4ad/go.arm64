@@ -545,8 +545,12 @@ enum	as
 #define	SYSARG5(op0,op1,Cn,Cm,op2)	((op0)<<19|(op1)<<16|(Cn)<<12|(Cm)<<8|(op2)<<5)
 #define	SYSARG4(op1,Cn,Cm,op2)	SYSARG5(0,op1,Cn,Cm,op2)
 /*c2go
-int SYSARG5(int, int, int, int, int);
-int SYSARG4(int, int, int, int);
+int SYSARG5(int op0, int op1, int Cn, int Cm, int op2) {
+	return (op0)<<19|(op1)<<16|(Cn)<<12|(Cm)<<8|(op2)<<5;
+}
+int SYSARG4(int op1, int Cn, int Cm, int op2) {
+	return SYSARG5(0, op1, Cn, Cm, op2);
+}
 */
 
 /* type/name */
@@ -597,26 +601,17 @@ enum ds
 	D_F0 = D_R0+NREG, // type is D_FREG
 
 	/* offset iff type is D_SPR */
-	D_DAIF	= SYSARG5(3,3,4,2,1),
-	D_NZCV	= SYSARG5(3,3,4,2,0),
-	D_FPSR	= SYSARG5(3,3,4,4,1),
-	D_FPCR	= SYSARG5(3,3,4,4,0),
-	D_SPSR_EL1 = SYSARG5(3,0,4,0,0),
-	D_ELR_EL1 = SYSARG5(3,0,4,0,1),
-	D_SPSR_EL2 = SYSARG5(3,4,4,0,0),
-	D_ELR_EL2 = SYSARG5(3,4,4,0,1),
-//	D_SPSR_EL3 = SYSARG5(3,x,4,x,x),
-//	D_ELR_EL3 = SYSARG5(3,x,4,x,x),
-//	D_LR_EL0 = SYSARG5(3,x,4,x,x),
-	D_CurrentEL = SYSARG5(3,0,4,2,2),
-	D_SP_EL0 = SYSARG5(3,0,4,1,0),
-//	D_SP_EL1 = SYSARG5(3,x,4,x,x),
-//	D_SP_EL2 = SYSARG5(3,x,4,x,x),
-	D_SPSel	= SYSARG5(3,0,4,2,0),
-//	D_SPSR_abt  = SYSARG5(3,x,4,x,x),
-//	D_SPSR_fiq = SYSARG5(3,x,4,x,x),
-//	D_SPSR_ieq = SYSARG5(3,x,4,x,x),
-//	D_SPSR_und = SYSARG5(3,x,4,x,x),
+	D_DAIF	= (3)<<19|(3)<<16|(4)<<12|(2)<<8|(1)<<5,
+	D_NZCV	= (3)<<19|(3)<<16|(4)<<12|(2)<<8|(0)<<5,
+	D_FPSR	= (3)<<19|(3)<<16|(4)<<12|(4)<<8|(1)<<5,
+	D_FPCR	= (3)<<19|(3)<<16|(4)<<12|(4)<<8|(0)<<5,
+	D_SPSR_EL1	= (3)<<19|(0)<<16|(4)<<12|(0)<<8|(0)<<5,
+	D_ELR_EL1	= (3)<<19|(0)<<16|(4)<<12|(0)<<8|(1)<<5,
+	D_SPSR_EL2	= (3)<<19|(4)<<16|(4)<<12|(0)<<8|(0)<<5,
+	D_ELR_EL2	= (3)<<19|(4)<<16|(4)<<12|(0)<<8|(1)<<5,
+	D_CurrentEL	= (3)<<19|(0)<<16|(4)<<12|(2)<<8|(2)<<5,
+	D_SP_EL0	= (3)<<19|(0)<<16|(4)<<12|(1)<<8|(0)<<5,
+	D_SPSel	= (3)<<19|(0)<<16|(4)<<12|(2)<<8|(0)<<5,
 	D_DAIFSet = (1<<30)|0,
 	D_DAIFClr = (1<<30)|1
 };
