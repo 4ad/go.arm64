@@ -49,7 +49,7 @@ static	char	xcmp[C_NCLASS][C_NCLASS];
 static void checkpool(Link*, Prog*, int);
 static void flushpool(Link*, Prog*, int);
 static void addpool(Link*, Prog*, Addr*);
-static int32 regoff(Link*, Addr*);
+static uint32 regoff(Link*, Addr*);
 static int ispcdisp(int32);
 static int isaddcon(vlong);
 static int isbitcon(uvlong);
@@ -63,29 +63,29 @@ static int ocmp(const void*, const void*);
 void buildop(Link*);
 int chipfloat7(Link*, float64);
 void asmout(Link*, Prog*, Optab*, int32 *);
-static int32 oprrr(Link*, int);
-static int32 opirr(Link*, int);
-static int32 opbit(Link*, int);
-static int32 opxrrr(Link*, int);
-static int32 opimm(Link*, int);
+static uint32 oprrr(Link*, int);
+static uint32 opirr(Link*, int);
+static uint32 opbit(Link*, int);
+static uint32 opxrrr(Link*, int);
+static uint32 opimm(Link*, int);
 static vlong brdist(Link*, Prog*, int, int, int);
-static int32 opbra(Link*, int);
-static int32 opbrr(Link*, int);
-static int32 op0(Link*, int);
-static int32 opload(Link*, int);
-static int32 opstore(Link*, int);
-static int32 olsr12u(Link*, int32, int32, int, int);
-static int32 opldr12(Link*, int);
-static int32 opstr12(Link*, int);
-static int32 olsr9s(Link*, int32, int32, int, int);
-static int32 opldr9(Link*, int);
-static int32 opstr9(Link *, int);
-static int32 opldrpp(Link*, int);
-static int32 olsxrr(Link*, int, int, int, int);
-static int32 oaddi(int32, int32, int, int);
-static int32 omovlit(Link*, int, Prog*, Addr*, int);
-static int32 opbfm(Link*, int, int, int, int, int);
-static int32 opextr(Link*, int, int32, int, int, int);
+static uint32 opbra(Link*, int);
+static uint32 opbrr(Link*, int);
+static uint32 op0(Link*, int);
+static uint32 opload(Link*, int);
+static uint32 opstore(Link*, int);
+static uint32 olsr12u(Link*, int32, int32, int, int);
+static uint32 opldr12(Link*, int);
+static uint32 opstr12(Link*, int);
+static uint32 olsr9s(Link*, int32, int32, int, int);
+static uint32 opldr9(Link*, int);
+static uint32 opstr9(Link *, int);
+static uint32 opldrpp(Link*, int);
+static uint32 olsxrr(Link*, int, int, int, int);
+static uint32 oaddi(int32, int32, int, int);
+static uint32 omovlit(Link*, int, Prog*, Addr*, int);
+static uint32 opbfm(Link*, int, int, int, int, int);
+static uint32 opextr(Link*, int, int32, int, int, int);
 static int movesize(int);
 static void prasm(Prog*);
 static Mask* findmask(uvlong v);
@@ -973,7 +973,7 @@ cnst:
 	p->pcond = q;
 }
 
-static int32
+static uint32
 regoff(Link *ctxt, Addr *a)
 {
 	ctxt->instoffset = 0;
@@ -2704,7 +2704,7 @@ asmout(Link *ctxt, Prog *p, Optab *o, int32 *out)
  * also op Rn -> Rt
  * also Rm*Rn op Ra -> Rd
  */
-static int32
+static uint32
 oprrr(Link *ctxt, int a)
 {
 	switch(a) {
@@ -3089,7 +3089,7 @@ oprrr(Link *ctxt, int a)
  * imm -> Rd
  * imm op Rn -> Rd
  */
-static int32
+static uint32
 opirr(Link *ctxt, int a)
 {
 	switch(a) {
@@ -3224,7 +3224,7 @@ opirr(Link *ctxt, int a)
 	return 0;
 }
 
-static int32
+static uint32
 opbit(Link *ctxt, int a)
 {
 	switch(a) {
@@ -3259,7 +3259,7 @@ opbit(Link *ctxt, int a)
 /*
  * add/subtract extended register
  */
-static int32
+static uint32
 opxrrr(Link *ctxt, int a)
 {
 	switch(a) {
@@ -3288,7 +3288,7 @@ opxrrr(Link *ctxt, int a)
 	return 0;
 }
 
-static int32
+static uint32
 opimm(Link *ctxt, int a)
 {
 	switch(a) {
@@ -3338,7 +3338,7 @@ brdist(Link *ctxt, Prog *p, int preshift, int flen, int shift)
 /*
  * pc-relative branches
  */
-static int32
+static uint32
 opbra(Link *ctxt, int a)
 {
 	switch(a) {
@@ -3385,7 +3385,7 @@ opbra(Link *ctxt, int a)
 	return 0;
 }
 
-static int32
+static uint32
 opbrr(Link *ctxt, int a)
 {
 	switch(a) {
@@ -3401,7 +3401,7 @@ opbrr(Link *ctxt, int a)
 	return 0;
 }
 
-static int32
+static uint32
 op0(Link *ctxt, int a)
 {
 	switch(a) {
@@ -3430,7 +3430,7 @@ op0(Link *ctxt, int a)
 /*
  * register offset
  */
-static int32
+static uint32
 opload(Link *ctxt, int a)
 {
 	switch(a) {
@@ -3475,7 +3475,7 @@ opload(Link *ctxt, int a)
 	return 0;
 }
 
-static int32
+static uint32
 opstore(Link *ctxt, int a)
 {
 	switch(a) {
@@ -3528,7 +3528,7 @@ opstore(Link *ctxt, int a)
  * load/store register (unsigned immediate) C3.3.13
  *	these produce 64-bit values (when there's an option)
  */
-static int32
+static uint32
 olsr12u(Link *ctxt, int32 o, int32 v, int b, int r)
 {
 	if(v < 0 || v >= ((1 << 12)))
@@ -3539,7 +3539,7 @@ olsr12u(Link *ctxt, int32 o, int32 v, int b, int r)
 	return o;
 }
 
-static int32
+static uint32
 opldr12(Link *ctxt, int a)
 {
 	switch(a) {
@@ -3566,7 +3566,7 @@ opldr12(Link *ctxt, int a)
 	return 0;
 }
 
-static int32
+static uint32
 opstr12(Link *ctxt, int a)
 {
 	return LD2STR(opldr12(ctxt, a));
@@ -3575,7 +3575,7 @@ opstr12(Link *ctxt, int a)
 /* 
  * load/store register (unscaled immediate) C3.3.12
  */
-static int32
+static uint32
 olsr9s(Link *ctxt, int32 o, int32 v, int b, int r)
 {
 	if(v < -256 || v > 255)
@@ -3586,7 +3586,7 @@ olsr9s(Link *ctxt, int32 o, int32 v, int b, int r)
 	return o;
 }
 
-static int32
+static uint32
 opldr9(Link *ctxt, int a)
 {
 	switch(a) {
@@ -3613,13 +3613,13 @@ opldr9(Link *ctxt, int a)
 	return 0;
 }
 
-static int32
+static uint32
 opstr9(Link *ctxt, int a)
 {
 	return LD2STR(opldr9(ctxt, a));
 }
 
-static int32
+static uint32
 opldrpp(Link *ctxt, int a)
 {
 	switch(a) {
@@ -3645,7 +3645,7 @@ opldrpp(Link *ctxt, int a)
 /*
  * load/store register (extended register)
  */
-static int32
+static uint32
 olsxrr(Link *ctxt, int as, int rt, int r1, int r2)
 {
 	USED(as);
@@ -3656,7 +3656,7 @@ olsxrr(Link *ctxt, int as, int rt, int r1, int r2)
 	return -1;
 }
 
-static int32
+static uint32
 oaddi(int32 o1, int32 v, int r, int rt)
 {
 	if(((v & 0xFFF000)) != 0) {
@@ -3670,7 +3670,7 @@ oaddi(int32 o1, int32 v, int r, int rt)
 /*
  * load a a literal value into dr
  */
-static int32
+static uint32
 omovlit(Link *ctxt, int as, Prog *p, Addr *a, int dr)
 {
 	int32 v;
@@ -3720,7 +3720,7 @@ omovlit(Link *ctxt, int as, Prog *p, Addr *a, int dr)
 	return o1;
 }
 
-static int32
+static uint32
 opbfm(Link *ctxt, int a, int r, int s, int rf, int rt)
 {
 	int32 o;
@@ -3740,7 +3740,7 @@ opbfm(Link *ctxt, int a, int r, int s, int rf, int rt)
 	return o;
 }
 
-static int32
+static uint32
 opextr(Link *ctxt, int a, int32 v, int rn, int rm, int rt)
 {
 	int32 o;
