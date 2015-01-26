@@ -681,6 +681,7 @@ func install(dir string) {
 		isgo = false
 	case "cmd/5a", "cmd/5g", "cmd/5l",
 		"cmd/6a", "cmd/6g", "cmd/6l",
+		"cmd/7a", "cmd/7g", "cmd/7l",
 		"cmd/8a", "cmd/8g", "cmd/8l",
 		"cmd/9a", "cmd/9g", "cmd/9l":
 		isgo = false
