@@ -89,7 +89,7 @@ static int cmp(int, int);
 static int ocmp(const void*, const void*);
 void buildop(Link*);
 int chipfloat7(Link*, float64);
-void asmout(Link*, Prog*, Optab*, int32 *);
+void asmout(Link*, Prog*, Optab*, uint32 *);
 static uint32 oprrr(Link*, int);
 static uint32 opirr(Link*, int);
 static uint32 opbit(Link*, int);
