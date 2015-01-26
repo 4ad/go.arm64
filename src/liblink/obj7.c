@@ -321,7 +321,7 @@ addstacksplit(Link *ctxt, LSym *cursym)
 	 * expand RET
 	 */
 	if(ctxt->debugvlog)
-		Bprint(ctxt->bso, "%5.2f addstacksplit\n", cputime());
+		Bprint(ctxt->bso, "%5.2f noops\n", cputime());
 	Bflush(ctxt->bso);
 	q = nil;
 	for(p = cursym->text; p != nil; p = p->link) {

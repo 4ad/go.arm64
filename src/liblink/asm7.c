@@ -955,7 +955,7 @@ cnst:
 		break;
 	}
 	for(q = ctxt->blitrl; q != nil; q = q->link) /* could hash on t.t0.offset */
-		if(memcmp(&q->to, &t.to, sizeof ((t.to))) == 0) {
+		if(memcmp(&q->to, &t.to, sizeof(t.to)) == 0) {
 			p->pcond = q;
 			return;
 		}
