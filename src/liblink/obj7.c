@@ -388,7 +388,7 @@ addstacksplit(Link *ctxt, LSym *cursym)
 			else
 				if(ctxt->autosize & ((16 - 1)))
 					ctxt->autosize += 16 - ((ctxt->autosize & ((16 - 1))));
-			p->to.offset = (p->to.offset & (0xffffffffull<<32)) | (uint32)(ctxt->autosize-8);
+			p->to.offset = ((uint64)p->to.offset & (0xffffffffull<<32)) | (uint32)(ctxt->autosize-8);
 			if(ctxt->autosize == 0 && !((cursym->text->mark & LEAF))) {
 				if(ctxt->debugvlog)
 					Bprint(ctxt->bso, "save suppressed in: %s\n", cursym->text->from.sym->name);
