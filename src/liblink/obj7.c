@@ -221,7 +221,10 @@ loop:
 				*last = r;
 				if(a == AB || a == ARETURN || a == ARET || a == AERET)
 					return;
-				r->as = a == ABNE ? ABEQ : ABNE;
+				if(a == ABNE)
+					r->as = ABEQ;
+				else
+					r->as = ABNE;
 				r->pcond = p->link;
 				r->link = p->pcond;
 				if(!((r->link->mark & FOLL)))

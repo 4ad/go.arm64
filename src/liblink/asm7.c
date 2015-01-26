@@ -2564,7 +2564,10 @@ asmout(Link *ctxt, Prog *p, Optab *o, int32 *out)
 				r = REGZERO;
 			}
 		o1 = opirr(ctxt, as);
-		s = o1 & S64 ? 64 : 32;
+		if(o1 & S64)
+			s = 64;
+		else
+			s = 32;
 		mask = findmask(p->from.offset);
 		if(mask == nil)
 			mask = findmask(p->from.offset | ((p->from.offset << 32)));
@@ -3747,7 +3750,10 @@ opextr(Link *ctxt, int a, int32 v, int rn, int rm, int rt)
 	uint32 o;
 	uint32 c;
 	o = opirr(ctxt, a);
-	c = ((o & ((1 << 31)))) != 0 ? 63 : 31;
+	if(((o & ((1 << 31)))) != 0)
+		c = 63;
+	else
+		c = 31;
 	if(v < 0 || v > c)
 		ctxt->diag("illegal bit number\n%P", ctxt->curp);
 	o |= v << 10;
