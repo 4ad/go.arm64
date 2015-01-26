@@ -40,7 +40,6 @@ struct	Mask
 	uvlong	v;
 };
 
-static Optab *badop;
 static Oprang	oprange[ALAST];
 static Opcross	opcross[8];
 static uchar	repop[ALAST];
@@ -810,7 +809,7 @@ span7(Link *ctxt, LSym *cursym)
 		// need to align DWORDs on 8-byte boundary. The ISA doesn't
 		// require it, but the various 64-bit loads we generate assume it.
 		if(o->as == ADWORD && psz % 8 != 0) {
-			*(int32*)bp = 0;
+			bp[0] = bp[1] = bp[2] = bp[3] = 0;
 			bp += 4;
 			psz += 4;
 		}
@@ -1234,7 +1233,7 @@ oplook(Link *ctxt, Prog *p)
 	r = p->as;
 	o = oprange[r].start;
 	if(o == 0) {
-		a1 = opcross[repop[r]][a1][a2][a3];
+		a1 = (int)opcross[repop[r]][a1][a2][a3];
 		if(a1) {
 			p->optab = a1 + 1;
 			return optab + a1;
@@ -1259,7 +1258,6 @@ oplook(Link *ctxt, Prog *p)
 	ctxt->diag("illegal combination %P %^ %^ %^, %d %d",
                 p, a1, a2, a3, p->from.type, p->to.type);
 	prasm(p);
-	o = badop;
 	if(o == 0)
 		o = optab;
 	return o;
@@ -1412,7 +1410,6 @@ buildop(Link *ctxt)
 			xcmp[i][n] = cmp(n, i);
 	for(n = 0; optab[n].as != AXXX; n++)
 		;
-	badop = optab + n;
 	qsort(optab, n, sizeof(optab[0]), ocmp);
 	for(i = 0; i < n; i++) {
 		r = optab[i].as;
