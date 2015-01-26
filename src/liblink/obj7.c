@@ -101,7 +101,7 @@ progedit(Link *ctxt, Prog *p)
 	switch(p->as) {
 	case AFMOVS:
 		if(p->from.type == D_FCONST) {
-			int32 i32;
+			uint32 i32;
 			float32 f32;
 			f32 = p->from.u.dval;
 			memmove(&i32, &f32, 4);
@@ -116,7 +116,7 @@ progedit(Link *ctxt, Prog *p)
 		break;
 	case AFMOVD:
 		if(p->from.type == D_FCONST) {
-			int64 i64;
+			uint64 i64;
 			memmove(&i64, &p->from.u.dval, 8);
 			sprint(literal, "$f64.%016llux", (uvlong)i64);
 			s = linklookup(ctxt, literal, 0);
