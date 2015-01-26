@@ -219,8 +219,11 @@ func progedit(ctxt *obj.Link, p *obj.Prog) {
 }
 
 func prg() *obj.Prog {
-	p := zprg
-	return &p
+	var p *obj.Prog
+
+	p = new(obj.Prog)
+	*p = zprg5
+	return p
 }
 
 // Prog.mark
@@ -786,7 +789,7 @@ func softfloat(ctxt *obj.Link, cursym *obj.LSym) {
 
 	soft:
 		if !(wasfloat != 0) || (p.Mark&LABEL != 0) {
-			next = ctxt.NewProg()
+			next = ctxt.Arch.Prg()
 			*next = *p
 
 			// BL _sfloat(SB)
@@ -951,7 +954,7 @@ func follow(ctxt *obj.Link, s *obj.LSym) {
 
 	ctxt.Cursym = s
 
-	firstp = ctxt.NewProg()
+	firstp = ctxt.Arch.Prg()
 	lastp = firstp
 	xfol(ctxt, s.Text, &lastp)
 	lastp.Link = nil
@@ -994,7 +997,7 @@ func relinv(a int) int {
 		return ABGT
 	}
 
-	log.Fatalf("unknown relation: %s", Anames[a])
+	log.Fatalf("unknown relation: %s", Anames5[a])
 	return 0
 }
 
@@ -1045,7 +1048,7 @@ loop:
 
 		copy:
 			for {
-				r = ctxt.NewProg()
+				r = ctxt.Arch.Prg()
 				*r = *p
 				if !(r.Mark&FOLL != 0) {
 					fmt.Printf("can't happen 1\n")
@@ -1080,7 +1083,7 @@ loop:
 		}
 
 		a = AB
-		q = ctxt.NewProg()
+		q = ctxt.Arch.Prg()
 		q.As = int16(a)
 		q.Lineno = p.Lineno
 		q.To.Type = D_BRANCH

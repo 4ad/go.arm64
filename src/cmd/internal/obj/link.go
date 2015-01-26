@@ -49,7 +49,7 @@ type Addr struct {
 	Class   int8
 	Etype   uint8
 	Offset2 int32
-	Node    interface{}
+	Node    *struct{}
 	Width   int64
 }
 
@@ -63,6 +63,7 @@ type Prog struct {
 	From     Addr
 	Reg      uint8
 	From3    Addr
+	To3      Addr
 	To       Addr
 	Opt      interface{}
 	Forwd    *Prog
@@ -371,6 +372,7 @@ const (
 	R_SIZE
 	R_CALL
 	R_CALLARM
+	R_CALLARM64
 	R_CALLIND
 	R_CALLPOWER
 	R_CONST
@@ -451,6 +453,8 @@ const (
 // asm5.c
 
 // asm6.c
+
+// asm7.c
 
 // asm8.c
 

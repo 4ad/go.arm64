@@ -1,6 +1,6 @@
 package arm
 
-var Anames = []string{
+var Anames5 = []string{
 	"XXX",
 	"AND",
 	"EOR",

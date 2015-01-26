@@ -887,7 +887,7 @@ func follow(ctxt *obj.Link, s *obj.LSym) {
 
 	ctxt.Cursym = s
 
-	firstp = ctxt.NewProg()
+	firstp = ctxt.Arch.Prg()
 	lastp = firstp
 	xfol(ctxt, s.Text, &lastp)
 	lastp.Link = nil
@@ -1051,7 +1051,7 @@ loop:
 				/* */
 			}
 		}
-		q = ctxt.NewProg()
+		q = ctxt.Arch.Prg()
 		q.As = AJMP
 		q.Lineno = p.Lineno
 		q.To.Type = D_BRANCH
@@ -1124,8 +1124,11 @@ loop:
 }
 
 func prg() *obj.Prog {
-	p := zprg
-	return &p
+	var p *obj.Prog
+
+	p = new(obj.Prog)
+	*p = zprg
+	return p
 }
 
 var Linkamd64 = obj.LinkArch{

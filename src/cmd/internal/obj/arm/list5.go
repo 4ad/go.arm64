@@ -115,7 +115,7 @@ func Aconv(a int) string {
 
 	s = "???"
 	if a >= AXXX && a < ALAST {
-		s = Anames[a]
+		s = Anames5[a]
 	}
 	fp += s
 	return fp

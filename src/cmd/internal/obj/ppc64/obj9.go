@@ -599,7 +599,7 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 				p.To.Reg = REGSP
 				p.Spadj = -autosize
 
-				q = ctxt.NewProg()
+				q = ctxt.Arch.Prg()
 				q.As = ABR
 				q.Lineno = p.Lineno
 				q.To.Type = D_SPR
@@ -619,7 +619,7 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 			p.To.Type = D_REG
 			p.To.Reg = REGTMP
 
-			q = ctxt.NewProg()
+			q = ctxt.Arch.Prg()
 			q.As = AMOVD
 			q.Lineno = p.Lineno
 			q.From.Type = D_REG
@@ -633,7 +633,7 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 
 			if false {
 				// Debug bad returns
-				q = ctxt.NewProg()
+				q = ctxt.Arch.Prg()
 
 				q.As = AMOVD
 				q.Lineno = p.Lineno
@@ -649,7 +649,7 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 			}
 
 			if autosize != 0 {
-				q = ctxt.NewProg()
+				q = ctxt.Arch.Prg()
 				q.As = AADD
 				q.Lineno = p.Lineno
 				q.From.Type = D_CONST
@@ -662,7 +662,7 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 				p.Link = q
 			}
 
-			q1 = ctxt.NewProg()
+			q1 = ctxt.Arch.Prg()
 			q1.As = ABR
 			q1.Lineno = p.Lineno
 			q1.To.Type = D_SPR
@@ -888,7 +888,7 @@ func follow(ctxt *obj.Link, s *obj.LSym) {
 
 	ctxt.Cursym = s
 
-	firstp = ctxt.NewProg()
+	firstp = ctxt.Arch.Prg()
 	lastp = firstp
 	xfol(ctxt, s.Text, &lastp)
 	lastp.Link = nil
@@ -984,7 +984,7 @@ loop:
 
 		copy:
 			for {
-				r = ctxt.NewProg()
+				r = ctxt.Arch.Prg()
 				*r = *p
 				if !(r.Mark&FOLL != 0) {
 					fmt.Printf("cant happen 1\n")
@@ -1016,7 +1016,7 @@ loop:
 		}
 
 		a = ABR
-		q = ctxt.NewProg()
+		q = ctxt.Arch.Prg()
 		q.As = int16(a)
 		q.Lineno = p.Lineno
 		q.To.Type = D_BRANCH
@@ -1053,8 +1053,11 @@ loop:
 }
 
 func prg() *obj.Prog {
-	p := zprg
-	return &p
+	var p *obj.Prog
+
+	p = new(obj.Prog)
+	*p = zprg
+	return p
 }
 
 var Linkppc64 = obj.LinkArch{
