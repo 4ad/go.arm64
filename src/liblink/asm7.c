@@ -3654,7 +3654,7 @@ olsxrr(Link *ctxt, int as, int rt, int r1, int r2)
 	USED(r1);
 	USED(r2);
 	ctxt->diag("need load/store extended register\n%P", ctxt->curp);
-	return (uint32)-1;
+	return 0xffffffffu;
 }
 
 static uint32
