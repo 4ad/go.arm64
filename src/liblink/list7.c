@@ -138,7 +138,7 @@ static int
 Dconv(Fmt *fp)
 {
 	char str[STRINGSZ];
-	char *op;
+	const char *op;
 	Addr *a;
 	int32 v;
 	static char *extop[] = {".UB", ".UH", ".UW", ".UX", ".SB", ".SH", ".SW", ".SX"};
