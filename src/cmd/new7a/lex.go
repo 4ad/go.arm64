@@ -681,7 +681,7 @@ func outgcode(a int, g1 *obj.Addr, reg int, g2 *obj.Addr, g3 *obj.Addr) {
 	lastpc = p
 
 out:
-	if a != arm64.GLOBL && a != arm64.ADATA {
+	if a != arm64.AGLOBL && a != arm64.ADATA {
 		asm.PC++
 	}
 }
