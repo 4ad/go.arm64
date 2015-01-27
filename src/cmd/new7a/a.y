@@ -48,9 +48,10 @@ prog:
 line:
 |	LNAME ':'
 	{
-		$1 = asm.labellookup($1);
-		if($1.Type == LLAB && $1.Value != int64(asm.PC))
+		$1 = asm.Labellookup($1);
+		if($1.Type == LLAB && $1.Value != int64(asm.PC)) {
 			yyerror("redeclaration of %s", $1.Labelname);
+		}
 		$1.Type = LLAB;
 		$1.Value = int64(asm.PC);
 	}
@@ -62,8 +63,9 @@ line:
 	}
 |	LVAR '=' expr ';'
 	{
-		if($1.Value != $3)
-			yyerror("redeclaration of %s", $1->name);
+		if($1.Value != $3) {
+			yyerror("redeclaration of %s", $1.Name);
+		}
 		$1.Value = $3;
 	}
 |	LSCHED ';'
@@ -463,10 +465,11 @@ rel:
 	}
 |	LNAME offset
 	{
-		$1 = asm.labellookup($1);
+		$1 = asm.Labellookup($1);
 		$$ = nullgen;
-		if(pass == 2 && $1.Type != LLAB)
+		if(pass == 2 && $1.Type != LLAB) {
 			yyerror("undefined label: %s", $1.Labelname);
+		}
 		$$.Type_ = D_BRANCH;
 		$$.Offset = $1.Value + $2;
 	}
@@ -668,8 +671,9 @@ extreg:
 	}
 |	sreg LEXT '<' '<' con
 	{
-		if($5 < 0 || $5 > 4)
+		if($5 < 0 || $5 > 4) {
 			yyerror("shift value out of range");
+		}
 		$$ = nullgen;
 		$$.Type_ = D_EXTREG;
 		$$.Reg = $1;
@@ -689,8 +693,9 @@ indexreg:
 scon:
 	con
 	{
-		if($$ < 0 || $$ >= 64)
+		if($$ < 0 || $$ >= 64) {
 			yyerror("shift value out of range");
+		}
 		$$ = $1&0x3F;
 	}
 
@@ -698,8 +703,9 @@ sreg:
 	LREG
 |	LR '(' expr ')'
 	{
-		if($3 < 0 || $3 >= NREG)
+		if($3 < 0 || $3 >= NREG) {
 			print("register value out of range\n");
+		}
 		$$ = $3;
 	}
 
@@ -778,12 +784,14 @@ vreglist:
 	}
 |	vreg '-' vreg
 	{
-		int i;
+		var i int;
 		$$=0;
-		for(i=$1.Reg; i<=$3.Reg; i++)
+		for i=$1.Reg; i<=$3.Reg; i++ {
 			$$ |= 1<<i;
-		for(i=$3.Reg; i<=$1.Reg; i++)
+		}
+		for i=$3.Reg; i<=$1.Reg; i++ {
 			$$ |= 1<<i;
+		}
 	}
 |	vreg comma vreglist
 	{
@@ -819,7 +827,7 @@ name:
 		$$ = nullgen;
 		$$.Type_ = D_OREG;
 		$$.Name = $4;
-		$$.Sym = linklookup(ctxt, $1->name, 0);
+		$$.Sym = linklookup(ctxt, $1.Name, 0);
 		$$.Offset = $2;
 	}
 |	LNAME '<' '>' offset '(' LSB ')'
@@ -827,7 +835,7 @@ name:
 		$$ = nullgen;
 		$$.Type_ = D_OREG;
 		$$.Name = D_STATIC;
-		$$.Sym = linklookup(ctxt, $1->name, 0);
+		$$.Sym = linklookup(ctxt, $1.Name, 0);
 		$$.Offset = $4;
 	}
 
@@ -865,7 +873,7 @@ con:
 	}
 |	'~' con
 	{
-		$$ = ~$2;
+		$$ = ^$2;
 	}
 |	'(' expr ')'
 	{
