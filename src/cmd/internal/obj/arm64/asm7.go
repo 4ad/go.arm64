@@ -776,7 +776,7 @@ func flushpool(ctxt *obj.Link, p *obj.Prog, skip int) {
 			if ctxt.Debugvlog != 0 && skip == 1 {
 				fmt.Printf("note: flush literal pool at %#x: len=%d ref=%x\n", uint64(p.Pc+4), pool.size, pool.start)
 			}
-			q = ctxt.Arch.Prg()
+			q = ctxt.NewProg()
 			q.As = AB
 			q.To.Type = D_BRANCH
 			q.Pcond = p.Link
@@ -889,7 +889,7 @@ func addpool(ctxt *obj.Link, p *obj.Prog, a *obj.Addr) {
 		}
 	}
 
-	q = ctxt.Arch.Prg()
+	q = ctxt.NewProg()
 	*q = t
 	q.Pc = int64(pool.size)
 	if ctxt.Blitrl == nil {
