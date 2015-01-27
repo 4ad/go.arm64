@@ -1209,6 +1209,7 @@ var buildorder = []string{
 	"go/build",
 	"cmd/internal/obj",
 	"cmd/internal/obj/arm",
+	"cmd/internal/obj/arm64",
 	"cmd/internal/obj/i386",
 	"cmd/internal/obj/ppc64",
 	"cmd/internal/obj/x86",
