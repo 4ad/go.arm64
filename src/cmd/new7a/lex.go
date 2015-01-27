@@ -6,11 +6,54 @@ import (
 	"cmd/internal/obj/arm64"
 )
 
-var itab = []struct {
-	name  string
-	type_ uint16
-	value uint32
-}{
+var (
+	yyerror = asm.Yyerror
+	nullgen obj.Addr
+)
+
+func main() {
+	cinit()
+
+	asm.LSCONST = LSCONST
+	asm.LCONST = LCONST
+	asm.LFCONST = LFCONST
+	asm.LNAME = LNAME
+	asm.LVAR = LVAR
+	asm.LLAB = LLAB
+
+	asm.Lexinit = lexinit
+	asm.Cclean = cclean
+	asm.Yyparse = yyparse
+
+	asm.Thechar = '7'
+	asm.Thestring = "arm64"
+	asm.Thelinkarch = &arm64.Linkarm64
+
+	asm.Main()
+}
+
+type yy struct{}
+
+func (yy) Lex(v *yySymType) int {
+	var av asm.Yylval
+	tok := asm.Yylex(&av)
+	v.sym = av.Sym
+	v.lval = av.Lval
+	v.sval = av.Sval
+	v.dval = av.Dval
+	return tok
+}
+
+func (yy) Error(msg string) {
+	asm.Yyerror("%s", msg)
+}
+
+func yyparse() {
+	nosched = 0
+	yyParse(yy{})
+}
+
+var lexinit = []asm.Lextab{
 	{"SP", LSP, D_AUTO},
 	{"SB", LSB, D_EXTERN},
 	{"FP", LFP, D_PARAM},
@@ -548,31 +591,10 @@ var itab = []struct {
 }
 
 func cinit() {
-	var s *Sym
-	var i int
-
-	nullgen.Type = D_NONE
-	nullgen.Name = D_NONE
-	nullgen.Reg = NREG
-	nullgen.Scale = NREG // replaced Gen.xreg with Prog.scale
-
-	nerrors = 0
-
-	iostack = nil
-	iofree = nil
-	peekc = IGN
-	nhunk = 0
-	for i = 0; i < NHASH; i++ {
-		hash[i] = nil
-	}
-	for i = 0; itab[i].name != ""; i++ {
-		s = slookup(itab[i].name)
-		if s.value != 0 {
-			yyerror("internal: duplicate %s", s.name)
-		}
-		s.type_ = itab[i].type_
-		s.value = int32(itab[i].value)
-	}
+	nullgen.Type = arm64.D_NONE
+	nullgen.Name = arm64.D_NONE
+	nullgen.Reg = arm64.NREG
+	nullgen.Scale = arm64.NREG // replaced Gen.xreg with Prog.scale
 }
 
 func cclean() {
@@ -580,40 +602,41 @@ func cclean() {
 }
 
 var lastpc *obj.Prog
+var nosched int
 
 func outcode(a int, g1 *obj.Addr, reg int, g2 *obj.Addr) {
 	var p *obj.Prog
 	var pl *obj.Plist
 
-	if pass == 1 {
+	if asm.Pass == 1 {
 		goto out
 	}
 
-	if g1.Scale != NREG {
-		if reg != NREG || g2.Scale != NREG {
+	if g1.Scale != arm64.NREG {
+		if reg != arm64.NREG || g2.Scale != arm64.NREG {
 			yyerror("bad addressing modes")
 		}
 		reg = int(g1.Scale)
-	} else if g2.Scale != NREG {
-		if reg != NREG {
+	} else if g2.Scale != arm64.NREG {
+		if reg != arm64.NREG {
 			yyerror("bad addressing modes")
 		}
 		reg = int(g2.Scale)
 	}
 
-	p = ctxt.Arch.Prg()
+	p = asm.Ctxt.Arch.Prg()
 	p.As = int16(a)
-	p.Lineno = lineno
+	p.Lineno = asm.Lineno
 	if nosched != 0 {
-		p.Mark |= NOSCHED
+		p.Mark |= arm64.NOSCHED
 	}
 	p.From = *g1
 	p.Reg = uint8(reg)
 	p.To = *g2
-	p.Pc = int64(pc)
+	p.Pc = int64(asm.PC))
 
 	if lastpc == nil {
-		pl = obj.Linknewplist(ctxt)
+		pl = obj.Linknewplist(asm.Ctxt)
 		pl.Firstpc = p
 	} else {
 
@@ -622,8 +645,8 @@ func outcode(a int, g1 *obj.Addr, reg int, g2 *obj.Addr) {
 	lastpc = p
 
 out:
-	if a != AGLOBL && a != ADATA {
-		pc++
+	if a != arm64.AGLOBL && a != arm64.ADATA {
+		asm.PC++
 	}
 }
 
@@ -631,35 +654,33 @@ func outgcode(a int, g1 *obj.Addr, reg int, g2 *obj.Addr, g3 *obj.Addr) {
 	var p *obj.Prog
 	var pl *obj.Plist
 
-	if pass == 1 {
+	if asm.Pass == 1 {
 		goto out
 	}
 
-	p = ctxt.Arch.Prg()
+	p = asm.Ctxt.Arch.Prg()
 	p.As = int16(a)
-	p.Lineno = lineno
+	p.Lineno = asm.Lineno
 	if nosched != 0 {
-		p.Mark |= NOSCHED
+		p.Mark |= arm64.NOSCHED
 	}
 	p.From = *g1
 	p.Reg = uint8(reg)
 	p.To = *g2
 	p.From3 = *g3
-	p.Pc = int64(pc)
-	fmt.Printf("oc: %v\n", p)
+	p.Pc = int64(asm.PC)
 
 	if lastpc == nil {
-		pl = obj.Linknewplist(ctxt)
+		pl = obj.Linknewplist(asm.Ctxt)
 		pl.Firstpc = p
 	} else {
-
 		lastpc.Link = p
 	}
 	lastpc = p
 
 out:
-	if a != AGLOBL && a != ADATA {
-		pc++
+	if a != arm64.GLOBL && a != arm64.ADATA {
+		asm.PC++
 	}
 }
 
@@ -667,32 +688,30 @@ func outtcode(a int, from *obj.Addr, to *obj.Addr, to3 *obj.Addr) {
 	var p *obj.Prog
 	var pl *obj.Plist
 
-	if pass == 1 {
+	if asm.Pass == 1 {
 		goto out
 	}
-
-	p = ctxt.Arch.Prg()
+	p = asm.Ctxt.Arch.Prg()
 	p.As = int16(a)
-	p.Lineno = lineno
+	p.Lineno = asm.Lineno
 	if nosched != 0 {
-		p.Mark |= NOSCHED
+		p.Mark |= arm64.NOSCHED
 	}
 	p.From = *from
 	p.To = *to
 	p.To3 = *to3
-	p.Pc = int64(pc)
+	p.Pc = int64(asm.PC)
 
 	if lastpc == nil {
-		pl = obj.Linknewplist(ctxt)
+		pl = obj.Linknewplist(asm.Ctxt)
 		pl.Firstpc = p
 	} else {
-
 		lastpc.Link = p
 	}
 	lastpc = p
 
 out:
-	if a != AGLOBL && a != ADATA {
-		pc++
+	if a != arm64.AGLOBL && a != arm64.ADATA {
+		asm.PC++
 	}
 }
