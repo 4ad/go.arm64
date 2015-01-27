@@ -1,3 +1,5 @@
+//go:generate go tool yacc a.y
+
 package main
 
 import (
