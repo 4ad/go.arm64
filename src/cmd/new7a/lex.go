@@ -635,7 +635,7 @@ func outcode(a int, g1 *obj.Addr, reg int, g2 *obj.Addr) {
 	p.From = *g1
 	p.Reg = uint8(reg)
 	p.To = *g2
-	p.Pc = int64(asm.PC))
+	p.Pc = int64(asm.PC)
 
 	if lastpc == nil {
 		pl = obj.Linknewplist(asm.Ctxt)
