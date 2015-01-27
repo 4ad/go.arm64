@@ -4,6 +4,14 @@
 #include "a.h"
 #include "y.tab.h"
 
+/*c2go
+enum {
+	NHASH	= 503,
+	NSYMB	= 8192,
+	IGN	= -2,
+};
+*/
+
 enum
 {
 	Plan9	= 1<<0,
@@ -737,7 +745,7 @@ struct
 	{ "PCDATA",	LPCDAT,	APCDATA },
 	{ "FUNCDATA",	LFUNCDAT,	AFUNCDATA },
 
-	0
+	{ 0, 	0,	0 }
 };
 
 void
@@ -752,12 +760,12 @@ cinit(void)
 	nullgen.scale = NREG; // replaced Gen.xreg with Prog.scale
 
 	nerrors = 0;
-	iostack = I;
-	iofree = I;
+	iostack = nil;
+	iofree = nil;
 	peekc = IGN;
 	nhunk = 0;
 	for(i=0; i<NHASH; i++)
-		hash[i] = S;
+		hash[i] = nil;
 	for(i=0; itab[i].name; i++) {
 		s = slookup(itab[i].name);
 		if(s->value != 0)
