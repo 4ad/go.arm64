@@ -24,6 +24,7 @@ import (
 
 	"cmd/internal/obj"
 	"cmd/internal/obj/arm"
+	"cmd/internal/obj/arm64"
 	"cmd/internal/obj/i386"
 	"cmd/internal/obj/ppc64"
 	"cmd/internal/obj/x86"
@@ -74,6 +75,8 @@ func main() {
 		arch = &i386.Link386
 	case "arm":
 		arch = &arm.Linkarm
+	case "arm64":
+		arch = &arm64.Linkarm64
 	case "ppc64":
 		arch = &ppc64.Linkppc64
 	case "ppc64le":
