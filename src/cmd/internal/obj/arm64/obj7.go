@@ -39,7 +39,7 @@ import (
 	"math"
 )
 
-var zprg7 = obj.Prog{
+var zprg = obj.Prog{
 	As:  AGOK,
 	Reg: NREG,
 	From: obj.Addr{

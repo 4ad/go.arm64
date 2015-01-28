@@ -228,31 +228,6 @@ OPBIT(uint32 x)
 	return (1<<30 | 0<<29 | 0xD6<<21 | 0<<16 | (x)<<10);
 }
 
-static Prog zprg = {
-	.as = AGOK,
-	.reg = NREG,
-	.from = {
-		.name = D_NONE,
-		.type = D_NONE,
-		.reg = NREG,
-	},
-	.from3 = {
-		.name = D_NONE,
-		.type = D_NONE,
-		.reg = NREG,
-	},
-	.to = {
-		.name = D_NONE,
-		.type = D_NONE,
-		.reg = NREG,
-	},
-	.to3 = {
-		.name = D_NONE,
-		.type = D_NONE,
-		.reg = NREG,
-	},
-};
-
 enum
 {
 	LFROM	= 1<<0,
@@ -904,7 +879,7 @@ addpool(Link *ctxt, Prog *p, Addr *a)
 	int c;
 	int sz;
 	c = aclass(ctxt, a);
-	t = zprg;
+	t = *ctxt->arch->prg();
 	t.as = AWORD;
 	sz = 4;
 	// MOVW foo(SB), R is actually
@@ -925,7 +900,6 @@ addpool(Link *ctxt, Prog *p, Addr *a)
 		t.to.sym = a->sym;
 		t.to.type = a->type;
 		t.to.name = a->name;
-		t.to3.type = D_NONE;
 		break;
 
 	/* This is here to work around a bug where we generate negative
@@ -973,7 +947,6 @@ addpool(Link *ctxt, Prog *p, Addr *a)
 		}
 		t.to.type = D_CONST;
 		t.to.offset = ctxt->instoffset;
-		t.to3.type = D_NONE;
 		break;
 	}
 	for(q = ctxt->blitrl; q != nil; q = q->link) /* could hash on t.t0.offset */

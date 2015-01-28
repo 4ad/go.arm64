@@ -41,7 +41,7 @@ static int relinv(int);
 static void xfol(Link *, Prog *, Prog **);
 static void follow(Link *, LSym *);
 
-static Prog zprg7 = {
+static Prog zprg = {
 	.as = AGOK,
 	.reg = NREG,
 	.from = {
@@ -533,7 +533,7 @@ prg(void)
 	Prog *p;
 
 	p = emallocz(sizeof(*p));
-	*p = zprg7;
+	*p = zprg;
 	return p;
 }
 

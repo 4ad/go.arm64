@@ -152,31 +152,6 @@ func OPBIT(x uint32) uint32 {
 	return 1<<30 | 0<<29 | 0xD6<<21 | 0<<16 | x<<10
 }
 
-var zprg = obj.Prog{
-	As:  AGOK,
-	Reg: NREG,
-	From: obj.Addr{
-		Name: D_NONE,
-		Type: D_NONE,
-		Reg:  NREG,
-	},
-	From3: obj.Addr{
-		Name: D_NONE,
-		Type: D_NONE,
-		Reg:  NREG,
-	},
-	To: obj.Addr{
-		Name: D_NONE,
-		Type: D_NONE,
-		Reg:  NREG,
-	},
-	To3: obj.Addr{
-		Name: D_NONE,
-		Type: D_NONE,
-		Reg:  NREG,
-	},
-}
-
 const (
 	LFROM = 1 << 0
 	LTO   = 1 << 1
@@ -804,7 +779,7 @@ func addpool(ctxt *obj.Link, p *obj.Prog, a *obj.Addr) {
 	var c int
 	var sz int
 	c = aclass(ctxt, a)
-	t = zprg
+	t = *ctxt.NewProg()
 	t.As = AWORD
 	sz = 4
 
@@ -830,7 +805,6 @@ func addpool(ctxt *obj.Link, p *obj.Prog, a *obj.Addr) {
 		t.To.Sym = a.Sym
 		t.To.Type = a.Type
 		t.To.Name = a.Name
-		t.To3.Type = D_NONE
 
 		/* This is here to work around a bug where we generate negative
 		operands that match C_MOVCON, but we use them with
@@ -878,7 +852,6 @@ func addpool(ctxt *obj.Link, p *obj.Prog, a *obj.Addr) {
 
 		t.To.Type = D_CONST
 		t.To.Offset = ctxt.Instoffset
-		t.To3.Type = D_NONE
 		break
 	}
 
