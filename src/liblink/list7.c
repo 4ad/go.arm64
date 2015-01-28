@@ -105,7 +105,6 @@ static int
 Pconv(Fmt *fp)
 {
 	char str[STRINGSZ];
-	char *s;
 	Prog *p;
 	int a;
 	p = va_arg(fp->args, Prog*);
@@ -113,21 +112,20 @@ Pconv(Fmt *fp)
 	a = p->as;
 	switch(a) {
 	default:
-		s = str;
 		if(p->reg == NREG && p->from3.type == D_NONE && p->to3.type == D_NONE)
-			sprint(s, "%.5lld (%L)	%A	%D,%D", p->pc, p->lineno, a, &p->from, &p->to);
+			sprint(str, "%.5lld (%L)	%A	%D,%D", p->pc, p->lineno, a, &p->from, &p->to);
 		else if(p->from.type != D_FREG) {
-			sprint(s, "%.5lld (%L)	%A	%D", p->pc, p->lineno, a, &p->from);
+			sprint(str, "%.5lld (%L)	%A	%D", p->pc, p->lineno, a, &p->from);
 			if(p->from3.type != D_NONE)
-				sprint(strchr(s, 0), ",%D", &p->from3);
+				sprint(strchr(str, 0), ",%D", &p->from3);
 			if(p->reg != NREG)
-				sprint(strchr(s, 0), ",R%d", p->reg);
+				sprint(strchr(str, 0), ",R%d", p->reg);
 			if(p->to3.type != D_NONE)
-				sprint(strchr(s, 0), ",%D,%D", &p->to, &p->to3);
+				sprint(strchr(str, 0), ",%D,%D", &p->to, &p->to3);
 			else
-				sprint(strchr(s, 0), ",%D", &p->to);
+				sprint(strchr(str, 0), ",%D", &p->to);
 		} else
-			sprint(s, "%.5lld (%L)	%A	%D,F%d,%D", p->pc, p->lineno, a, &p->from, p->reg, &p->to);
+			sprint(str, "%.5lld (%L)	%A	%D,F%d,%D", p->pc, p->lineno, a, &p->from, p->reg, &p->to);
 		break;
 	case ATEXT:
 		if(p->reg != 0)

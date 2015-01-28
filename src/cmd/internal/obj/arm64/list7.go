@@ -76,7 +76,6 @@ var bigP *obj.Prog
 
 func Pconv(p *obj.Prog) string {
 	var str string
-	var s string
 	var fp string
 
 	var a int
@@ -84,26 +83,25 @@ func Pconv(p *obj.Prog) string {
 	a = int(p.As)
 	switch a {
 	default:
-		s = str
 		if p.Reg == NREG && p.From3.Type == D_NONE && p.To3.Type == D_NONE {
-			s = fmt.Sprintf("%.5d (%v)\t%v\t%v,%v", p.Pc, p.Line(), Aconv(a), Dconv(p, 0, &p.From), Dconv(p, 0, &p.To))
+			str = fmt.Sprintf("%.5d (%v)\t%v\t%v,%v", p.Pc, p.Line(), Aconv(a), Dconv(p, 0, &p.From), Dconv(p, 0, &p.To))
 		} else if p.From.Type != D_FREG {
-			s = fmt.Sprintf("%.5d (%v)\t%v\t%v", p.Pc, p.Line(), Aconv(a), Dconv(p, 0, &p.From))
+			str = fmt.Sprintf("%.5d (%v)\t%v\t%v", p.Pc, p.Line(), Aconv(a), Dconv(p, 0, &p.From))
 			if p.From3.Type != D_NONE {
-				s += fmt.Sprintf(",%v", Dconv(p, 0, &p.From3))
+				str += fmt.Sprintf(",%v", Dconv(p, 0, &p.From3))
 			}
 			if p.Reg != NREG {
-				s += fmt.Sprintf(",R%d", p.Reg)
+				str += fmt.Sprintf(",R%d", p.Reg)
 			}
 			if p.To3.Type != D_NONE {
-				s += fmt.Sprintf(",%v,%v", Dconv(p, 0, &p.To), Dconv(p, 0, &p.To3))
+				str += fmt.Sprintf(",%v,%v", Dconv(p, 0, &p.To), Dconv(p, 0, &p.To3))
 			} else {
 
-				s += fmt.Sprintf(",%v", Dconv(p, 0, &p.To))
+				str += fmt.Sprintf(",%v", Dconv(p, 0, &p.To))
 			}
 		} else {
 
-			s = fmt.Sprintf("%.5d (%v)\t%v\t%v,F%d,%v", p.Pc, p.Line(), Aconv(a), Dconv(p, 0, &p.From), p.Reg, Dconv(p, 0, &p.To))
+			str = fmt.Sprintf("%.5d (%v)\t%v\t%v,F%d,%v", p.Pc, p.Line(), Aconv(a), Dconv(p, 0, &p.From), p.Reg, Dconv(p, 0, &p.To))
 		}
 
 	case ATEXT:
