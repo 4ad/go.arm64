@@ -862,6 +862,13 @@ flushpool(Link *ctxt, Prog *p, int skip)
 				return;
 		ctxt->elitrl->link = p->link;
 		p->link = ctxt->blitrl;
+		// BUG(minux): how to correctly handle line number for constant pool entries?
+		// for now, we set line number to the last instruction preceding them at least
+		// this won't bloat the .debug_line tables
+		while(ctxt->blitrl) {
+			ctxt->blitrl->lineno = p->lineno;
+			ctxt->blitrl = ctxt->blitrl->link;
+		}
 		ctxt->blitrl = 0; /* BUG: should refer back to values until out-of-range */
 		ctxt->elitrl = 0;
 		pool.size = 0;

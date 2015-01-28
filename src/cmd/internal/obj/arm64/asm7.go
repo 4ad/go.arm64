@@ -763,6 +763,16 @@ func flushpool(ctxt *obj.Link, p *obj.Prog, skip int) {
 		}
 		ctxt.Elitrl.Link = p.Link
 		p.Link = ctxt.Blitrl
+
+		// BUG(minux): how to correctly handle line number for constant pool entries?
+		// for now, we set line number to the last instruction preceding them at least
+		// this won't bloat the .debug_line tables
+		for ctxt.Blitrl != nil {
+
+			ctxt.Blitrl.Lineno = p.Lineno
+			ctxt.Blitrl = ctxt.Blitrl.Link
+		}
+
 		ctxt.Blitrl = nil /* BUG: should refer back to values until out-of-range */
 		ctxt.Elitrl = nil
 		pool.size = 0
