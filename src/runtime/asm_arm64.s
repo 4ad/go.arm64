@@ -173,7 +173,7 @@ TEXT runtime·rt0_go(SB),NOSPLIT,$0
 	// initialize essential registers
 	BL	runtime·reginit(SB)
 
-	SUB	$24, SP
+	SUB	$32, SP
 	MOVW	R0, 8(SP) // argc
 	MOV	R1, 16(SP) // argv
 
@@ -225,7 +225,7 @@ nocgo:
 	MOV	R0, (R7)-8!
 	MOV	R7, SP
 	BL	runtime·newproc(SB)
-	ADD	$24, SP
+	ADD	$32, SP
 
 	// start this M
 	BL	runtime·mstart(SB)
