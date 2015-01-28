@@ -266,6 +266,7 @@ printprog(Link *ctxt, Biobuf *bw, Prog *p0)
 		printaddr(ctxt, bw, &p->from);
 		printaddr(ctxt, bw, &p->from3);
 		printaddr(ctxt, bw, &p->to);
+		printaddr(ctxt, bw, &p->to3);
 		printsym(ctxt, bw, p->from.sym);
 		printsym(ctxt, bw, p->from.gotype);
 		printsym(ctxt, bw, p->to.sym);

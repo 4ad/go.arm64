@@ -373,6 +373,7 @@ func readprog(b *bufio.Reader, p *obj.Prog) {
 	readaddr(b, &p.From)
 	readaddr(b, &p.From3)
 	readaddr(b, &p.To)
+	readaddr(b, &p.To3)
 }
 
 func readaddr(b *bufio.Reader, a *obj.Addr) {
