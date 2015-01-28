@@ -285,9 +285,9 @@ Dconv(Fmt *fp)
 				sprint(str, "%.5lux(BRANCH)", v);
 		} else
 			if(a->sym != nil)
-				sprint(str, "%s+%lld(APC)", a->sym->name, a->offset);
+				sprint(str, "%s+%lld(PC)", a->sym->name, a->offset);
 			else
-				sprint(str, "%lld(APC)", a->offset);
+				sprint(str, "%lld(PC)", a->offset);
 		break;
 	case D_FCONST:
 		sprint(str, "$%.17g", a->u.dval);

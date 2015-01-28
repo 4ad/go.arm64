@@ -756,6 +756,7 @@ func flushpool(ctxt *obj.Link, p *obj.Prog, skip int) {
 			q.To.Type = D_BRANCH
 			q.Pcond = p.Link
 			q.Link = ctxt.Blitrl
+			q.Lineno = p.Lineno
 			ctxt.Blitrl = q
 		} else if p.Pc+int64(pool.size)-int64(pool.start) < 1024*1024 {
 			return

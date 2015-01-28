@@ -855,6 +855,7 @@ flushpool(Link *ctxt, Prog *p, int skip)
 			q->to.type = D_BRANCH;
 			q->pcond = p->link;
 			q->link = ctxt->blitrl;
+			q->lineno = p->lineno;
 			ctxt->blitrl = q;
 		} else
 			if(p->pc + pool.size - pool.start < 1024 * 1024)

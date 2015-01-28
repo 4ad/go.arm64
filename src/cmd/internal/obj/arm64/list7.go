@@ -291,10 +291,10 @@ func Dconv(p *obj.Prog, flag int, a *obj.Addr) string {
 				str = fmt.Sprintf("%.5x(BRANCH)", uint32(v))
 			}
 		} else if a.Sym != nil {
-			str = fmt.Sprintf("%s+%d(APC)", a.Sym.Name, a.Offset)
+			str = fmt.Sprintf("%s+%d(PC)", a.Sym.Name, a.Offset)
 		} else {
 
-			str = fmt.Sprintf("%d(APC)", a.Offset)
+			str = fmt.Sprintf("%d(PC)", a.Offset)
 		}
 
 	case D_FCONST:
