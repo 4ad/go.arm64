@@ -3963,7 +3963,7 @@ func opload(ctxt *obj.Link, a int) uint32 {
 		return LDSTX(3, 0, 1, 0, 1) | 0x1F<<10
 
 	case ALDAXRW:
-		return LDSTX(2, 1, 1, 0, 1) | 0x1F<<10
+		return LDSTX(2, 0, 1, 0, 1) | 0x1F<<10
 
 	case ALDAXRB:
 		return LDSTX(0, 0, 1, 0, 1) | 0x1F<<10
