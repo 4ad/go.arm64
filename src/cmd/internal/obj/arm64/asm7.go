@@ -228,8 +228,9 @@ var optab = []Optab{
 
 	//	{ AMOVW,		C_ADDCON,	C_NONE,	C_REG,		2, 4, 0 },
 	//	{ AMOV,		C_ADDCON,	C_NONE,	C_REG,		2, 4, 0 },
-	Optab{AMOVW, C_BITCON, C_NONE, C_REG, 53, 4, 0, 0},
-	Optab{AMOV, C_BITCON, C_NONE, C_REG, 53, 4, 0, 0},
+	//	{ AMOVW,		C_BITCON,	C_NONE,	C_REG,		53, 4, 0 },
+	//	{ AMOV,		C_BITCON,	C_NONE,	C_REG,		53, 4, 0 },
+
 	Optab{AMOVK, C_VCON, C_NONE, C_REG, 33, 4, 0, 0},
 	Optab{AMOV, C_AECON, C_NONE, C_REG, 4, 4, REGSB, 0},
 	Optab{AMOV, C_AACON, C_NONE, C_REG, 4, 4, REGSP, 0},
@@ -825,6 +826,11 @@ func addpool(ctxt *obj.Link, p *obj.Prog, a *obj.Addr) {
 		/* This is here because MOV uint12<<12, R is disabled in optab.
 		Because of this, we need to load the constant from memory. */
 		C_ADDCON,
+
+		/* These are here because they are disabled in optab.
+		Because of this, we need to load the constant from memory. */
+		C_BITCON,
+		C_ABCON,
 		C_PSAUTO,
 		C_PPAUTO,
 		C_UAUTO4K,
@@ -1934,6 +1940,9 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 	o3 = 0
 	o4 = 0
 	o5 = 0
+	if false { /*debug['P']*/
+		fmt.Printf("%x: %v\ttype %d\n", uint32(p.Pc), p, o.type_)
+	}
 	switch o.type_ {
 	default:
 		ctxt.Diag("unknown asm %d", o.type_)

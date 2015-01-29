@@ -313,8 +313,8 @@ static Optab optab[] = {
 	{ AMOV,		C_MOVCON,	C_NONE,	C_REG,		32, 4, 0 },
 //	{ AMOVW,		C_ADDCON,	C_NONE,	C_REG,		2, 4, 0 },
 //	{ AMOV,		C_ADDCON,	C_NONE,	C_REG,		2, 4, 0 },
-	{ AMOVW,		C_BITCON,	C_NONE,	C_REG,		53, 4, 0 },
-	{ AMOV,		C_BITCON,	C_NONE,	C_REG,		53, 4, 0 },
+//	{ AMOVW,		C_BITCON,	C_NONE,	C_REG,		53, 4, 0 },
+//	{ AMOV,		C_BITCON,	C_NONE,	C_REG,		53, 4, 0 },
 
 	{ AMOVK,		C_VCON,	C_NONE,	C_REG,			33, 4, 0 },
 
@@ -918,6 +918,11 @@ addpool(Link *ctxt, Prog *p, Addr *a)
 	/* This is here because MOV uint12<<12, R is disabled in optab.
 	Because of this, we need to load the constant from memory. */
 	case C_ADDCON:
+
+	/* These are here because they are disabled in optab.
+	Because of this, we need to load the constant from memory. */
+	case C_BITCON:
+	case C_ABCON:
 
 	case C_PSAUTO:
 	case C_PPAUTO:
@@ -1886,6 +1891,7 @@ asmout(Link *ctxt, Prog *p, Optab *o, uint32 *out)
 	o3 = 0;
 	o4 = 0;
 	o5 = 0;
+if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 	switch(o->type) {
 	default:
 		ctxt->diag("unknown asm %d", o->type);
