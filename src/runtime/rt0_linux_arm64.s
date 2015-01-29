@@ -6,11 +6,11 @@
 
 TEXT _rt0_arm64_linux(SB),NOSPLIT,$0-0
 	// reference the dummy symbols so that they end up in the binary.
-	MOVW	$dummydata(SB), R11
-	MOVW	$dummyrodata(SB), R11
-	MOVW	$dummynoptrdata(SB), R11
-	MOVW	$dummybss(SB), R11
-	MOVW	$dummynoptrbss(SB), R11
+	MOV	$dummydata(SB), R11
+	MOV	$dummyrodata(SB), R11
+	MOV	$dummynoptrdata(SB), R11
+	MOV	$dummybss(SB), R11
+	MOV	$dummynoptrbss(SB), R11
 	MOV	0(SP), R0	// argc
 	MOV	$8(SP), R1	// argv
 	BL	main(SB)

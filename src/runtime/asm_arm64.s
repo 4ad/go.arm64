@@ -190,7 +190,7 @@ TEXT runtime·rt0_go(SB),NOSPLIT,$0
 
 	// if there is a _cgo_init, call it using the gcc ABI.
 	MOV	_cgo_init(SB), R12
-	CMP	R0, R12
+	CMP	$0, R12
 	BEQ	nocgo
 
 	BL	runtime·abort(SB)
