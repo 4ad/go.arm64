@@ -102,6 +102,17 @@ settextflag(Prog *p, int f)
 	p->reg = f;
 }
 
+static short complements[] = {
+	[AADD]	ASUB,
+	[AADDW]	ASUBW,
+	[ASUB]	AADD,
+	[ASUBW]	AADDW,
+	[ACMP]	ACMN,
+	[ACMPW]	ACMNW,
+	[ACMN]	ACMP,
+	[ACMNW]	ACMPW,
+};
+
 static void
 progedit(Link *ctxt, Prog *p)
 {
@@ -153,6 +164,24 @@ progedit(Link *ctxt, Prog *p)
 			p->from.sym = s;
 			p->from.name = D_EXTERN;
 			p->from.offset = 0;
+		}
+		break;
+	}
+
+	// Rewrite negative immediates as positive immediates with
+	// complementary instruction.
+	switch(p->as) {
+	case AADD:
+	case AADDW:
+	case ASUB:
+	case ASUBW:
+	case ACMP:
+	case ACMPW:
+	case ACMN:
+	case ACMNW:
+		if(p->from.type == D_CONST && p->from.offset < 0) {
+			p->from.offset = -p->from.offset;
+			p->as = complements[p->as];
 		}
 		break;
 	}

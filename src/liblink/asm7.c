@@ -911,7 +911,7 @@ addpool(Link *ctxt, Prog *p, Addr *a)
 	so we need to know what to do with C_MOVCON.
 	
 	The correct fix is to use the "negation" instruction variant,
-	e.g. CMN $0, R instead of CMP $-1, R, or SUB $1, R instead
+	e.g. CMN $1, R instead of CMP $-1, R, or SUB $1, R instead
 	of ADD $-1, R. */
 	case C_MOVCON:
 

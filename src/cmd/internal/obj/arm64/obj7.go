@@ -88,6 +88,17 @@ func settextflag(p *obj.Prog, f int) {
 	p.Reg = uint8(f)
 }
 
+var complements = []int16{
+	AADD:  ASUB,
+	AADDW: ASUBW,
+	ASUB:  AADD,
+	ASUBW: AADDW,
+	ACMP:  ACMN,
+	ACMPW: ACMNW,
+	ACMN:  ACMP,
+	ACMNW: ACMPW,
+}
+
 func progedit(ctxt *obj.Link, p *obj.Prog) {
 	var literal string
 	var s *obj.LSym
@@ -138,6 +149,26 @@ func progedit(ctxt *obj.Link, p *obj.Prog) {
 			p.From.Sym = s
 			p.From.Name = D_EXTERN
 			p.From.Offset = 0
+		}
+
+		break
+	}
+
+	// Rewrite negative immediates as positive immediates with
+	// complementary instruction.
+	switch p.As {
+
+	case AADD,
+		AADDW,
+		ASUB,
+		ASUBW,
+		ACMP,
+		ACMPW,
+		ACMN,
+		ACMNW:
+		if p.From.Type == D_CONST && p.From.Offset < 0 {
+			p.From.Offset = -p.From.Offset
+			p.As = complements[p.As]
 		}
 
 		break
