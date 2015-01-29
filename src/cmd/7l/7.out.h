@@ -117,6 +117,7 @@ enum cs
 	C_LCON,		/* 32-bit constant */
 	C_FCON,		/* floating-point constant */
 	C_VCON,		/* 64-bit constant */
+	C_VCONADDR,	/* $foo(SB) reference to relocatable address */
 
 	C_AACON,	/* ADDCON offset in auto constant $a(FP) */
 	C_LACON,	/* 32-bit offset in auto constant $a(FP) */
@@ -156,7 +157,7 @@ enum cs
 	C_UOREG64K,
 	C_LOREG,
 
-	C_ADDR,		/* relocatable address for dynamic loading */
+	C_ADDR,		/* foo(SB) reference to relocatable address */
 	C_ROFF,		/* register offset (inc register extended) */
 	C_XPOST,
 	C_XPRE,

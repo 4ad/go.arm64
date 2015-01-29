@@ -183,9 +183,6 @@ var optab = []Optab{
 	Optab{AADD, C_VCON, C_REG, C_REG, 13, 8, 0, LFROM},
 	Optab{AADD, C_VCON, C_NONE, C_REG, 13, 8, 0, LFROM},
 	Optab{ACMP, C_VCON, C_REG, C_NONE, 13, 8, 0, LFROM},
-	Optab{AADD, C_ADDR, C_REG, C_REG, 13, 8, 0, LFROM},
-	Optab{AADD, C_ADDR, C_NONE, C_REG, 13, 8, 0, LFROM},
-	Optab{ACMP, C_ADDR, C_REG, C_NONE, 13, 8, 0, LFROM},
 	Optab{AADD, C_SHIFT, C_REG, C_REG, 3, 4, 0, 0},
 	Optab{AADD, C_SHIFT, C_NONE, C_REG, 3, 4, 0, 0},
 	Optab{AMVN, C_SHIFT, C_NONE, C_REG, 3, 4, 0, 0},
@@ -213,10 +210,6 @@ var optab = []Optab{
 	Optab{AAND, C_VCON, C_NONE, C_REG, 28, 8, 0, LFROM},
 	Optab{ABIC, C_VCON, C_REG, C_REG, 28, 8, 0, LFROM},
 	Optab{ABIC, C_VCON, C_NONE, C_REG, 28, 8, 0, LFROM},
-	Optab{AAND, C_ADDR, C_REG, C_REG, 28, 8, 0, LFROM},
-	Optab{AAND, C_ADDR, C_NONE, C_REG, 28, 8, 0, LFROM},
-	Optab{ABIC, C_ADDR, C_REG, C_REG, 28, 8, 0, LFROM},
-	Optab{ABIC, C_ADDR, C_NONE, C_REG, 28, 8, 0, LFROM},
 	Optab{AAND, C_SHIFT, C_REG, C_REG, 3, 4, 0, 0},
 	Optab{AAND, C_SHIFT, C_NONE, C_REG, 3, 4, 0, 0},
 	Optab{ABIC, C_SHIFT, C_REG, C_REG, 3, 4, 0, 0},
@@ -272,7 +265,6 @@ var optab = []Optab{
 	Optab{AWORD, C_NONE, C_NONE, C_ADDR, 14, 4, 0, 0},
 	Optab{AMOVW, C_VCON, C_NONE, C_REG, 12, 4, 0, LFROM},
 	Optab{AMOV, C_VCON, C_NONE, C_REG, 12, 4, 0, LFROM},
-	Optab{AMOV, C_ADDR, C_NONE, C_REG, 12, 4, 0, LFROM},
 	Optab{AMOVB, C_REG, C_NONE, C_ADDR, 64, 8, 0, LTO},
 	Optab{AMOVBU, C_REG, C_NONE, C_ADDR, 64, 8, 0, LTO},
 	Optab{AMOVH, C_REG, C_NONE, C_ADDR, 64, 8, 0, LTO},
@@ -1138,7 +1130,7 @@ func aclass(ctxt *obj.Link, a *obj.Addr) int {
 				break
 			}
 			ctxt.Instoffset = a.Offset
-			return C_ADDR
+			return C_VCONADDR
 
 		case D_AUTO:
 			ctxt.Instoffset = int64(ctxt.Autosize) + a.Offset
@@ -1277,7 +1269,13 @@ func cmp(a int, b int) bool {
 		}
 
 	case C_VCON:
-		return cmp(C_LCON, b)
+		if b == C_VCONADDR {
+			return true
+		} else {
+
+			return cmp(C_LCON, b)
+		}
+		fallthrough
 
 	case C_LACON:
 		if b == C_AACON {

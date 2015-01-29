@@ -262,9 +262,6 @@ static Optab optab[] = {
 	{ AADD,		C_VCON,	C_REG,	C_REG,		13, 8, 0,	LFROM },
 	{ AADD,		C_VCON,	C_NONE,	C_REG,		13, 8, 0,	LFROM },
 	{ ACMP,		C_VCON,	C_REG,	C_NONE,		13, 8, 0,	LFROM },
-	{ AADD,		C_ADDR,	C_REG,	C_REG,		13, 8, 0,	LFROM },
-	{ AADD,		C_ADDR,	C_NONE,	C_REG,		13, 8, 0,	LFROM },
-	{ ACMP,		C_ADDR,	C_REG,	C_NONE,		13, 8, 0,	LFROM },
 
 	{ AADD,		C_SHIFT,C_REG,	C_REG,		 3, 4, 0 },
 	{ AADD,		C_SHIFT,C_NONE,	C_REG,		 3, 4, 0 },
@@ -297,10 +294,6 @@ static Optab optab[] = {
 	{ AAND,		C_VCON,	C_NONE,	C_REG,		28, 8, 0,	LFROM },
 	{ ABIC,		C_VCON,	C_REG,	C_REG,		28, 8, 0,	LFROM },
 	{ ABIC,		C_VCON,	C_NONE,	C_REG,		28, 8, 0,	LFROM },
-	{ AAND,		C_ADDR,	C_REG,	C_REG,		28, 8, 0,	LFROM },
-	{ AAND,		C_ADDR,	C_NONE,	C_REG,		28, 8, 0,	LFROM },
-	{ ABIC,		C_ADDR,	C_REG,	C_REG,		28, 8, 0,	LFROM },
-	{ ABIC,		C_ADDR,	C_NONE,	C_REG,		28, 8, 0,	LFROM },
 
 	{ AAND,		C_SHIFT,C_REG,	C_REG,		 3, 4, 0 },
 	{ AAND,		C_SHIFT,C_NONE,	C_REG,		 3, 4, 0 },
@@ -372,7 +365,6 @@ static Optab optab[] = {
 
 	{ AMOVW,	C_VCON,	C_NONE,	C_REG,		12, 4, 0,	LFROM },
 	{ AMOV,	C_VCON,	C_NONE,	C_REG,		12, 4, 0,	LFROM },
-	{ AMOV,	C_ADDR,	C_NONE,	C_REG,		12, 4, 0,	LFROM },
 
 	{ AMOVB,	C_REG,	C_NONE,	C_ADDR,		64, 8, 0,	LTO },
 	{ AMOVBU,	C_REG,	C_NONE,	C_ADDR,		64, 8, 0,	LTO },
@@ -1186,7 +1178,7 @@ aclass(Link *ctxt, Addr *a)
 			if(s == nil)
 				break;
 			ctxt->instoffset = a->offset;
-			return C_ADDR;
+			return C_VCONADDR;
 		case D_AUTO:
 			ctxt->instoffset = ctxt->autosize + a->offset;
 			goto aconsize;
@@ -1305,7 +1297,10 @@ cmp(int a, int b)
 			return 1;
 		break;
 	case C_VCON:
-		return cmp(C_LCON, b);
+		if(b == C_VCONADDR)
+			return 1;
+		else
+			return cmp(C_LCON, b);
 	case C_LACON:
 		if(b == C_AACON)
 			return 1;
