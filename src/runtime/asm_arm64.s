@@ -459,7 +459,7 @@ TEXT runtime·cas(SB), NOSPLIT, $0-17
 	MOVW	new+12(FP), R2
 again:
 	LDAXRW	(R0), R3
-	CMPW	R3, R1
+	CMPW	R1, R3
 	BNE	ok
 	STLXRW	R2, (R0), R3
 	CBNZ	R3, again
