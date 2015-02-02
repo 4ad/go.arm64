@@ -518,8 +518,8 @@ struct
 	{ "STXR",	LSTXR,	ASTXR },
 	{ "STXRB",	LSTXR,	ASTXRB },
 	{ "STXRH",	LSTXR,	ASTXRH },
-	{ "STXP",	LSTXR,	ASTXP },
-	{ "STXPW",	LSTXR,	ASTXPW },
+//	{ "STXP",	LSTXR,	ASTXP },	// TODO(aram)
+//	{ "STXPW",	LSTXR,	ASTXPW },	// TODO(aram)
 	{ "STXRW",	LSTXR,	ASTXRW },
 	{ "SUB",	LTYPE1,	ASUB },
 	{ "SUBS",	LTYPE1,	ASUBS },

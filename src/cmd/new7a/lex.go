@@ -382,8 +382,8 @@ var lexinit = []asm.Lextab{
 	{"STXR", LSTXR, arm64.ASTXR},
 	{"STXRB", LSTXR, arm64.ASTXRB},
 	{"STXRH", LSTXR, arm64.ASTXRH},
-	{"STXP", LSTXR, arm64.ASTXP},
-	{"STXPW", LSTXR, arm64.ASTXPW},
+	// {"STXP", LSTXR, arm64.ASTXP},	// TODO(aram)
+	// {"STXPW", LSTXR, arm64.ASTXPW},	// TODO(aram)
 	{"STXRW", LSTXR, arm64.ASTXRW},
 	{"SUB", LTYPE1, arm64.ASUB},
 	{"SUBS", LTYPE1, arm64.ASUBS},

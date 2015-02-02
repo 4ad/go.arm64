@@ -638,7 +638,8 @@ static Optab optab[] = {
 	{ ASTLR,		C_REG,	C_NONE,	C_ZOREG,		59, 4, 0 },	// to3=C_NONE
 	{ ASTXR,		C_REG,	C_NONE,	C_ZOREG,		59, 4, 0 }, // to3=C_REG
 	{ ASTLXR,		C_REG,	C_NONE,	C_ZOREG,		59, 4, 0 }, // to3=C_REG
-	{ ASTXP,		C_REG, C_NONE,	C_ZOREG,		59, 4, 0 }, // to3=C_REG
+
+//	{ ASTXP,		C_REG, C_NONE,	C_ZOREG,		59, 4, 0 }, // TODO(aram: use register pair and add <<10 bits in asmout.
 
 	{ AAESD,	C_VREG,	C_NONE,	C_VREG,	29, 4, 0 },
 	{ ASHA1C,	C_VREG,	C_REG,	C_VREG,	1, 4, 0 },
