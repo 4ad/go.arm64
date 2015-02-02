@@ -2645,11 +2645,11 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 		break;
 	case 59: /* stxr/stlxr */
 		o1 = opstore(ctxt, p->as);
-		o1 |= p->to3.reg << 16;
-		if(p->from3.type != D_NONE)
-			o1 |= p->from3.reg << 10;
+		if(p->to3.type != D_NONE)
+			o1 |= p->to3.reg << 16;
 		else
-			o1 |= 0x1F << 10;
+			o1 |= 0x1F << 16;
+		// TODO(aram): add support for STXP
 		o1 |= p->to.reg << 5;
 		o1 |= p->from.reg;
 		break;

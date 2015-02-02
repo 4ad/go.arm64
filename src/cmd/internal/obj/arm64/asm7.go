@@ -2869,14 +2869,16 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 	case 59: /* stxr/stlxr */
 		o1 = opstore(ctxt, int(p.As))
 
-		o1 |= uint32(p.To3.Reg) << 16
-		if p.From3.Type != D_NONE {
-			o1 |= uint32(p.From3.Reg) << 10
+		if p.To3.Type != D_NONE {
+			o1 |= uint32(p.To3.Reg) << 16
 		} else {
 
-			o1 |= 0x1F << 10
+			o1 |= 0x1F << 16
 		}
+
+		// TODO(aram): add support for STXP
 		o1 |= uint32(p.To.Reg) << 5
+
 		o1 |= uint32(p.From.Reg)
 
 	case 60: /* adrp label,r */
