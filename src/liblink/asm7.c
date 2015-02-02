@@ -635,7 +635,7 @@ static Optab optab[] = {
 	{ ALDXR,		C_ZOREG,	C_NONE,	C_REG,		58, 4, 0 },
 	{ ALDAXR,		C_ZOREG,	C_NONE,	C_REG,		58, 4, 0 },
 	{ ALDXP,		C_ZOREG,	C_REG,	C_REG,		58, 4, 0 },
-	{ ASTLR,		C_REG,	C_NONE,	C_ZOREG,		59, 4, 0 },	// to3=C_NONE
+	{ ASTLR,		C_REG,	C_NONE,	C_ZOREG,		66, 4, 0 }, // to3=C_NONE
 	{ ASTXR,		C_REG,	C_NONE,	C_ZOREG,		59, 4, 0 }, // to3=C_REG
 	{ ASTLXR,		C_REG,	C_NONE,	C_ZOREG,		59, 4, 0 }, // to3=C_REG
 	{ ASTXP,		C_REG, C_NONE,	C_ZOREG,		59, 4, 0 }, // to3=C_REG
@@ -2691,6 +2691,17 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 			break;
 		o2 = olsr12u(ctxt, opldr12(ctxt, p->as), 0, REGTMP, p->to.reg);
 		break;
+       case 66: /* stlr /stlrw */
+               o1 = opstore(ctxt, p->as);
+                o1 |= 0x1F << 16;
+                o1 |= p->from.reg << 5;
+                if(p->reg != NREG)
+                        o1 |= p->reg << 10;
+                else
+                        o1 |= 0x1F << 10;
+                o1 |= p->to.reg;
+               break;
+
 	case 90:
 		// This is supposed to be something that stops execution.
 		// It's not supposed to be reached, ever, but if it is, we'd

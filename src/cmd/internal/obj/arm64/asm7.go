@@ -503,7 +503,7 @@ var optab = []Optab{
 	Optab{ALDXR, C_ZOREG, C_NONE, C_REG, 58, 4, 0, 0},
 	Optab{ALDAXR, C_ZOREG, C_NONE, C_REG, 58, 4, 0, 0},
 	Optab{ALDXP, C_ZOREG, C_REG, C_REG, 58, 4, 0, 0},
-	Optab{ASTLR, C_REG, C_NONE, C_ZOREG, 59, 4, 0, 0},  // to3=C_NONE
+	Optab{ASTLR, C_REG, C_NONE, C_ZOREG, 66, 4, 0, 0},  // to3=C_NONE
 	Optab{ASTXR, C_REG, C_NONE, C_ZOREG, 59, 4, 0, 0},  // to3=C_REG
 	Optab{ASTLXR, C_REG, C_NONE, C_ZOREG, 59, 4, 0, 0}, // to3=C_REG
 	Optab{ASTXP, C_REG, C_NONE, C_ZOREG, 59, 4, 0, 0},  // to3=C_REG
@@ -2924,6 +2924,19 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 			break
 		}
 		o2 = olsr12u(ctxt, int32(opldr12(ctxt, int(p.As))), 0, REGTMP, int(p.To.Reg))
+        case 66: /* stlr/stlrw */
+                o1 = opstore(ctxt, int(p.As))
+
+                o1 |= 0x1F << 16
+                o1 |= uint32(p.From.Reg) << 5
+                if p.Reg != NREG {
+                        o1 |= uint32(p.Reg) << 10
+                } else {
+
+                        o1 |= 0x1F << 10
+                }
+                o1 |= uint32(p.To.Reg)
+
 
 		// This is supposed to be something that stops execution.
 	// It's not supposed to be reached, ever, but if it is, we'd
