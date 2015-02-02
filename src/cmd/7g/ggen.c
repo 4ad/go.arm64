@@ -176,6 +176,7 @@ ginscall(Node *f, int proc)
 {
 	Prog *p;
 	Node reg, con, reg2;
+	Node r1;
 	int32 extra;
 
 	if(f->type != T) {
@@ -213,9 +214,14 @@ ginscall(Node *f, int proc)
 			break;
 		}
 		nodreg(&reg, types[tptr], D_R0+REGENV);
+		nodreg(&r1, types[tptr], D_R0+3);
 		gmove(f, &reg);
 		reg.op = OINDREG;
-		gins(ABL, N, &reg);
+		gmove(&reg, &r1);
+		//reg.op = OREGISTER;
+		r1.op = OINDREG;
+		//gins(ABL, &reg, &r1);
+		gins(ABL, N, &r1);
 		break;
 	
 	case 3:	// normal call of c function pointer
