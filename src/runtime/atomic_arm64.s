@@ -108,3 +108,6 @@ again:
 	CBNZ	R3, again
 	MOV	R2, new+16(FP)
 	RETURN
+
+TEXT runtime·xchguintptr(SB), NOSPLIT, $0-24
+	BL	runtime·xchg64(SB)
