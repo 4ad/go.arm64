@@ -897,7 +897,7 @@ clearfat(Node *nl)
 	if(reg[REGRT1] > 0)
 		fatal("R%d in use during clearfat", REGRT1);
 
-	nodreg(&r0, types[TUINT64], 0); // r0 is always zero
+	nodreg(&r0, types[TUINT64], D_R0+REGZERO); // R31 is always zero
 	nodreg(&dst, types[tptr], D_R0+REGRT1);
 	reg[REGRT1]++;
 	agen(nl, &dst);
@@ -921,7 +921,7 @@ clearfat(Node *nl)
 		patch(gbranch(ABNE, T, 0), pl);
 
 		regfree(&end);
-		// The loop leaves R3 on the last zeroed dword
+		// The loop leaves R16 on the last zeroed dword
 		boff = 8;
 	} else if(q >= 4) {
 		p = gins(ASUB, N, &dst);
@@ -932,7 +932,7 @@ clearfat(Node *nl)
 		afunclit(&p->to, f);
 		// 4 and 128 = magic constants: see ../../runtime/asm_ppc64x.s
 		p->to.offset = 4*(128-q);
-		// duffzero leaves R3 on the last zeroed dword
+		// duffzero leaves R16 on the last zeroed dword
 		boff = 8;
 	} else {
 		for(t = 0; t < q; t++) {
