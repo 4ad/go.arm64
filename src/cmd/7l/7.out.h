@@ -43,14 +43,16 @@ enum
 };
 
 enum {
-	REGENV	= 0,	/* environment for closures */
-	REGTMP	= 1,	/* reserved for liblink */
-	REGRT1	= 2,	/* reserved for runtime, duffzero and duffcopy */
-	REGRT2	= 3,	/* reserved for runtime, duffcopy */
-	REGMIN	= 7,	/* register variables allocated from here to REGMAX */
-	REGMAX	= 27,
-	REGSB	= 28,	/* static base register, unused in the Go toolchain */
-	REGG	= 29,	/* G */
+	REGMIN	= 0,	/* register variables allocated from here to REGMAX */
+	REGRT1	= 16,	/* ARM64 IP0, reserved for external linker, runtime, duffzero and duffcopy */
+	REGRT2	= 17,	/* ARM64 IP1, reserved for external linker, runtime, duffcopy */
+	REGPR	= 18,	/* ARM64 platform register, unused */
+	REGMAX	= 25,
+
+	REGENV	= 26,	/* environment for closures */
+	REGTMP	= 27,	/* reserved for liblink */	
+	REGG	= 28,	/* G */
+	REGFP	= 29,	/* frame pointer register, unused in the Go toolchain */
 	REGLINK	= 30,
 	REGSP	= 31,
 	REGZERO	= 31,

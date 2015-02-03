@@ -185,7 +185,7 @@ regopt(Prog *firstp)
 	}
 
 	// Exclude registers with fixed functions
-	regbits = (1<<D_R0)|(1<<D_R0+REGTMP)|RtoB(REGG)|(1<<D_R0+REGLINK)|RtoB(REGSP);
+	regbits = RtoB(REGRT1)|RtoB(REGRT2)|RtoB(REGPR);
 	// Also exclude floating point registers with fixed constants
 	regbits |= FtoB(D_F0+27)|FtoB(D_F0+28)|FtoB(D_F0+29)|FtoB(D_F0+30)|FtoB(D_F0+31);
 	externs = zbits;

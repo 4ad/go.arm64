@@ -38,14 +38,15 @@ const (
 )
 
 const (
-	REGENV   = 0
-	REGTMP   = 1
-	REGRT1   = 2
-	REGRT2   = 3
-	REGMIN   = 7
-	REGMAX   = 27
-	REGSB    = 28
-	REGG     = 29
+	REGMIN   = 0
+	REGRT1   = 16
+	REGRT2   = 17
+	REGPR    = 18
+	REGMAX   = 25
+	REGENV   = 26
+	REGTMP   = 27
+	REGG     = 28
+	REGFP    = 29
 	REGLINK  = 30
 	REGSP    = 31
 	REGZERO  = 31
