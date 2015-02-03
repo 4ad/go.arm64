@@ -682,7 +682,7 @@ mkvar(Reg *r, Adr *a)
 	case D_SCONST:
 	case D_SPR:
 	case D_OREG:
-	case D_XPOST:
+	case D_XPRE:
 		break;
 
 	case D_REG:
