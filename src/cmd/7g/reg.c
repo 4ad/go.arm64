@@ -1240,8 +1240,10 @@ addreg(Adr *a, int rn)
 uint64
 RtoB(int r)
 {
-	if(r > D_R0 && r <= D_R0+31)
-		return 1ULL << (r - D_R0);
+	if((r >= REGMIN) && (r <= REGMAX))
+		return 1ULL << r;
+	if((r >= (D_F0 + FREGMIN)) && (r <= (D_F0+FREGMAX)))
+		return 1ULL << r;
 	return 0;
 }
 
