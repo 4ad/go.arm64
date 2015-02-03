@@ -290,7 +290,7 @@ TEXT runtime·clone(SB),NOSPLIT,$-8
 	// In parent, return.
 	CMP	ZR, R0
 	BEQ	child
-	MOV	R0, ret+40(FP)
+	MOVW	R0, ret+40(FP)
 	RETURN
 child:
 
