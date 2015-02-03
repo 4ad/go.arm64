@@ -1481,12 +1481,12 @@ sgen(Node *n, Node *ns, int64 w)
 	// TODO: enable duffcopy for larger copies.
 	if(c >= 4) {
 		p = gins(op, &src, &tmp);
-		p->from.type = D_OREG;
+		p->from.type = D_XPOST;
 		p->from.offset = dir;
 		ploop = p;
 
 		p = gins(op, &tmp, &dst);
-		p->to.type = D_OREG;
+		p->to.type = D_XPOST;
 		p->to.offset = dir;
 
 		p = gcmp(ACMP, &src, &nend);
@@ -1496,11 +1496,11 @@ sgen(Node *n, Node *ns, int64 w)
 	} else {
 		while(c-- > 0) {
 			p = gins(op, &src, &tmp);
-			p->from.type = D_OREG;
+			p->from.type = D_XPOST;
 			p->from.offset = dir;
 	
 			p = gins(op, &tmp, &dst);
-			p->to.type = D_OREG;
+			p->to.type = D_XPOST;
 			p->to.offset = dir;
 		}
 	}
