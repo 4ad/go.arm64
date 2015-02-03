@@ -174,7 +174,7 @@ func Dconv(p *obj.Prog, flag int, a *obj.Addr) string {
 		}
 
 	case D_CONST:
-		if a.Reg == NREG || a.Reg == REGZERO {
+		if a.Reg == NREG || a.Reg == REGZERO && a.Offset == 0 {
 			str = fmt.Sprintf("$%v", Mconv(a))
 		} else {
 

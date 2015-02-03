@@ -190,7 +190,7 @@ Dconv(Fmt *fp)
 			sprint(str, "%M(R%d)(NONE)", a, a->reg);
 		break;
 	case D_CONST:
-		if(a->reg == NREG || a->reg == REGZERO)
+		if(a->reg == NREG || a->reg == REGZERO && a->offset == 0)
 			sprint(str, "$%M", a);
 		else
 			sprint(str, "$%M(R%d)", a, a->reg);

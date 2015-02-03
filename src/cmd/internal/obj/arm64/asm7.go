@@ -1065,7 +1065,7 @@ func aclass(ctxt *obj.Link, a *obj.Addr) int {
 		switch a.Name {
 		case D_NONE:
 			ctxt.Instoffset = a.Offset
-			if a.Reg != NREG && a.Reg != REGZERO {
+			if a.Reg == REGSP && ctxt.Instoffset != 0 {
 				goto aconsize
 			}
 			v = ctxt.Instoffset

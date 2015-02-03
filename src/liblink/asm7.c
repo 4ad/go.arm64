@@ -1124,7 +1124,7 @@ aclass(Link *ctxt, Addr *a)
 		switch(a->name) {
 		case D_NONE:
 			ctxt->instoffset = a->offset;
-			if(a->reg != NREG && a->reg != REGZERO)
+			if(a->reg == REGSP && ctxt->instoffset != 0)
 				goto aconsize;
 			v = ctxt->instoffset;
 			if(v == 0)
