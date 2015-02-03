@@ -956,7 +956,7 @@ igen(Node *n, Node *a, Node *res)
 	case OINDREG:
 		// Increase the refcount of the register so that igen's caller
 		// has to call regfree.
-		if(n->val.u.reg != D_R0+REGSP)
+		if(n->val.u.reg != REGSP)
 			reg[n->val.u.reg]++;
 		*a = *n;
 		return;
@@ -1367,8 +1367,8 @@ sgen(Node *n, Node *ns, int64 w)
 				gvardef(l->n);
 
 	// Avoid taking the address for simple enough types.
-	//if(componentgen(n, ns))
-	//	return;
+	if(componentgen(n, ns))
+		return;
 	
 	if(w == 0) {
 		// evaluate side effects only.
@@ -1538,10 +1538,10 @@ int
 componentgen(Node *nr, Node *nl)
 {
 	Node nodl, nodr;
-	Type *t;
+//	Type *t;
 	int freel, freer;
-	vlong fldcount;
-	vlong loffset, roffset;
+//	vlong fldcount;
+//	vlong loffset, roffset;
 
 	freel = 0;
 	freer = 0;
@@ -1549,7 +1549,7 @@ componentgen(Node *nr, Node *nl)
 	switch(nl->type->etype) {
 	default:
 		goto no;
-
+/*
 	case TARRAY:
 		t = nl->type;
 
@@ -1577,7 +1577,7 @@ componentgen(Node *nr, Node *nl)
 			goto no;
 
 		break;
-
+*/
 	case TSTRING:
 	case TINTER:
 		break;
@@ -1607,6 +1607,7 @@ componentgen(Node *nr, Node *nl)
 		goto yes;
 
 	switch(nl->type->etype) {
+/*
 	case TARRAY:
 		// componentgen for arrays.
 		if(nl->op == ONAME)
@@ -1683,7 +1684,7 @@ componentgen(Node *nr, Node *nl)
 		gmove(&nodr, &nodl);
 
 		goto yes;
-
+*/
 	case TINTER:
 		if(nl->op == ONAME)
 			gvardef(nl);
@@ -1708,7 +1709,7 @@ componentgen(Node *nr, Node *nl)
 		gmove(&nodr, &nodl);
 
 		goto yes;
-
+/*
 	case TSTRUCT:
 		if(nl->op == ONAME)
 			gvardef(nl);
@@ -1733,6 +1734,7 @@ componentgen(Node *nr, Node *nl)
 			}
 		}
 		goto yes;
+*/
 	}
 
 no:
