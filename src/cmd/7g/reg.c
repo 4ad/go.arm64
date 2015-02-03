@@ -1241,7 +1241,7 @@ RtoB(int r)
 {
 	if((r >= REGMIN) && (r <= REGMAX))
 		return 1ULL << r;
-	if((r >= (NREG + FREGMIN)) && (r <= (NREG+FREGMAX)))
+	if((r >= (D_F0 + FREGMIN)) && (r <= (D_F0+FREGMAX)))
 		return 1ULL << r;
 	return 0;
 }
