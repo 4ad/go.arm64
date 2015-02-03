@@ -10,16 +10,18 @@
 #include "go_tls.h"
 #include "textflag.h"
 
-#define SYS_exit		  93
-#define SYS_read		  63
-#define SYS_write		  64
-#define SYS_open		  1024
-#define SYS_close		  57
-#define SYS_fcntl		 1052
-#define SYS_gettimeofday	 169
-#define SYS_select		 1067
-#define SYS_mmap		 1058
-#define SYS_munmap		 215
+#define AT_FDCWD -100
+
+#define SYS_exit		93
+#define SYS_read		63
+#define SYS_write		64
+#define SYS_openat		56
+#define SYS_close		57
+#define SYS_fcntl		25
+#define SYS_gettimeofday	169
+#define SYS_pselect6		72
+#define SYS_mmap		222
+#define SYS_munmap		215
 #define SYS_setitimer		103
 #define SYS_clone		220
 #define SYS_sched_yield		124
@@ -29,17 +31,16 @@
 #define SYS_sigaltstack		132
 #define SYS_getrlimit		163
 #define SYS_madvise		233
-#define SYS_mincore		132
+#define SYS_mincore		232
 #define SYS_gettid		178
 #define SYS_tkill		130
 #define SYS_futex		98
 #define SYS_sched_getaffinity	123
 #define SYS_exit_group		94
-#define SYS_epoll_create	1042
-#define SYS_epoll_ctl		21
-#define SYS_epoll_wait		1069
-#define SYS_clock_gettime	113
 #define SYS_epoll_create1	20
+#define SYS_epoll_ctl		21
+#define SYS_epoll_pwait		22
+#define SYS_clock_gettime	113
 
 TEXT runtime·exit(SB),NOSPLIT,$-8-4
 	MOVW	code+0(FP), R0
@@ -54,10 +55,11 @@ TEXT runtime·exit1(SB),NOSPLIT,$-8-4
 	RETURN
 
 TEXT runtime·open(SB),NOSPLIT,$-8-20
-	MOV	name+0(FP), R0
-	MOVW	mode+8(FP), R1
-	MOVW	perm+12(FP), R2
-	MOV	$SYS_open, R8
+	MOV	$AT_FDCWD, R0
+	MOV	name+0(FP), R1
+	MOVW	mode+8(FP), R2
+	MOVW	perm+12(FP), R3
+	MOV	$SYS_openat, R8
 	SVC
 	MOVW	R0, ret+16(FP)
 	RETURN
@@ -98,20 +100,21 @@ TEXT runtime·getrlimit(SB),NOSPLIT,$-8-20
 TEXT runtime·usleep(SB),NOSPLIT,$16-4
 	MOVW	usec+0(FP), R3
 	MOV	R3, R5
-	MOVW	$1000000, R4
+	MOVW	$1000000000, R4
 	UDIV	R4, R3
 	MOV	R3, 8(SP)
 	MUL	R3, R4
 	SUB	R4, R5
 	MOV	R5, 16(SP)
 
-	// select(0, 0, 0, 0, &tv)
+	// pselect6(0, 0, 0, 0, &ts, 0)
 	MOV	ZR, R0
 	MOV	ZR, R1
 	MOV	ZR, R2
 	MOV	ZR, R3
 	ADD	$8, SP, R4
-	MOV	$SYS_select, R8
+	MOV	ZR, R5
+	MOV	$SYS_pselect6, R8
 	SVC
 	RETURN
 
@@ -320,7 +323,7 @@ good:
 	MOV	R12, R0
 	BL	(R0)
 
-	// It shouldn't return.  If it does, exit
+	// It shouldn't return.	 If it does, exit
 	MOVW	$111, R0
 again:
 	MOV	$SYS_exit_group, R8
@@ -353,8 +356,8 @@ TEXT runtime·sched_getaffinity(SB),NOSPLIT,$-8
 
 // int32 runtime·epollcreate(int32 size);
 TEXT runtime·epollcreate(SB),NOSPLIT,$-8
-	MOVW    size+0(FP), R0
-	MOV	$SYS_epoll_create, R8
+	MOVW	ZR, R0
+	MOV	$SYS_epoll_create1, R8
 	SVC
 	MOVW	R0, ret+8(FP)
 	RETURN
@@ -384,16 +387,17 @@ TEXT runtime·epollwait(SB),NOSPLIT,$-8
 	MOV	ev+8(FP), R1
 	MOVW	nev+16(FP), R2
 	MOVW	timeout+20(FP), R3
-	MOV	$SYS_epoll_wait, R8
+	MOV	ZR, R4
+	MOV	$SYS_epoll_pwait, R8
 	SVC
 	MOVW	R0, ret+24(FP)
 	RETURN
 
 // void runtime·closeonexec(int32 fd);
 TEXT runtime·closeonexec(SB),NOSPLIT,$-8
-	MOVW    fd+0(FP), R0  // fd
-	MOV	$2, R1  // F_SETFD
-	MOV	$1, R2  // FD_CLOEXEC
+	MOVW	fd+0(FP), R0  // fd
+	MOV	$2, R1	// F_SETFD
+	MOV	$1, R2	// FD_CLOEXEC
 	MOV	$SYS_fcntl, R8
 	SVC
 	RETURN
