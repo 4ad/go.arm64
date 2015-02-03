@@ -318,7 +318,6 @@ static Optab optab[] = {
 
 	{ AMOVK,		C_VCON,	C_NONE,	C_REG,			33, 4, 0 },
 
-	{ AMOV,	C_AECON,C_NONE,	C_REG,		 4, 4, REGSB },
 	{ AMOV,	C_AACON,C_NONE,	C_REG,		 4, 4, REGSP },
 
 	{ ASDIV,	C_REG,	C_NONE,	C_REG,		1, 4, 0 },
@@ -391,19 +390,15 @@ static Optab optab[] = {
 
 	/* scaled 12-bit unsigned displacement store */
 
-	{ AMOVB,	C_REG,	C_NONE,	C_SEXT1,		20, 4, REGSB },  // 
 	{ AMOVB,	C_REG,	C_NONE,	C_UAUTO4K,	20, 4, REGSP },  // 
 	{ AMOVB,	C_REG,	C_NONE,	C_UOREG4K,		20, 4, 0 },  // 
-	{ AMOVBU,	C_REG,	C_NONE,	C_SEXT1,		20, 4, REGSB },  // 
 	{ AMOVBU,	C_REG,	C_NONE,	C_UAUTO4K,	20, 4, REGSP },  // 
 	{ AMOVBU,	C_REG,	C_NONE,	C_UOREG4K,		20, 4, 0 },  // 
 
-	{ AMOVH,	C_REG,	C_NONE,	C_SEXT2,		20, 4, REGSB },  //
 	{ AMOVH,	C_REG,	C_NONE,	C_UAUTO8K,	20,	4, REGSP },	//
 	{ AMOVH,	C_REG,	C_NONE,	C_ZOREG,		20, 4, 0 },  // 
 	{ AMOVH,	C_REG,	C_NONE,	C_UOREG8K,	20,	4, 0 },	//
 
-	{ AMOVW,	C_REG,	C_NONE,	C_SEXT4,		20, 4, REGSB },  //
 	{ AMOVW,	C_REG,	C_NONE,	C_UAUTO16K,	20,	4, REGSP },	//
 	{ AMOVW,	C_REG,	C_NONE,	C_ZOREG,		20, 4, 0 },  // 
 	{ AMOVW,	C_REG,	C_NONE,	C_UOREG16K,	20,	4, 0 },	//
@@ -419,7 +414,6 @@ static Optab optab[] = {
 	{ AMOVW,	C_REG,	C_NONE,	C_NSAUTO,	20,	4, REGSP },	//
 	{ AMOVW,	C_REG,	C_NONE,	C_NSOREG,	20,	4, 0 },	//
 
-	{ AMOV,	C_REG,	C_NONE,	C_SEXT8,		20, 4, REGSB },
 	{ AMOV,	C_REG,	C_NONE,	C_UAUTO32K,	20,	4, REGSP },
 	{ AMOV,	C_REG,	C_NONE,	C_ZOREG,		20, 4, 0 },
 	{ AMOV,	C_REG,	C_NONE,	C_UOREG32K,	20,	4, 0 },
@@ -429,35 +423,30 @@ static Optab optab[] = {
 
 	/* short displacement load */
 
-	{ AMOVB,	C_SEXT1,	C_NONE,	C_REG,		21, 4, REGSB },  // 
 	{ AMOVB,	C_UAUTO4K,C_NONE,	C_REG,		21, 4, REGSP },  // 
 	{ AMOVB,	C_NSAUTO,C_NONE,	C_REG,	21, 4, REGSP },  // 
 	{ AMOVB,	C_ZOREG,C_NONE,	C_REG,		21, 4, 0 },  // 
 	{ AMOVB,	C_UOREG4K,C_NONE,	C_REG,		21, 4, REGSP },  // 
 	{ AMOVB,	C_NSOREG,C_NONE,	C_REG,	21, 4, REGSP },  // 
 
-	{ AMOVBU,	C_SEXT1,	C_NONE,	C_REG,		21, 4, REGSB },  // 
 	{ AMOVBU,	C_UAUTO4K,C_NONE,	C_REG,		21, 4, REGSP },  // 
 	{ AMOVBU,	C_NSAUTO,C_NONE,	C_REG,	21, 4, REGSP },  // 
 	{ AMOVBU,	C_ZOREG,C_NONE,	C_REG,		21, 4, 0 },  // 
 	{ AMOVBU,	C_UOREG4K,C_NONE,	C_REG,		21, 4, REGSP },  // 
 	{ AMOVBU,	C_NSOREG,C_NONE,	C_REG,	21, 4, REGSP },  // 
 
-	{ AMOVH,	C_SEXT2,	C_NONE,	C_REG,		21, 4, REGSB },  // 
 	{ AMOVH,	C_UAUTO8K,C_NONE,	C_REG,		21, 4, REGSP },  // 
 	{ AMOVH,	C_NSAUTO,C_NONE,	C_REG,	21, 4, REGSP },  // 
 	{ AMOVH,	C_ZOREG,C_NONE,	C_REG,		21, 4, 0 },  // 
 	{ AMOVH,	C_UOREG8K,C_NONE,	C_REG,		21, 4, REGSP },  // 
 	{ AMOVH,	C_NSOREG,C_NONE,	C_REG,	21, 4, REGSP },  // 
 
-	{ AMOVW,	C_SEXT4,	C_NONE,	C_REG,		21, 4, REGSB },  // 
 	{ AMOVW,	C_UAUTO16K,C_NONE,	C_REG,		21, 4, REGSP },  // 
 	{ AMOVW,	C_NSAUTO,C_NONE,	C_REG,	21, 4, REGSP },  // 
 	{ AMOVW,	C_ZOREG,C_NONE,	C_REG,		21, 4, 0 },  // 
 	{ AMOVW,	C_UOREG16K,C_NONE,	C_REG,		21, 4, REGSP },  // 
 	{ AMOVW,	C_NSOREG,C_NONE,	C_REG,	21, 4, REGSP },  // 
 
-	{ AMOV,	C_SEXT8,	C_NONE,	C_REG,		21, 4, REGSB },
 	{ AMOV,	C_UAUTO32K,C_NONE,	C_REG,		21, 4, REGSP },
 	{ AMOV,	C_NSAUTO,C_NONE,	C_REG,	21, 4, REGSP },
 	{ AMOV,	C_ZOREG,C_NONE,	C_REG,		21, 4, 0 },
@@ -465,40 +454,30 @@ static Optab optab[] = {
 	{ AMOV,	C_NSOREG,C_NONE,	C_REG,	21, 4, REGSP },
 
 	/* long displacement store */
-	{ AMOVB,	C_REG,	C_NONE,	C_LEXT,		30, 8, REGSB },  // 
 	{ AMOVB,	C_REG,	C_NONE,	C_LAUTO,	30, 8, REGSP },  // 
 	{ AMOVB,	C_REG,	C_NONE,	C_LOREG,	30, 8, 0 },  // 
-	{ AMOVBU,	C_REG,	C_NONE,	C_LEXT,		30, 8, REGSB },  // 
 	{ AMOVBU,	C_REG,	C_NONE,	C_LAUTO,	30, 8, REGSP },  // 
 	{ AMOVBU,	C_REG,	C_NONE,	C_LOREG,	30, 8, 0 },  // 
-	{ AMOVH,	C_REG,	C_NONE,	C_LEXT,		30, 8, REGSB },  // 
 	{ AMOVH,	C_REG,	C_NONE,	C_LAUTO,	30, 8, REGSP },  // 
 	{ AMOVH,	C_REG,	C_NONE,	C_LOREG,	30, 8, 0 },  // 
-	{ AMOVW,	C_REG,	C_NONE,	C_LEXT,		30, 8, REGSB },  // 
 	{ AMOVW,	C_REG,	C_NONE,	C_LAUTO,	30, 8, REGSP },  // 
 	{ AMOVW,	C_REG,	C_NONE,	C_LOREG,	30, 8, 0 },  // 
-	{ AMOV,	C_REG,	C_NONE,	C_LEXT,		30, 8, REGSB },  // 
 	{ AMOV,	C_REG,	C_NONE,	C_LAUTO,	30, 8, REGSP },  // 
 	{ AMOV,	C_REG,	C_NONE,	C_LOREG,	30, 8, 0 },  // 
 
 	/* long displacement load */
-	{ AMOVB,		C_LEXT,	C_NONE,	C_REG,		31, 8, REGSB },  // 
 	{ AMOVB,		C_LAUTO,C_NONE,	C_REG,		31, 8, REGSP },  // 
 	{ AMOVB,		C_LOREG,C_NONE,	C_REG,		31, 8, 0 },  // 
 	{ AMOVB,		C_LOREG,C_NONE,	C_REG,		31, 8, 0 },	//
-	{ AMOVBU,		C_LEXT,	C_NONE,	C_REG,		31, 8, REGSB },  // 
 	{ AMOVBU,		C_LAUTO,C_NONE,	C_REG,		31, 8, REGSP },  // 
 	{ AMOVBU,		C_LOREG,C_NONE,	C_REG,		31, 8, 0 },  // 
-	{ AMOVBU,		C_LOREG,C_NONE,	C_REG,		31, 8, 0 },	//
-	{ AMOVH,		C_LEXT,	C_NONE,	C_REG,		31, 8, REGSB },  // 
+	{ AMOVBU,		C_LOREG,C_NONE,	C_REG,		31, 8, 0 },	/// 
 	{ AMOVH,		C_LAUTO,C_NONE,	C_REG,		31, 8, REGSP },  // 
 	{ AMOVH,		C_LOREG,C_NONE,	C_REG,		31, 8, 0 },  // 
 	{ AMOVH,		C_LOREG,C_NONE,	C_REG,		31, 8, 0 },	//
-	{ AMOVW,		C_LEXT,	C_NONE,	C_REG,		31, 8, REGSB },  // 
 	{ AMOVW,		C_LAUTO,C_NONE,	C_REG,		31, 8, REGSP },  // 
 	{ AMOVW,		C_LOREG,C_NONE,	C_REG,		31, 8, 0 },  // 
 	{ AMOVW,		C_LOREG,C_NONE,	C_REG,		31, 8, 0 },	//
-	{ AMOV,		C_LEXT,	C_NONE,	C_REG,		31, 8, REGSB },  // 
 	{ AMOV,		C_LAUTO,C_NONE,	C_REG,		31, 8, REGSP },  // 
 	{ AMOV,		C_LOREG,C_NONE,	C_REG,		31, 8, 0 },  // 
 	{ AMOV,		C_LOREG,C_NONE,	C_REG,		31, 8, 0 },	//
@@ -552,39 +531,33 @@ static Optab optab[] = {
 
 	{ AERET,		C_NONE,	C_NONE,	C_NONE,		41, 4, 0 },
 
-	{ AFMOVS,	C_FREG,	C_NONE,	C_SEXT4,		20, 4, REGSB },
 	{ AFMOVS,	C_FREG,	C_NONE,	C_UAUTO16K,	20, 4, REGSP },
 	{ AFMOVS,	C_FREG,	C_NONE,	C_NSAUTO,	20, 4, REGSP },
 	{ AFMOVS,	C_FREG,	C_NONE,	C_ZOREG,		20, 4, 0 },
 	{ AFMOVS,	C_FREG,	C_NONE,	C_UOREG16K,	20, 4, 0 },
 	{ AFMOVS,	C_FREG,	C_NONE,	C_NSOREG,	20, 4, 0 },
 
-	{ AFMOVD,	C_FREG,	C_NONE,	C_SEXT8,		20, 4, REGSB },
 	{ AFMOVD,	C_FREG,	C_NONE,	C_UAUTO32K,	20, 4, REGSP },
 	{ AFMOVD,	C_FREG,	C_NONE,	C_NSAUTO,	20, 4, REGSP },
 	{ AFMOVD,	C_FREG,	C_NONE,	C_ZOREG,		20, 4, 0 },
 	{ AFMOVD,	C_FREG,	C_NONE,	C_UOREG32K,	20, 4, 0 }, 
 	{ AFMOVD,	C_FREG,	C_NONE,	C_NSOREG,	20, 4, 0 },
 
-	{ AFMOVS,	C_SEXT4,	C_NONE,	C_FREG,		21, 4, REGSB },
 	{ AFMOVS,	C_UAUTO16K,C_NONE,	C_FREG,		21, 4, REGSP },
 	{ AFMOVS,	C_NSAUTO,C_NONE,	C_FREG,		21, 4, REGSP },
 	{ AFMOVS,	C_ZOREG,C_NONE,	C_FREG,		21, 4, 0 },
 	{ AFMOVS,	C_UOREG16K,C_NONE,	C_FREG,		21, 4, 0 },
 	{ AFMOVS,	C_NSOREG,C_NONE,	C_FREG,		21, 4, 0 },
 
-	{ AFMOVD,	C_SEXT8,	C_NONE,	C_FREG,		21, 4, REGSB },
 	{ AFMOVD,	C_UAUTO32K,C_NONE,	C_FREG,		21, 4, REGSP },
 	{ AFMOVD,	C_NSAUTO,C_NONE,	C_FREG,		21, 4, REGSP },
 	{ AFMOVD,	C_ZOREG,C_NONE,	C_FREG,		21, 4, 0 },
 	{ AFMOVD,	C_UOREG32K,C_NONE,	C_FREG,		21, 4, 0 },
 	{ AFMOVD,	C_NSOREG,C_NONE,	C_FREG,		21, 4, 0 },
 
-	{ AFMOVS,	C_FREG,	C_NONE,	C_LEXT,		30, 8, REGSB,	LTO },
 	{ AFMOVS,	C_FREG,	C_NONE,	C_LAUTO,	30, 8, REGSP,	LTO },
 	{ AFMOVS,	C_FREG,	C_NONE,	C_LOREG,	30, 8, 0,	LTO },
 
-	{ AFMOVS,	C_LEXT,	C_NONE,	C_FREG,		31, 8, REGSB,	LFROM },
 	{ AFMOVS,	C_LAUTO,C_NONE,	C_FREG,		31, 8, REGSP,	LFROM },
 	{ AFMOVS,	C_LOREG,C_NONE,	C_FREG,		31, 8, 0,	LFROM },
 

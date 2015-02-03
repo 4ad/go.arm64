@@ -232,7 +232,6 @@ var optab = []Optab{
 	//	{ AMOV,		C_BITCON,	C_NONE,	C_REG,		53, 4, 0 },
 
 	Optab{AMOVK, C_VCON, C_NONE, C_REG, 33, 4, 0, 0},
-	Optab{AMOV, C_AECON, C_NONE, C_REG, 4, 4, REGSB, 0},
 	Optab{AMOV, C_AACON, C_NONE, C_REG, 4, 4, REGSP, 0},
 	Optab{ASDIV, C_REG, C_NONE, C_REG, 1, 4, 0, 0},
 	Optab{ASDIV, C_REG, C_REG, C_REG, 1, 4, 0, 0},
@@ -286,19 +285,15 @@ var optab = []Optab{
 	Optab{ACCMN, C_COND, C_REG, C_VCON, 19, 4, 0, 0}, /* from3 either C_REG or C_VCON */
 
 	/* scaled 12-bit unsigned displacement store */
-	Optab{AMOVB, C_REG, C_NONE, C_SEXT1, 20, 4, REGSB, 0},    //
 	Optab{AMOVB, C_REG, C_NONE, C_UAUTO4K, 20, 4, REGSP, 0},  //
 	Optab{AMOVB, C_REG, C_NONE, C_UOREG4K, 20, 4, 0, 0},      //
-	Optab{AMOVBU, C_REG, C_NONE, C_SEXT1, 20, 4, REGSB, 0},   //
 	Optab{AMOVBU, C_REG, C_NONE, C_UAUTO4K, 20, 4, REGSP, 0}, //
 	Optab{AMOVBU, C_REG, C_NONE, C_UOREG4K, 20, 4, 0, 0},     //
 
-	Optab{AMOVH, C_REG, C_NONE, C_SEXT2, 20, 4, REGSB, 0},   //
 	Optab{AMOVH, C_REG, C_NONE, C_UAUTO8K, 20, 4, REGSP, 0}, //
 	Optab{AMOVH, C_REG, C_NONE, C_ZOREG, 20, 4, 0, 0},       //
 	Optab{AMOVH, C_REG, C_NONE, C_UOREG8K, 20, 4, 0, 0},     //
 
-	Optab{AMOVW, C_REG, C_NONE, C_SEXT4, 20, 4, REGSB, 0},    //
 	Optab{AMOVW, C_REG, C_NONE, C_UAUTO16K, 20, 4, REGSP, 0}, //
 	Optab{AMOVW, C_REG, C_NONE, C_ZOREG, 20, 4, 0, 0},        //
 	Optab{AMOVW, C_REG, C_NONE, C_UOREG16K, 20, 4, 0, 0},     //
@@ -314,7 +309,6 @@ var optab = []Optab{
 	Optab{AMOVW, C_REG, C_NONE, C_NSAUTO, 20, 4, REGSP, 0}, //
 	Optab{AMOVW, C_REG, C_NONE, C_NSOREG, 20, 4, 0, 0},     //
 
-	Optab{AMOV, C_REG, C_NONE, C_SEXT8, 20, 4, REGSB, 0},
 	Optab{AMOV, C_REG, C_NONE, C_UAUTO32K, 20, 4, REGSP, 0},
 	Optab{AMOV, C_REG, C_NONE, C_ZOREG, 20, 4, 0, 0},
 	Optab{AMOV, C_REG, C_NONE, C_UOREG32K, 20, 4, 0, 0},
@@ -322,35 +316,30 @@ var optab = []Optab{
 	Optab{AMOV, C_REG, C_NONE, C_NSAUTO, 20, 4, REGSP, 0}, //
 
 	/* short displacement load */
-	Optab{AMOVB, C_SEXT1, C_NONE, C_REG, 21, 4, REGSB, 0},   //
 	Optab{AMOVB, C_UAUTO4K, C_NONE, C_REG, 21, 4, REGSP, 0}, //
 	Optab{AMOVB, C_NSAUTO, C_NONE, C_REG, 21, 4, REGSP, 0},  //
 	Optab{AMOVB, C_ZOREG, C_NONE, C_REG, 21, 4, 0, 0},       //
 	Optab{AMOVB, C_UOREG4K, C_NONE, C_REG, 21, 4, REGSP, 0}, //
 	Optab{AMOVB, C_NSOREG, C_NONE, C_REG, 21, 4, REGSP, 0},  //
 
-	Optab{AMOVBU, C_SEXT1, C_NONE, C_REG, 21, 4, REGSB, 0},   //
 	Optab{AMOVBU, C_UAUTO4K, C_NONE, C_REG, 21, 4, REGSP, 0}, //
 	Optab{AMOVBU, C_NSAUTO, C_NONE, C_REG, 21, 4, REGSP, 0},  //
 	Optab{AMOVBU, C_ZOREG, C_NONE, C_REG, 21, 4, 0, 0},       //
 	Optab{AMOVBU, C_UOREG4K, C_NONE, C_REG, 21, 4, REGSP, 0}, //
 	Optab{AMOVBU, C_NSOREG, C_NONE, C_REG, 21, 4, REGSP, 0},  //
 
-	Optab{AMOVH, C_SEXT2, C_NONE, C_REG, 21, 4, REGSB, 0},   //
 	Optab{AMOVH, C_UAUTO8K, C_NONE, C_REG, 21, 4, REGSP, 0}, //
 	Optab{AMOVH, C_NSAUTO, C_NONE, C_REG, 21, 4, REGSP, 0},  //
 	Optab{AMOVH, C_ZOREG, C_NONE, C_REG, 21, 4, 0, 0},       //
 	Optab{AMOVH, C_UOREG8K, C_NONE, C_REG, 21, 4, REGSP, 0}, //
 	Optab{AMOVH, C_NSOREG, C_NONE, C_REG, 21, 4, REGSP, 0},  //
 
-	Optab{AMOVW, C_SEXT4, C_NONE, C_REG, 21, 4, REGSB, 0},    //
 	Optab{AMOVW, C_UAUTO16K, C_NONE, C_REG, 21, 4, REGSP, 0}, //
 	Optab{AMOVW, C_NSAUTO, C_NONE, C_REG, 21, 4, REGSP, 0},   //
 	Optab{AMOVW, C_ZOREG, C_NONE, C_REG, 21, 4, 0, 0},        //
 	Optab{AMOVW, C_UOREG16K, C_NONE, C_REG, 21, 4, REGSP, 0}, //
 	Optab{AMOVW, C_NSOREG, C_NONE, C_REG, 21, 4, REGSP, 0},   //
 
-	Optab{AMOV, C_SEXT8, C_NONE, C_REG, 21, 4, REGSB, 0},
 	Optab{AMOV, C_UAUTO32K, C_NONE, C_REG, 21, 4, REGSP, 0},
 	Optab{AMOV, C_NSAUTO, C_NONE, C_REG, 21, 4, REGSP, 0},
 	Optab{AMOV, C_ZOREG, C_NONE, C_REG, 21, 4, 0, 0},
@@ -358,40 +347,30 @@ var optab = []Optab{
 	Optab{AMOV, C_NSOREG, C_NONE, C_REG, 21, 4, REGSP, 0},
 
 	/* long displacement store */
-	Optab{AMOVB, C_REG, C_NONE, C_LEXT, 30, 8, REGSB, 0},   //
 	Optab{AMOVB, C_REG, C_NONE, C_LAUTO, 30, 8, REGSP, 0},  //
 	Optab{AMOVB, C_REG, C_NONE, C_LOREG, 30, 8, 0, 0},      //
-	Optab{AMOVBU, C_REG, C_NONE, C_LEXT, 30, 8, REGSB, 0},  //
 	Optab{AMOVBU, C_REG, C_NONE, C_LAUTO, 30, 8, REGSP, 0}, //
 	Optab{AMOVBU, C_REG, C_NONE, C_LOREG, 30, 8, 0, 0},     //
-	Optab{AMOVH, C_REG, C_NONE, C_LEXT, 30, 8, REGSB, 0},   //
 	Optab{AMOVH, C_REG, C_NONE, C_LAUTO, 30, 8, REGSP, 0},  //
 	Optab{AMOVH, C_REG, C_NONE, C_LOREG, 30, 8, 0, 0},      //
-	Optab{AMOVW, C_REG, C_NONE, C_LEXT, 30, 8, REGSB, 0},   //
 	Optab{AMOVW, C_REG, C_NONE, C_LAUTO, 30, 8, REGSP, 0},  //
 	Optab{AMOVW, C_REG, C_NONE, C_LOREG, 30, 8, 0, 0},      //
-	Optab{AMOV, C_REG, C_NONE, C_LEXT, 30, 8, REGSB, 0},    //
 	Optab{AMOV, C_REG, C_NONE, C_LAUTO, 30, 8, REGSP, 0},   //
 	Optab{AMOV, C_REG, C_NONE, C_LOREG, 30, 8, 0, 0},       //
 
 	/* long displacement load */
-	Optab{AMOVB, C_LEXT, C_NONE, C_REG, 31, 8, REGSB, 0},   //
 	Optab{AMOVB, C_LAUTO, C_NONE, C_REG, 31, 8, REGSP, 0},  //
 	Optab{AMOVB, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0},      //
 	Optab{AMOVB, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0},      //
-	Optab{AMOVBU, C_LEXT, C_NONE, C_REG, 31, 8, REGSB, 0},  //
 	Optab{AMOVBU, C_LAUTO, C_NONE, C_REG, 31, 8, REGSP, 0}, //
 	Optab{AMOVBU, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0},     //
-	Optab{AMOVBU, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0},     //
-	Optab{AMOVH, C_LEXT, C_NONE, C_REG, 31, 8, REGSB, 0},   //
+	Optab{AMOVBU, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0},     ///
 	Optab{AMOVH, C_LAUTO, C_NONE, C_REG, 31, 8, REGSP, 0},  //
 	Optab{AMOVH, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0},      //
 	Optab{AMOVH, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0},      //
-	Optab{AMOVW, C_LEXT, C_NONE, C_REG, 31, 8, REGSB, 0},   //
 	Optab{AMOVW, C_LAUTO, C_NONE, C_REG, 31, 8, REGSP, 0},  //
 	Optab{AMOVW, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0},      //
 	Optab{AMOVW, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0},      //
-	Optab{AMOV, C_LEXT, C_NONE, C_REG, 31, 8, REGSB, 0},    //
 	Optab{AMOV, C_LAUTO, C_NONE, C_REG, 31, 8, REGSP, 0},   //
 	Optab{AMOV, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0},       //
 	Optab{AMOV, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0},       //
@@ -439,34 +418,28 @@ var optab = []Optab{
 	Optab{AMOV, C_VCON, C_NONE, C_SPR, 37, 4, 0, 0},
 	Optab{AMSR, C_VCON, C_NONE, C_SPR, 37, 4, 0, 0},
 	Optab{AERET, C_NONE, C_NONE, C_NONE, 41, 4, 0, 0},
-	Optab{AFMOVS, C_FREG, C_NONE, C_SEXT4, 20, 4, REGSB, 0},
 	Optab{AFMOVS, C_FREG, C_NONE, C_UAUTO16K, 20, 4, REGSP, 0},
 	Optab{AFMOVS, C_FREG, C_NONE, C_NSAUTO, 20, 4, REGSP, 0},
 	Optab{AFMOVS, C_FREG, C_NONE, C_ZOREG, 20, 4, 0, 0},
 	Optab{AFMOVS, C_FREG, C_NONE, C_UOREG16K, 20, 4, 0, 0},
 	Optab{AFMOVS, C_FREG, C_NONE, C_NSOREG, 20, 4, 0, 0},
-	Optab{AFMOVD, C_FREG, C_NONE, C_SEXT8, 20, 4, REGSB, 0},
 	Optab{AFMOVD, C_FREG, C_NONE, C_UAUTO32K, 20, 4, REGSP, 0},
 	Optab{AFMOVD, C_FREG, C_NONE, C_NSAUTO, 20, 4, REGSP, 0},
 	Optab{AFMOVD, C_FREG, C_NONE, C_ZOREG, 20, 4, 0, 0},
 	Optab{AFMOVD, C_FREG, C_NONE, C_UOREG32K, 20, 4, 0, 0},
 	Optab{AFMOVD, C_FREG, C_NONE, C_NSOREG, 20, 4, 0, 0},
-	Optab{AFMOVS, C_SEXT4, C_NONE, C_FREG, 21, 4, REGSB, 0},
 	Optab{AFMOVS, C_UAUTO16K, C_NONE, C_FREG, 21, 4, REGSP, 0},
 	Optab{AFMOVS, C_NSAUTO, C_NONE, C_FREG, 21, 4, REGSP, 0},
 	Optab{AFMOVS, C_ZOREG, C_NONE, C_FREG, 21, 4, 0, 0},
 	Optab{AFMOVS, C_UOREG16K, C_NONE, C_FREG, 21, 4, 0, 0},
 	Optab{AFMOVS, C_NSOREG, C_NONE, C_FREG, 21, 4, 0, 0},
-	Optab{AFMOVD, C_SEXT8, C_NONE, C_FREG, 21, 4, REGSB, 0},
 	Optab{AFMOVD, C_UAUTO32K, C_NONE, C_FREG, 21, 4, REGSP, 0},
 	Optab{AFMOVD, C_NSAUTO, C_NONE, C_FREG, 21, 4, REGSP, 0},
 	Optab{AFMOVD, C_ZOREG, C_NONE, C_FREG, 21, 4, 0, 0},
 	Optab{AFMOVD, C_UOREG32K, C_NONE, C_FREG, 21, 4, 0, 0},
 	Optab{AFMOVD, C_NSOREG, C_NONE, C_FREG, 21, 4, 0, 0},
-	Optab{AFMOVS, C_FREG, C_NONE, C_LEXT, 30, 8, REGSB, LTO},
 	Optab{AFMOVS, C_FREG, C_NONE, C_LAUTO, 30, 8, REGSP, LTO},
 	Optab{AFMOVS, C_FREG, C_NONE, C_LOREG, 30, 8, 0, LTO},
-	Optab{AFMOVS, C_LEXT, C_NONE, C_FREG, 31, 8, REGSB, LFROM},
 	Optab{AFMOVS, C_LAUTO, C_NONE, C_FREG, 31, 8, REGSP, LFROM},
 	Optab{AFMOVS, C_LOREG, C_NONE, C_FREG, 31, 8, 0, LFROM},
 	Optab{AFMOVS, C_FREG, C_NONE, C_ADDR, 64, 8, 0, LTO},
@@ -3888,7 +3861,8 @@ func opbra(ctxt *obj.Link, a int) uint32 {
 	case AB:
 		return 0<<31 | 5<<26 /* imm26 */
 
-	case ADUFFZERO, ABL:
+	case ADUFFZERO,
+		ABL:
 		return 1<<31 | 5<<26
 	}
 
