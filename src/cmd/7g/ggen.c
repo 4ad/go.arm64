@@ -989,10 +989,8 @@ expandchecks(Prog *firstp)
 		//p1->from.offset = 1; // likely
 		p1->to.type = D_BRANCH;
 		p1->to.u.branch = p2->link;
-		// crash by write to memory address 0.
-		p2->as = AMOV;
-		p2->from.type = D_REG;
-		p2->from.reg = p->from.reg;
+		// crash by jumping to memory address 0.
+		p2->as = AB;
 		p2->to.type = D_OREG;
 		p2->to.reg = REGZERO;
 		p2->to.offset = 0;
