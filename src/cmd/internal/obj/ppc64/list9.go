@@ -63,21 +63,22 @@ func Pconv(p *obj.Prog) string {
 
 	a = int(p.As)
 
+	str = ""
 	if a == ADATA || a == AINIT || a == ADYNT {
 		str = fmt.Sprintf("%.5d (%v)\t%v\t%v/%d,%v", p.Pc, p.Line(), Aconv(a), Dconv(p, 0, &p.From), p.Reg, Dconv(p, 0, &p.To))
 	} else if a == ATEXT {
 		if p.Reg != 0 {
-			str = fmt.Sprintf("%.5d (%v)        %v      %v,%d,%v", p.Pc, p.Line(), Aconv(a), Dconv(p, 0, &p.From), p.Reg, Dconv(p, fmtLong, &p.To))
+			str = fmt.Sprintf("%.5d (%v)\t%v\t%v,%d,%v", p.Pc, p.Line(), Aconv(a), Dconv(p, 0, &p.From), p.Reg, Dconv(p, fmtLong, &p.To))
 		} else {
 
-			str = fmt.Sprintf("%.5d (%v)        %v      %v,%v", p.Pc, p.Line(), Aconv(a), Dconv(p, 0, &p.From), Dconv(p, fmtLong, &p.To))
+			str = fmt.Sprintf("%.5d (%v)\t%v\t%v,%v", p.Pc, p.Line(), Aconv(a), Dconv(p, 0, &p.From), Dconv(p, fmtLong, &p.To))
 		}
 	} else if a == AGLOBL {
 		if p.Reg != 0 {
-			str = fmt.Sprintf("%.5d (%v)        %v      %v,%d,%v", p.Pc, p.Line(), Aconv(a), Dconv(p, 0, &p.From), p.Reg, Dconv(p, 0, &p.To))
+			str = fmt.Sprintf("%.5d (%v)\t%v\t%v,%d,%v", p.Pc, p.Line(), Aconv(a), Dconv(p, 0, &p.From), p.Reg, Dconv(p, 0, &p.To))
 		} else {
 
-			str = fmt.Sprintf("%.5d (%v)        %v      %v,%v", p.Pc, p.Line(), Aconv(a), Dconv(p, 0, &p.From), Dconv(p, 0, &p.To))
+			str = fmt.Sprintf("%.5d (%v)\t%v\t%v,%v", p.Pc, p.Line(), Aconv(a), Dconv(p, 0, &p.From), Dconv(p, 0, &p.To))
 		}
 	} else {
 
