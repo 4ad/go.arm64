@@ -223,8 +223,8 @@ nocgo:
 	// create a new goroutine to start program
 	MOV	$runtime·main·f(SB), R0		// entry
 	MOV	SP, R7
-	MOV	R0, -8(R7)!
 	MOV	$0, -8(R7)!
+	MOV	R0, -8(R7)!
 	MOV	$0, -8(R7)!
 	MOV	$0, -8(R7)!
 	MOV	R7, SP
