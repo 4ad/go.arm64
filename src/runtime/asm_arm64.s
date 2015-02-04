@@ -212,7 +212,10 @@ nocgo:
 
 	BL	runtime·check(SB)
 
-	// args are already prepared
+	MOVW	8(SP), R0	// copy argc
+	MOVW	R0, -8(SP)
+	MOV	16(SP), R0		// copy argv
+	MOV	R0, 0(SP)
 	BL	runtime·args(SB)
 	BL	runtime·osinit(SB)
 	BL	runtime·schedinit(SB)
@@ -220,9 +223,10 @@ nocgo:
 	// create a new goroutine to start program
 	MOV	$runtime·main·f(SB), R0		// entry
 	MOV	SP, R7
-	MOV	R0, (R7)-8!
-	MOV	R0, (R7)-8!
-	MOV	R0, (R7)-8!
+	MOV	R0, -8(R7)!
+	MOV	$0, -8(R7)!
+	MOV	$0, -8(R7)!
+	MOV	$0, -8(R7)!
 	MOV	R7, SP
 	BL	runtime·newproc(SB)
 	ADD	$32, SP
@@ -254,8 +258,8 @@ TEXT runtime·memeq(SB),NOSPLIT,$-8-25
 loop:
 	CMP	R1, R6
 	BEQ	done
-	MOVB	(R1)1!, R4
-	MOVB	(R2)1!, R5
+	MOVB	1(R1)!, R4
+	MOVB	1(R2)!, R5
 	CMP	R4, R5
 	BEQ	loop
 
@@ -416,35 +420,6 @@ TEXT runtime·gogetcallersp(SB),NOSPLIT,$0-16
 TEXT runtime·abort(SB),NOSPLIT,$-8-0
 	MOVW	(ZR), ZR
 	UNDEF
-
-// eqstring tests whether two strings are equal.
-// See runtime_test.go:eqstring_generic for
-// equivalent Go code.
-TEXT runtime·eqstring(SB),NOSPLIT,$-8-33
-	MOV	s1len+8(FP), R0
-	MOV	s2len+24(FP), R1
-	CMP	R0, R1	// are the strings the same length ?
-	BNE	noteq	// nope
-	MOVW	s1str+0(FP), R2
-	MOVW	s2str+16(FP), R3
-	CMP	R2, R3	// same base ptr ?
-	BEQ	eq
-	ADD	R2, R0, R6
-loop:
-	CMP	R2, R6	// reached the end ?
-	BEQ	eq	// strings are equal
-	MOVBU	(R2)1!, R4
-	MOVBU	(R3)1!, R5
-	CMP	R4, R5	// bytes are the same ?
-	BEQ	loop	// yup, otherwise fall through
-noteq:
-	MOV	$0, R7
-	MOVB	R7, v+32(FP)
-	RETURN
-eq:
-	MOV	$1, R7
-	MOVB	R7, v+32(FP)
-	RETURN
 
 // bool cas(uint32 *ptr, uint32 old, uint32 new)
 // Atomically:
@@ -723,8 +698,8 @@ TEXT NAME(SB), WRAPPER, $MAXSIZE-24;		\
 	ADD	R5, R4;				\
 	CMP	R5, R4;				\
 	BEQ	4(PC);				\
-	MOVBU	(R3)1!, R6;			\
-	MOVBU	R6, (R5)1!;			\
+	MOVBU	1(R3)!, R6;			\
+	MOVBU	R6, 1(R5)!;			\
 	B	-4(PC);				\
 	/* call function */			\
 	MOV	f+8(FP), R11;			\
@@ -745,8 +720,8 @@ TEXT NAME(SB), WRAPPER, $MAXSIZE-24;		\
 loop:						\
 	CMP	R5, R4;				\
 	BEQ	end;				\
-	MOVBU	(R5)1!, R6;			\
-	MOVBU	R6, (R3)1!;			\
+	MOVBU	1(R5)!, R6;			\
+	MOVBU	R6, 1(R3)!;			\
 	B	loop;				\
 end:						\
 	/* execute write barrier updates */	\
