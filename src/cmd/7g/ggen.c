@@ -214,7 +214,7 @@ ginscall(Node *f, int proc)
 			break;
 		}
 		nodreg(&reg, types[tptr], D_R0+REGENV);
-		nodreg(&r1, types[tptr], D_R0+3);
+		nodreg(&r1, types[tptr], D_R0+REGRT1);
 		gmove(f, &reg);
 		reg.op = OINDREG;
 		gmove(&reg, &r1);
@@ -229,8 +229,8 @@ ginscall(Node *f, int proc)
 	case 1:	// call in new proc (go)
 	case 2:	// deferred call (defer)
 		nodconst(&con, types[TINT64], argsize(f->type));
-		nodreg(&reg, types[TINT64], D_R0+3);
-		nodreg(&reg2, types[TINT64], D_R0+4);
+		nodreg(&reg, types[TINT64], D_R0+REGRT1);
+		nodreg(&reg2, types[TINT64], D_R0+REGRT2);
 		gmove(f, &reg);
 
 		gmove(&con, &reg2);
@@ -253,7 +253,7 @@ ginscall(Node *f, int proc)
 		}
 
 		if(proc == 2) {
-			nodreg(&reg, types[TINT64], D_R0+3);
+			nodreg(&reg, types[TINT64], D_R0+REGRT1);
 			p = gins(ACMP, &reg, N);
 			p->reg = D_R0;
 			p = gbranch(ABEQ, T, +1);
