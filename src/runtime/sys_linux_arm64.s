@@ -160,7 +160,8 @@ TEXT time·now(SB),NOSPLIT,$16
 
 TEXT runtime·nanotime(SB),NOSPLIT,$16
 	MOVW	$1, R0 // CLOCK_MONOTONIC
-	MOV	$0(SP), R1
+//	MOV	$0(SP), R1
+	MOV	SP, R1
 	MOV	$SYS_clock_gettime, R8
 	SVC
 	MOV	0(SP), R3	// sec
