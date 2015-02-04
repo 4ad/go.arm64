@@ -88,7 +88,7 @@ zerorange(Prog *p, vlong frame, vlong lo, vlong hi)
 		p = appendpp(p, AMOV, D_CONST, NREG, cnt, D_REG, REGTMP, 0);
 		p = appendpp(p, AADD, D_REG, REGTMP, 0, D_REG, REGRT2, 0);
 		p->reg = REGRT1;
-		p1 = p = appendpp(p, AMOV, D_REG, REGZERO, 0, D_OREG, REGRT1, widthptr);
+		p1 = p = appendpp(p, AMOV, D_REG, REGZERO, 0, D_XPRE, REGRT1, widthptr);
 		p = appendpp(p, ACMP, D_REG, REGRT1, 0, D_REG, REGRT2, 0);
 		p = appendpp(p, ABNE, D_NONE, NREG, 0, D_BRANCH, NREG, 0);
 		patch(p, p1);
@@ -913,7 +913,7 @@ clearfat(Node *nl)
 		p->from.offset = q*8;
 
 		p = gins(AMOV, &r0, &dst);
-		p->to.type = D_OREG;
+		p->to.type = D_XPRE;
 		p->to.offset = 8;
 		pl = p;
 
