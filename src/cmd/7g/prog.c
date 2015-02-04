@@ -142,15 +142,15 @@ proginfo(ProgInfo *info, Prog *p)
 		info->flags |= /*CanRegRead |*/ RightRead;
 	}
 
-	if((p->from.type == D_OREG || p->from.type == D_CONST) && p->from.reg != NREG) {
+	if((p->from.type == D_OREG || p->from.type == D_XPRE || p->from.type == D_CONST) && p->from.reg != NREG) {
 		info->regindex |= RtoB(p->from.reg);
-		if(info->flags & PostInc) {
+		if(p->from.type == D_XPRE) {
 			info->regset |= RtoB(p->from.reg);
 		}
 	}
-	if((p->to.type == D_OREG || p->to.type == D_CONST) && p->to.reg != NREG) {
+	if((p->to.type == D_OREG || p->to.type == D_XPRE || p->to.type == D_CONST) && p->to.reg != NREG) {
 		info->regindex |= RtoB(p->to.reg);
-		if(info->flags & PostInc) {
+		if(p->to.type == D_XPRE) {
 			info->regset |= RtoB(p->to.reg);
 		}
 	}
@@ -161,8 +161,8 @@ proginfo(ProgInfo *info, Prog *p)
 	}
 
 	if(p->as == ADUFFZERO) {
-		info->reguse |= (1<<D_R0) | RtoB(3);
-		info->regset |= RtoB(3);
+		info->reguse |= RtoB(16);
+		info->regset |= RtoB(16);
 	}
 	if(p->as == ADUFFCOPY) {
 		// TODO(austin) Revisit when duffcopy is implemented
