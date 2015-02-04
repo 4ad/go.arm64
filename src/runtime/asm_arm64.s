@@ -107,7 +107,7 @@ TEXT runtime·systemstack_switch(SB), NOSPLIT, $0-0
 // func systemstack(fn func())
 TEXT runtime·systemstack(SB), NOSPLIT, $0-8
 	MOV	fn+0(FP), R3	// R3 = fn
-	MOV	R3, R11		// context
+	MOV	R3, R26		// context
 	MOV	g_m(g), R4	// R4 = m
 
 	MOV	m_gsignal(R4), R5	// R5 = gsignal
@@ -149,7 +149,7 @@ switch:
 	MOV	R3, SP
 
 	// call target function
-	MOV	0(R11), R3	// code pointer
+	MOV	0(R26), R3	// code pointer
 	BL	(R3)
 
 	// switch back to g
@@ -163,7 +163,7 @@ switch:
 
 noswitch:
 	// already on m stack, just call directly
-	MOV	0(R11), R3	// code pointer
+	MOV	0(R26), R3	// code pointer
 	BL	(R3)
 	RETURN
 
