@@ -43,7 +43,7 @@ enum
 };
 
 enum {
-	REGMIN	= 0,	/* register variables allocated from here to REGMAX */
+	REGMIN	= 7,	/* register variables allocated from here to REGMAX */
 	REGRT1	= 16,	/* ARM64 IP0, reserved for external linker, runtime, duffzero and duffcopy */
 	REGRT2	= 17,	/* ARM64 IP1, reserved for external linker, runtime, duffcopy */
 	REGPR	= 18,	/* ARM64 platform register, unused */

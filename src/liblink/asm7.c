@@ -39,6 +39,11 @@ enum
 	FuncAlign = 16
 };
 
+enum
+{
+	REGFROM = 1, // must be different from REGSP and REGZERO.
+};
+
 typedef	struct	Mask	Mask;
 typedef	struct	Optab	Optab;
 typedef	struct	Oprang	Oprang;
@@ -318,7 +323,7 @@ static Optab optab[] = {
 
 	{ AMOVK,		C_VCON,	C_NONE,	C_REG,			33, 4, 0 },
 
-	{ AMOV,	C_AACON,C_NONE,	C_REG,		 4, 4, REGSP },
+	{ AMOV,	C_AACON,C_NONE,	C_REG,		 4, 4, REGFROM },
 
 	{ ASDIV,	C_REG,	C_NONE,	C_REG,		1, 4, 0 },
 	{ ASDIV,	C_REG,	C_REG,	C_REG,		1, 4, 0 },
@@ -687,9 +692,9 @@ span7(Link *ctxt, LSym *cursym)
 		if(p->as == ADWORD && ((c & 7)) != 0)
 			c += 4;
 		p->pc = c;
-		if (p->from.type == D_CONST && p->from.offset == 0)
+		if (p->from.type == D_CONST && p->from.reg == NREG && p->from.offset == 0)
 			p->from.reg = REGZERO;
-		if (p->to.type == D_CONST && p->to.offset == 0)
+		if (p->to.type == D_CONST &&  p->to.reg == NREG && p->to.offset == 0)
 			p->to.reg = REGZERO;
 		o = oplook(ctxt, p);
 		m = o->size;
@@ -1124,6 +1129,8 @@ aclass(Link *ctxt, Addr *a)
 		switch(a->name) {
 		case D_NONE:
 			ctxt->instoffset = a->offset;
+			if(a->reg != NREG && a->reg != REGZERO)
+				goto aconsize;
 			if(a->reg == REGSP && ctxt->instoffset != 0)
 				goto aconsize;
 			v = ctxt->instoffset;
@@ -1918,6 +1925,10 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 		r = o->param;
 		if(r == 0)
 			r = REGZERO;
+		else if(r == REGFROM)
+			r = p->from.reg;
+		if(r == NREG)
+			r = REGSP;
 		v = regoff(ctxt, &p->from);
 		if(((v & 0xFFF000)) != 0) {
 			v >>= 12;

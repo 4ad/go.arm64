@@ -38,7 +38,7 @@ const (
 )
 
 const (
-	REGMIN   = 0
+	REGMIN   = 7
 	REGRT1   = 16
 	REGRT2   = 17
 	REGPR    = 18

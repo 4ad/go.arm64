@@ -42,6 +42,10 @@ const (
 	FuncAlign = 16
 )
 
+const (
+	REGFROM = 1
+)
+
 type Mask struct {
 	s uint8
 	e uint8
@@ -232,7 +236,7 @@ var optab = []Optab{
 	//	{ AMOV,		C_BITCON,	C_NONE,	C_REG,		53, 4, 0 },
 
 	Optab{AMOVK, C_VCON, C_NONE, C_REG, 33, 4, 0, 0},
-	Optab{AMOV, C_AACON, C_NONE, C_REG, 4, 4, REGSP, 0},
+	Optab{AMOV, C_AACON, C_NONE, C_REG, 4, 4, REGFROM, 0},
 	Optab{ASDIV, C_REG, C_NONE, C_REG, 1, 4, 0, 0},
 	Optab{ASDIV, C_REG, C_REG, C_REG, 1, 4, 0, 0},
 	Optab{AB, C_NONE, C_NONE, C_SBRA, 5, 4, 0, 0},
@@ -564,10 +568,10 @@ func span7(ctxt *obj.Link, cursym *obj.LSym) {
 			c += 4
 		}
 		p.Pc = int64(c)
-		if p.From.Type == D_CONST && p.From.Offset == 0 {
+		if p.From.Type == D_CONST && p.From.Reg == NREG && p.From.Offset == 0 {
 			p.From.Reg = REGZERO
 		}
-		if p.To.Type == D_CONST && p.To.Offset == 0 {
+		if p.To.Type == D_CONST && p.To.Reg == NREG && p.To.Offset == 0 {
 			p.To.Reg = REGZERO
 		}
 		o = oplook(ctxt, p)
@@ -1065,6 +1069,9 @@ func aclass(ctxt *obj.Link, a *obj.Addr) int {
 		switch a.Name {
 		case D_NONE:
 			ctxt.Instoffset = a.Offset
+			if a.Reg != NREG && a.Reg != REGZERO {
+				goto aconsize
+			}
 			if a.Reg == REGSP && ctxt.Instoffset != 0 {
 				goto aconsize
 			}
@@ -1980,6 +1987,11 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		r = int(o.param)
 		if r == 0 {
 			r = REGZERO
+		} else if r == REGFROM {
+			r = int(p.From.Reg)
+		}
+		if r == NREG {
+			r = REGSP
 		}
 		v = int32(regoff(ctxt, &p.From))
 		if (v & 0xFFF000) != 0 {
