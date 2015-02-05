@@ -419,7 +419,7 @@ TEXT runtime·gogetcallersp(SB),NOSPLIT,$0-16
 	RETURN
 
 TEXT runtime·abort(SB),NOSPLIT,$-8-0
-	MOVW	(ZR), ZR
+	B	(ZR)
 	UNDEF
 
 // bool cas(uint32 *ptr, uint32 old, uint32 new)
