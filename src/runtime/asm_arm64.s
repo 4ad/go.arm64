@@ -181,12 +181,11 @@ TEXT runtime·rt0_go(SB),NOSPLIT,$0
 	// create istack out of the given (operating system) stack.
 	// _cgo_init may update stackguard.
 	MOV	$runtime·g0(SB), g
-	MOV	$(-64*1024), R7
-	ADD	R7, SP, R0
+	MOV SP, R7
+	MOV	$(-64*1024)(R7), R0
 	MOV	R0, g_stackguard0(g)
 	MOV	R0, g_stackguard1(g)
 	MOV	R0, (g_stack+stack_lo)(g)
-	MOV	SP, R7
 	MOV	R7, (g_stack+stack_hi)(g)
 
 	// if there is a _cgo_init, call it using the gcc ABI.
