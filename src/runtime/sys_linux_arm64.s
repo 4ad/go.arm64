@@ -311,12 +311,12 @@ good:
 	MOV	-16(SP), R11
 	MOV	-8(SP), R10
 
-	MOV	R0, m_procid(R7)
+	MOV	R0, m_procid(R10)
 
 	// TODO: setup TLS.
 
 	// In child, set up new stack
-	MOV	R10, g_m(R8)
+	MOV	R10, g_m(R11)
 	MOV	R11, g
 	//CALL	runtime·stackcheck(SB)
 
