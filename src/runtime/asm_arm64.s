@@ -143,7 +143,8 @@ switch:
 	BL	runtime·save_g(SB)
 	MOV	(g_sched+gobuf_sp)(g), R3
 	// make it look like mstart called systemstack on g0, to stop traceback
-	SUB	$8, R3
+	SUB	$16, R3
+	AND	$~15, R3
 	MOV	$runtime·mstart(SB), R4
 	MOV	R4, 0(R3)
 	MOV	R3, SP
