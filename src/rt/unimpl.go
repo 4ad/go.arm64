@@ -2,7 +2,10 @@ package runtime
 
 import "unsafe"
 
-func unimpl(name string) {}
+func unimpl(name string) {
+	print("UNIMPLEMENTED ", name, "!\n")
+	exit(42)
+}
 
 // NOTE: please do not trust the prototype defined in this file.
 // Always lookup the real prototype in the original runtime.
@@ -144,3 +147,6 @@ func raceread(_ uintptr)                        { unimpl("raceread") }
 func racewrite(_ uintptr)                       { unimpl("racewrite") }
 func racereadrange(addr uintptr, size uintptr)  { unimpl("racereadrange") }
 func racewriterange(addr uintptr, size uintptr) { unimpl("racewriterange") }
+
+
+func newproc() { unimpl("newproc") }
