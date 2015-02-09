@@ -16,21 +16,6 @@ func throwinit()                             { unimpl("throwinit") }
 func panicwrap(_ string, _ string, _ string) { unimpl("panicwrap") }
 func gopanic(_ interface{})                  { unimpl("gopanic") }
 func gorecover(_ *int32)/*(_ interface{})*/ { unimpl("gorecover") }
-func printbool(_ bool)          { unimpl("printbool") }
-func printfloat(_ float64)      { unimpl("printfloat") }
-func printint(_ int64)          { unimpl("printint") }
-func printhex(_ uint64)         { unimpl("printhex") }
-func printuint(_ uint64)        { unimpl("printuint") }
-func printcomplex(_ complex128) { unimpl("printcomplex") }
-func printstring(_ string)      { unimpl("printstring") }
-func printpointer(_ uintptr)    { unimpl("printpointer") }
-func printiface(_ iface)        { unimpl("printiface") }
-func printeface(_ eface)        { unimpl("printeface") }
-func printslice(_ slice)        { unimpl("printslice") }
-func printnl()                  { unimpl("printnl") }
-func printsp()                  { unimpl("printsp") }
-func printlock()                { unimpl("printlock") }
-func printunlock()              { unimpl("printunlock") }
 func concatstring2(_ string, _ string)/*(_ string)*/ { unimpl("concatstring2") }
 func concatstring3(_ string, _ string, _ string)/*(_ string)*/ { unimpl("concatstring3") }
 func concatstring4(_ string, _ string, _ string, _ string)/*(_ string)*/ { unimpl("concatstring4") }
