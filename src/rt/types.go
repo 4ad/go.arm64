@@ -157,6 +157,32 @@ type m struct {
 	////#endif
 }
 
+type _string struct {
+	str *byte
+	len int
+}
+
+type funcval struct {
+	fn uintptr
+	// variable-size, fn-specific data here
+}
+
+type iface struct {
+	tab  *itab
+	data unsafe.Pointer
+}
+
+type eface struct {
+	_type *_type
+	data  unsafe.Pointer
+}
+
+type slice struct {
+	array *byte // actual data
+	len   uint  // number of elements
+	cap   uint  // allocated number of elements
+}
+
 // A guintptr holds a goroutine pointer, but typed as a uintptr
 // to bypass write barriers. It is used in the Gobuf goroutine state.
 //
@@ -181,6 +207,35 @@ func (gp guintptr) ptr() *g {
 	return (*g)(unsafe.Pointer(gp))
 }
 
+// Layout of in-memory per-function information prepared by linker
+// See http://golang.org/s/go12symtab.
+// Keep in sync with linker and with ../../libmach/sym.c
+// and with package debug/gosym and with symtab.go in package runtime.
+type _func struct {
+	entry   uintptr // start pc
+	nameoff int32   // function name
+
+	args  int32 // in/out args size
+	frame int32 // legacy frame size; use pcsp if possible
+
+	pcsp      int32
+	pcfile    int32
+	pcln      int32
+	npcdata   int32
+	nfuncdata int32
+}
+
+// layout of Itab known to compilers
+// allocated in non-garbage-collected memory
+type itab struct {
+	inter  *interfacetype
+	_type  *_type
+	link   *itab
+	bad    int32
+	unused int32
+	fun    [1]uintptr // variable sized
+}
+
 /*
  * deferred subroutine calls
  */
@@ -203,11 +258,6 @@ type _panic struct {
 	link      *_panic        // link to earlier panic
 	recovered bool           // whether this panic is over
 	aborted   bool           // the panic was aborted
-}
-
-type funcval struct {
-	fn uintptr
-	// variable-size, fn-specific data here
 }
 
 // Dummy types

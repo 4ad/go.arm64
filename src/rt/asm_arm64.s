@@ -189,11 +189,11 @@ TEXT runtime·rt0_go(SB),NOSPLIT,$0
 	MOV	R7, (g_stack+stack_hi)(g)
 
 	// if there is a _cgo_init, call it using the gcc ABI.
-	MOV	_cgo_init(SB), R12
-	CMP	$0, R12
-	BEQ	nocgo
+	//MOV	_cgo_init(SB), R12
+	//CMP	$0, R12
+	//BEQ	nocgo
 
-	BL	runtime·abort(SB)
+	//BL	runtime·abort(SB)
 
 nocgo:
 	// update stackguard after _cgo_init
@@ -209,6 +209,14 @@ nocgo:
 	MOV	g, m_g0(R0)
 	// save m0 to g0->m
 	MOV	R0, g_m(g)
+
+	//BL	runtime·check(SB)
+	BL	main·init(SB)
+	BL	main·main(SB)
+	BL 	runtime·exit(SB)
+
+	RETURN
+	// NOT REACHED.
 
 	BL	runtime·check(SB)
 
