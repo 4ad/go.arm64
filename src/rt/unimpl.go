@@ -97,38 +97,6 @@ func chanrecv2(chanType *byte, hchan unsafe.Pointer, elem unsafe.Pointer) /*(_ b
 func chansend1(chanType *byte, hchan unsafe.Pointer, elem unsafe.Pointer) { unimpl("chansend1") }
 func closechan(hchan unsafe.Pointer)                                      { unimpl("closechan") }
 
-func writebarrierptr()     { unimpl("writebarrierptr") }
-func writebarrierstring()  { unimpl("writebarrierstring") }
-func writebarrierslice()   { unimpl("writebarrierslice") }
-func writebarrieriface()   { unimpl("writebarrieriface") }
-func writebarrierfat01()   { unimpl("writebarrierfat01") }
-func writebarrierfat10()   { unimpl("writebarrierfat10") }
-func writebarrierfat11()   { unimpl("writebarrierfat11") }
-func writebarrierfat001()  { unimpl("writebarrierfat001") }
-func writebarrierfat010()  { unimpl("writebarrierfat010") }
-func writebarrierfat011()  { unimpl("writebarrierfat011") }
-func writebarrierfat100()  { unimpl("writebarrierfat100") }
-func writebarrierfat101()  { unimpl("writebarrierfat101") }
-func writebarrierfat110()  { unimpl("writebarrierfat110") }
-func writebarrierfat111()  { unimpl("writebarrierfat111") }
-func writebarrierfat0001() { unimpl("writebarrierfat0001") }
-func writebarrierfat0010() { unimpl("writebarrierfat0010") }
-func writebarrierfat0011() { unimpl("writebarrierfat0011") }
-func writebarrierfat0100() { unimpl("writebarrierfat0100") }
-func writebarrierfat0101() { unimpl("writebarrierfat0101") }
-func writebarrierfat0110() { unimpl("writebarrierfat0110") }
-func writebarrierfat0111() { unimpl("writebarrierfat0111") }
-func writebarrierfat1000() { unimpl("writebarrierfat1000") }
-func writebarrierfat1001() { unimpl("writebarrierfat1001") }
-func writebarrierfat1010() { unimpl("writebarrierfat1010") }
-func writebarrierfat1011() { unimpl("writebarrierfat1011") }
-func writebarrierfat1100() { unimpl("writebarrierfat1100") }
-func writebarrierfat1101() { unimpl("writebarrierfat1101") }
-func writebarrierfat1110() { unimpl("writebarrierfat1110") }
-func writebarrierfat1111() { unimpl("writebarrierfat1111") }
-
-func typedmemmove(typ *byte, dst unsafe.Pointer, src unsafe.Pointer) { unimpl("typedmemmove") }
-func typedslicecopy(typ *byte, dst sliceStruct, src sliceStruct)/*(_ int)*/ { unimpl("typedslicecopy") }
 func selectnbsend(chanType *byte, hchan unsafe.Pointer, elem unsafe.Pointer) /*(_ bool)*/ {
 	unimpl("selectnbsend")
 }
