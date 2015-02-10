@@ -541,6 +541,9 @@ func (ctxt *Context) Import(path string, srcDir string, mode ImportMode) (*Packa
 
 		// Determine directory from import path.
 		if ctxt.GOROOT != "" {
+			if ctxt.GOARCH == "arm64" && path == "runtime" {
+				path = "rt"
+			}
 			dir := ctxt.joinPath(ctxt.GOROOT, "src", path)
 			isDir := ctxt.isDir(dir)
 			binaryOnly = !isDir && mode&AllowBinary != 0 && pkga != "" && ctxt.isFile(ctxt.joinPath(ctxt.GOROOT, pkga))
