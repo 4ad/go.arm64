@@ -644,9 +644,6 @@ func install(dir string) {
 
 	// path = full path to dir.
 	path := pathf("%s/src/%s", goroot, dir)
-	if gohostarch == "arm64" && dir == "runtime" { // build the replacement runtime
-		path = pathf("%s/src/rt", goroot)
-	}
 	name := filepath.Base(dir)
 
 	// set up gcc command line on first run.
