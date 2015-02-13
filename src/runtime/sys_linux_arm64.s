@@ -108,12 +108,12 @@ TEXT runtime·usleep(SB),NOSPLIT,$16-4
 	MOV	R5, 16(SP)
 
 	// pselect6(0, 0, 0, 0, &ts, 0)
-	MOV	ZR, R0
-	MOV	ZR, R1
-	MOV	ZR, R2
-	MOV	ZR, R3
+	MOV	$0, R0
+	MOV	R0, R1
+	MOV	R0, R2
+	MOV	R0, R3
 	ADD	$8, SP, R4
-	MOV	ZR, R5
+	MOV	R0, R5
 	MOV	$SYS_pselect6, R8
 	SVC
 	RETURN
