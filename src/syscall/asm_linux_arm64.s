@@ -11,9 +11,9 @@ TEXT	·Syscall(SB),NOSPLIT,$0-56
 	MOV	a1+8(FP), R0
 	MOV	a2+16(FP), R1
 	MOV	a3+24(FP), R2
-	MOV	ZR, R3
-	MOV	ZR, R4
-	MOV	ZR, R5
+	MOV	$0, R3
+	MOV	$0, R4
+	MOV	$0, R5
 	MOV	trap+0(FP), R8	// syscall entry
 	SVC
 	BVC	ok
@@ -58,9 +58,9 @@ TEXT ·RawSyscall(SB),NOSPLIT,$0-56
 	MOV	a1+8(FP), R0
 	MOV	a2+16(FP), R1
 	MOV	a3+24(FP), R2
-	MOV	ZR, R3
-	MOV	ZR, R4
-	MOV	ZR, R5
+	MOV	$0, R3
+	MOV	$0, R4
+	MOV	$0, R5
 	MOV	trap+0(FP), R8	// syscall entry
 	SVC
 	BVC	ok
