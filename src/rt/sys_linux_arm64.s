@@ -108,12 +108,12 @@ TEXT runtime·usleep(SB),NOSPLIT,$16-4
 	MOV	R5, 16(SP)
 
 	// pselect6(0, 0, 0, 0, &ts, 0)
-	MOV	ZR, R0
-	MOV	ZR, R1
-	MOV	ZR, R2
-	MOV	ZR, R3
+	MOV	$0, R0
+	MOV	$0, R1
+	MOV	$0, R2
+	MOV	$0, R3
 	ADD	$8, SP, R4
-	MOV	ZR, R5
+	MOV	$0, R5
 	MOV	$SYS_pselect6, R8
 	SVC
 	RETURN
@@ -357,7 +357,7 @@ TEXT runtime·sched_getaffinity(SB),NOSPLIT,$-8
 
 // int32 runtime·epollcreate(int32 size);
 TEXT runtime·epollcreate(SB),NOSPLIT,$-8
-	MOVW	ZR, R0
+	MOVW	$0, R0
 	MOV	$SYS_epoll_create1, R8
 	SVC
 	MOVW	R0, ret+8(FP)
@@ -388,7 +388,7 @@ TEXT runtime·epollwait(SB),NOSPLIT,$-8
 	MOV	ev+8(FP), R1
 	MOVW	nev+16(FP), R2
 	MOVW	timeout+20(FP), R3
-	MOV	ZR, R4
+	MOV	$0, R4
 	MOV	$SYS_epoll_pwait, R8
 	SVC
 	MOVW	R0, ret+24(FP)
