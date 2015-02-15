@@ -12,7 +12,6 @@ func unimpl(name string) {
 // NOTE: please do not trust the prototype defined in this file.
 // Always lookup the real prototype in the original runtime.
 
-func newobject(_ *byte)/*(_ unsafe.Pointer)*/ { unimpl("newobject") }
 func panicindex()                            { unimpl("panicindex") }
 func panicslice()                            { unimpl("panicslice") }
 func panicdivide()                           { unimpl("panicdivide") }

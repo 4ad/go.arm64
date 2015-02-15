@@ -42,6 +42,15 @@
 #define SYS_epoll_pwait		22
 #define SYS_clock_gettime	113
 
+#define SYS_brk			214
+
+TEXT runtime·brk(SB),NOSPLIT,$-8-16
+	MOV	addr+0(FP), R0
+	MOV	$SYS_brk, R8
+	SVC
+	MOV	R0, ret+8(FP)
+	RETURN
+
 TEXT runtime·exit(SB),NOSPLIT,$-8-4
 	MOVW	code+0(FP), R0
 	MOV	$SYS_exit_group, R8
