@@ -9,15 +9,20 @@ var oldBreak uintptr
 const mallocVerbose = true
 
 func newobject(typ *_type) unsafe.Pointer {
-	return unsafe.Pointer(malloc(typ.size, uintptr(typ.align)))
+	return malloc(typ.size, uintptr(typ.align))
 }
 
-func malloc(size, align uintptr) uintptr {
+// malloc allocates memory for at least size bytes, and aligned to align bytes.
+// If align is zero, a default alignment of regSize is used.
+func malloc(size, align uintptr) unsafe.Pointer {
 	if oldBreak == 0 {
 		oldBreak = brk(0)
 	}
 	if mallocVerbose {
 		print("Allocating ", size, " bytes, align = ", align, ", brk = ", hex(oldBreak))
+	}
+	if align == 0 {
+		align = regSize
 	}
 	addr := round(oldBreak+size-1, align)
 	oldBreak = addr + size
@@ -27,7 +32,7 @@ func malloc(size, align uintptr) uintptr {
 	if mallocVerbose {
 		println(", newbrk =", hex(oldBreak))
 	}
-	return addr
+	return unsafe.Pointer(addr)
 }
 
 // round n up to a multiple of a.  a must be a power of 2.
