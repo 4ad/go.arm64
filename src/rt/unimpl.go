@@ -125,8 +125,6 @@ func selectgo(sel *byte) { unimpl("selectgo") }
 func block()             { unimpl("block") }
 func makeslice(typ *byte, nel int64, cap int64)/*(ary sliceStruct)*/ { unimpl("makeslice") }
 func growslice(typ *byte, old sliceStruct, n int64)/*(ary sliceStruct)*/ { unimpl("growslice") }
-func memmove(to unsafe.Pointer, frm unsafe.Pointer, length uintptr) { unimpl("memmove") }
-func memclr(ptr *byte, length uintptr)                              { unimpl("memclr") }
 func memequal(x unsafe.Pointer, y unsafe.Pointer, size uintptr)/*(_ bool)*/ { unimpl("memequal") }
 func memequal8(x unsafe.Pointer, y unsafe.Pointer)/*(_ bool)*/ { unimpl("memequal8") }
 func memequal16(x unsafe.Pointer, y unsafe.Pointer)/*(_ bool)*/ { unimpl("memequal16") }
