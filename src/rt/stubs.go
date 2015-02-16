@@ -32,6 +32,16 @@ func noescape(p unsafe.Pointer) unsafe.Pointer {
 
 func getg() *g
 
+//go:noescape
+func getcallersp(unsafe.Pointer) uintptr
+//go:noescape
+func getcallerpc(unsafe.Pointer) uintptr
+
+//go:noescape
+func jmpdefer(fv *funcval, argp uintptr)
+
+func return0()
+
 // defined in sys_$GOOS_$GOARCH.s
 func read(fd int32, p unsafe.Pointer, n int32) int32
 func close(fd int32) int32
@@ -56,3 +66,9 @@ func brk(addr uintptr) uintptr
 func Exit(x int32) {
 	exit(x)
 }
+
+// defined in mem{clr,move}_$GOARCH.s
+//go:noescape
+func memmove(to unsafe.Pointer, frm unsafe.Pointer, length uintptr)
+//go:noescape
+func memclr(ptr unsafe.Pointer, length uintptr)
