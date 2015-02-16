@@ -473,6 +473,7 @@ addstacksplit(Link *ctxt, LSym *cursym)
 				q->from.offset = ctxt->autosize - aoffset;
 				q->to.type = D_REG;
 				q->to.reg = REGSP;
+				q->spadj = q->from.offset;
 				q->link = p->link;
 				p->link = q;
 				if(cursym->text->mark & LEAF)
@@ -487,6 +488,7 @@ addstacksplit(Link *ctxt, LSym *cursym)
 			q1->to.offset = -aoffset;
 			q1->to.reg = REGSP;
 			q1->link = q->link;
+			q1->spadj = aoffset;
 			q->link = q1;
 			break;
 		case ARETURN:
@@ -507,6 +509,7 @@ addstacksplit(Link *ctxt, LSym *cursym)
 					p->from.offset = ctxt->autosize;
 					p->to.type = D_REG;
 					p->to.reg = REGSP;
+					p->spadj = -ctxt->autosize;
 				}
 			} else {
 				/* want write-back pre-indexed SP+autosize -> SP, loading REGLINK*/
@@ -519,6 +522,7 @@ addstacksplit(Link *ctxt, LSym *cursym)
 				p->from.reg = REGSP;
 				p->to.type = D_REG;
 				p->to.reg = REGLINK;
+				p->spadj = -aoffset;
 				if(ctxt->autosize > aoffset) {
 					q = ctxt->arch->prg();
 					q->as = AADD;
@@ -527,6 +531,8 @@ addstacksplit(Link *ctxt, LSym *cursym)
 					q->to.type = D_REG;
 					q->to.reg = REGSP;
 					q->link = p->link;
+					q->spadj = -q->from.offset;
+					q->lineno = p->lineno;
 					p->link = q;
 					p = q;
 				}
@@ -543,6 +549,15 @@ addstacksplit(Link *ctxt, LSym *cursym)
 			p->to.type = D_OREG;
 			p->to.offset = 0;
 			p->to.reg = REGLINK;
+			p->spadj = +ctxt->autosize;
+			break;
+		case AADD:
+		case ASUB:
+			if(p->to.type == D_SP && p->to.reg == REGSP && p->from.type == D_CONST)
+				if (p->as == AADD)
+					p->spadj = -p->from.offset;
+				else
+					p->spadj = +p->from.offset;
 			break;
 		}
 	}
