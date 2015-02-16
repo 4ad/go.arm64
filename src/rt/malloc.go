@@ -24,7 +24,7 @@ func malloc(size, align uintptr) unsafe.Pointer {
 	if align == 0 {
 		align = regSize
 	}
-	addr := round(oldBreak+size-1, align)
+	addr := round(oldBreak, align)
 	oldBreak = addr + size
 	if newBrk := brk(oldBreak); newBrk != oldBreak {
 		panic("brk failed")
