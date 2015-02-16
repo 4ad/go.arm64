@@ -120,6 +120,10 @@ static ProgInfo progtable[ALAST] = {
 	[ABLT]=		{Cjmp},
 	[ABGT]=		{Cjmp},
 	[ABLE]=		{Cjmp},
+	[ABLO]=		{Cjmp},
+	[ABLS]=		{Cjmp},
+	[ABHI]=		{Cjmp},
+	[ABHS]=		{Cjmp},
 	[ARETURN]=	{Break},
 
 	[ADUFFZERO]=	{Call},
