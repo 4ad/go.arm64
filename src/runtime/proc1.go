@@ -1980,6 +1980,10 @@ func newproc1(fn *funcval, argp *uint8, narg int32, nret int32, callerpc uintptr
 		sp -= ptrSize
 		*(*unsafe.Pointer)(unsafe.Pointer(sp)) = nil
 	}
+	if sp%spAlign != 0 {
+		sp -= spAlign
+		sp &= ^uintptr(spAlign-1)
+	}
 
 	memclr(unsafe.Pointer(&newg.sched), unsafe.Sizeof(newg.sched))
 	newg.sched.sp = sp
