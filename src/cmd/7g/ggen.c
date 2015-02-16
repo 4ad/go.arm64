@@ -570,8 +570,7 @@ dodiv(int op, Node *nl, Node *nr, Node *res)
 		p1 = gbranch(optoas(ONE, t), T, +1);
 		if(op == ODIV) {
 			// a / (-1) is -a.
-			nodconst(&nz, t, 0);
-			gins(optoas(OMINUS, t), &nz, &tl);
+			gins(optoas(OMINUS, t), &tl, &tl);
 			gmove(&tl, res);
 		} else {
 			// a % (-1) is 0.
