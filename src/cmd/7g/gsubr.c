@@ -1600,8 +1600,10 @@ optoas(int op, Type *t)
 	case CASE(OMUL, TINT8):
 	case CASE(OMUL, TINT16):
 	case CASE(OMUL, TINT32):
-	case CASE(OMUL, TINT64):
 		a = ASMULL;
+		break;
+	case CASE(OMUL, TINT64):
+		a = AMUL;
 		break;
 
 	case CASE(OMUL, TUINT8):
@@ -1609,10 +1611,11 @@ optoas(int op, Type *t)
 	case CASE(OMUL, TUINT32):
 	case CASE(OMUL, TPTR32):
 		// don't use word multiply, the high 32-bit are undefined.
-		// fallthrough
+		a = AUMULL;
+		break;
 	case CASE(OMUL, TUINT64):
 	case CASE(OMUL, TPTR64):
-		a = AUMULL; // for 64-bit multiplies, signedness doesn't matter.
+		a = AMUL; // for 64-bit multiplies, signedness doesn't matter.
 		break;
 
 	case CASE(OMUL, TFLOAT32):
