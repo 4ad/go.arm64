@@ -273,11 +273,11 @@ done:
 // cgocallback_gofunc.
 TEXT runtime·cgocallback(SB),NOSPLIT,$24-24
 	MOV	$fn+0(FP), R3
-	MOV	R3, 8(SP)
+	MOV	R3, 8(RSP)
 	MOV	frame+8(FP), R3
-	MOV	R3, 16(SP)
+	MOV	R3, 16(RSP)
 	MOV	framesize+16(FP), R3
-	MOV	R3, 24(SP)
+	MOV	R3, 24(RSP)
 	MOV	$runtime·cgocallback_gofunc(SB), R3
 	BL	(R3)
 	RETURN
