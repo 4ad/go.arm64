@@ -54,7 +54,7 @@ TEXT runtime·gogo(SB), NOSPLIT, $-8-8
 	MOV	gobuf_sp(R5), R0
 	MOV	R0, SP
 	MOV	gobuf_lr(R5), LR
-	MOV	gobuf_ret(R5), R3
+	MOV	gobuf_ret(R5), R0
 	MOV	gobuf_ctxt(R5), R26
 	MOV	$0, gobuf_sp(R5)
 	MOV	$0, gobuf_ret(R5)
@@ -89,8 +89,8 @@ TEXT runtime·mcall(SB), NOSPLIT, $-8-8
 	MOV	(g_sched+gobuf_sp)(g), R0
 	MOV	R0, SP	// sp = m->g0->sched.sp
 	MOV	R3, -8(SP)
-	MOV	R0, -16(SP)
-	SUB $16, SP
+	MOV	$0, -16(SP)
+	SUB	$16, SP
 	BL	(R4)
 	B	runtime·badmcall2(SB)
 
@@ -239,12 +239,13 @@ nocgo:
 
 TEXT runtime·fastrand1(SB),NOSPLIT,$-8-4
 	MOV	g_m(g), R1
-	MOV	m_fastrand(R1), R0
-	ADDS	R0, R0
+	MOVWU	m_fastrand(R1), R0
+	ADD	R0, R0
+	CMPW	$0, R0
 	BGE	notneg
 	EOR	$0x88888eef, R0
 notneg:
-	MOV	R0, m_fastrand(R1)
+	MOVW	R0, m_fastrand(R1)
 	MOVW	R0, ret+0(FP)
 	RETURN
 
@@ -258,13 +259,12 @@ TEXT runtime·memeq(SB),NOSPLIT,$-8-25
 loop:
 	CMP	R1, R6
 	BEQ	done
-	MOVB	1(R1)!, R4
-	MOVB	1(R2)!, R5
+	MOVBU	(R1)1!, R4
+	MOVBU	(R2)1!, R5
 	CMP	R4, R5
 	BEQ	loop
 
-	MOVW	$0, R0
-	MOVB	R0, ret+24(FP)
+	MOVB	$0, ret+24(FP)
 done:
 	RETURN
 
@@ -394,11 +394,6 @@ TEXT runtime·getcallerpc(SB),NOSPLIT,$-8-16
 	MOV	R0, ret+8(FP)
 	RETURN
 
-TEXT runtime·gogetcallerpc(SB),NOSPLIT,$-8-16
-	MOV	0(SP), R0
-	MOV	R0,ret+8(FP)
-	RETURN
-
 TEXT runtime·setcallerpc(SB),NOSPLIT,$-8-16
 	MOV	pc+8(FP), R0
 	MOV	R0, 0(SP)		// set calling pc
@@ -408,13 +403,6 @@ TEXT runtime·getcallersp(SB),NOSPLIT,$0-16
 	MOV	argp+0(FP), R0
 	SUB	$8, R0
 	MOV	R0, ret+8(FP)
-	RETURN
-
-// func gogetcallersp(p unsafe.Pointer) uintptr
-TEXT runtime·gogetcallersp(SB),NOSPLIT,$0-16
-	MOV	sp+0(FP), R0
-	SUB	$8, R0
-	MOV	R0,ret+8(FP)
 	RETURN
 
 TEXT runtime·abort(SB),NOSPLIT,$-8-0
@@ -729,10 +717,10 @@ end:						\
 	MOV	arg+16(FP), R3;			\
 	MOVWU	n+24(FP), R4;			\
 	MOVWU	retoffset+28(FP), R6;		\
-	MOV	R7, 8(SP);			\
-	MOV	R3, 16(SP);			\
-	MOV	R4, 24(SP);			\
-	MOV	R6, 32(SP);			\
+	MOV	R7, 8(RSP);			\
+	MOV	R3, 16(RSP);			\
+	MOV	R4, 24(RSP);			\
+	MOV	R6, 32(RSP);			\
 	BL	runtime·callwritebarrier(SB);	\
 	RETURN
 
@@ -765,7 +753,7 @@ CALLFN(·call536870912, 536870912)
 CALLFN(·call1073741824, 1073741824)
 
 TEXT runtime·procyield(SB),NOSPLIT,$0-0
-	MOVW	cycles+0(FP), R0
+	MOVWU	cycles+0(FP), R0
 again:
 	YIELD
 	SUBW	$1, R0
@@ -850,9 +838,9 @@ TEXT gosave<>(SB),NOSPLIT,$-8
 	MOV	LR, (g_sched+gobuf_pc)(g)
 	MOV SP, R0
 	MOV	R0, (g_sched+gobuf_sp)(g)
-	MOV	LR, (g_sched+gobuf_lr)(g)
-	MOV	LR, (g_sched+gobuf_ret)(g)
-	MOV	LR, (g_sched+gobuf_ctxt)(g)
+	MOV	$0, (g_sched+gobuf_lr)(g)
+	MOV	$0, (g_sched+gobuf_ret)(g)
+	MOV	$0, (g_sched+gobuf_ctxt)(g)
 	RETURN
 
 // memequal_varlen(a, b unsafe.Pointer) bool
@@ -861,12 +849,12 @@ TEXT runtime·memequal_varlen(SB),NOSPLIT,$40-17
 	MOV	b+8(FP), R4
 	CMP	R3, R4
 	BEQ	eq
-	MOV	8(R0), R5    // compiler stores size at offset 8 in the closure
-	MOV	R3, 8(SP)
-	MOV	R4, 16(SP)
-	MOV	R5, 24(SP)
+	MOV	8(R26), R5    // compiler stores size at offset 8 in the closure
+	MOV	R3, 8(RSP)
+	MOV	R4, 16(RSP)
+	MOV	R5, 24(RSP)
 	BL	runtime·memeq(SB)
-	MOVBU	32(SP), R3
+	MOVBU	32(RSP), R3
 	MOVB	R3, ret+16(FP)
 	RETURN
 eq:
@@ -882,12 +870,12 @@ TEXT runtime·memhash_varlen(SB),NOSPLIT,$40-24
 	NO_LOCAL_POINTERS
 	MOV	p+0(FP), R3
 	MOV	h+8(FP), R4
-	MOV	8(R0), R5
-	MOV	R3, 8(SP)
-	MOV	R4, 16(SP)
-	MOV	R5, 24(SP)
+	MOV	8(R26), R5
+	MOV	R3, 8(RSP)
+	MOV	R4, 16(RSP)
+	MOV	R5, 24(RSP)
 	BL	runtime·memhash(SB)
-	MOV	32(SP), R3
+	MOV	32(RSP), R3
 	MOV	R3, ret+16(FP)
 	RETURN
 
