@@ -6,7 +6,7 @@ import "unsafe"
 
 var oldBreak uintptr
 
-const mallocVerbose = true
+const mallocVerbose = !true
 
 func newobject(typ *_type) unsafe.Pointer {
 	return malloc(typ.size, uintptr(typ.align))
