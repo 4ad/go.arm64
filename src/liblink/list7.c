@@ -145,6 +145,8 @@ Pconv(Fmt *fp)
 		sprint(str, "%.5lld (%L)	%A	%D/%d,%D", p->pc, p->lineno, a, &p->from, p->reg, &p->to);
 		break;
 	}
+	if(p->spadj != 0)
+		return fmtprint(fp, "%s # spadj=%d", str, p->spadj);
 	return fmtstrcpy(fp, str);
 }
 
