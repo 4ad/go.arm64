@@ -643,18 +643,18 @@ TEXT runtime·setg(SB), NOSPLIT, $0-8
 // Caution: ugly multiline assembly macros in your future!
 
 #define DISPATCH(NAME,MAXSIZE)		\
-	MOV	$MAXSIZE, R0;		\
-	CMP	R3, R0;		\
-	BGT	4(PC);			\
-	MOV	$NAME(SB), R1;	\
-	B	(R1)
+	MOV	$MAXSIZE, R27;		\
+	CMP	R27, R16;		\
+	BGT	3(PC);			\
+	MOV	$NAME(SB), R27;	\
+	B	(R27)
 // Note: can't just "B NAME(SB)" - bad inlining results.
 
 TEXT reflect·call(SB), NOSPLIT, $0-0
 	BL	·reflectcall(SB)
 
 TEXT ·reflectcall(SB), NOSPLIT, $-8-32
-	MOVWU argsize+24(FP), R3
+	MOVWU argsize+24(FP), R16
 	// NOTE(rsc): No call16, because CALLFN needs four words
 	// of argument space to invoke callwritebarrier.
 	DISPATCH(runtime·call32, 32)
@@ -729,10 +729,10 @@ end:						\
 	MOV	arg+16(FP), R3;			\
 	MOVWU	n+24(FP), R4;			\
 	MOVWU	retoffset+28(FP), R6;		\
-	MOV	R7, 8(R1);			\
-	MOV	R3, 16(R1);			\
-	MOV	R4, 24(R1);			\
-	MOV	R6, 32(R1);			\
+	MOV	R7, 8(SP);			\
+	MOV	R3, 16(SP);			\
+	MOV	R4, 24(SP);			\
+	MOV	R6, 32(SP);			\
 	BL	runtime·callwritebarrier(SB);	\
 	RETURN
 
