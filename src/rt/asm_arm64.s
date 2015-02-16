@@ -414,7 +414,7 @@ TEXT runtime·setcallerpc(SB),NOSPLIT,$-8-16
 	RETURN
 
 TEXT runtime·getcallersp(SB),NOSPLIT,$0-16
-	MOV	argp+0(FP), R3
+	MOV	argp+0(FP), R0
 	SUB	$8, R0
 	MOV	R0, ret+8(FP)
 	RETURN
