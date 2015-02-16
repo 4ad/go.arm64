@@ -214,7 +214,7 @@ struct
 	{ "R26",		LREG,	26 },
 	{ "R27",		LREG,	27 },
 	{ "g",		LREG,	28 }, // avoid unintentionally clobbering g using R28
-	{ "R29",		LREG,	29 },
+	{ "RFP",		LREG,	29 }, // avoid unintentionally clobbering the frame pointer using R29
 	{ "R30",		LREG,	30 },
 	{ "LR",			LREG,	30 },
 	{ "ZR",			LREG,	31 },
