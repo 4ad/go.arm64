@@ -55,7 +55,7 @@ TEXT runtime·gogo(SB), NOSPLIT, $-8-8
 	MOV	R0, SP
 	MOV	gobuf_lr(R5), LR
 	MOV	gobuf_ret(R5), R3
-	MOV	gobuf_ctxt(R5), R11
+	MOV	gobuf_ctxt(R5), R26
 	MOV	$0, gobuf_sp(R5)
 	MOV	$0, gobuf_ret(R5)
 	MOV	$0, gobuf_lr(R5)
@@ -84,8 +84,8 @@ TEXT runtime·mcall(SB), NOSPLIT, $-8-8
 	CMP	g, R3
 	BNE	2(PC)
 	B	runtime·badmcall(SB)
-	MOV	fn+0(FP), R11			// context
-	MOV	0(R11), R4			// code pointer
+	MOV	fn+0(FP), R26			// context
+	MOV	0(R26), R4			// code pointer
 	MOV	(g_sched+gobuf_sp)(g), R0
 	MOV	R0, SP	// sp = m->g0->sched.sp
 	MOV	R3, -8(SP)
@@ -479,11 +479,11 @@ TEXT runtime·jmpdefer(SB), NOSPLIT, $-8-16
 	SUB	$4, R0
 	MOV	R0, LR
 
-	MOV	fv+0(FP), R11
+	MOV	fv+0(FP), R26
 	MOV	argp+8(FP), R0
 	MOV	R0, SP
 	SUB	$8, SP
-	MOV	0(R11), R3
+	MOV	0(R26), R3
 	B	(R3)
 
 // A Duff's device for zeroing memory.
@@ -702,8 +702,8 @@ TEXT NAME(SB), WRAPPER, $MAXSIZE-24;		\
 	MOVBU	R6, 1(R5)!;			\
 	B	-4(PC);				\
 	/* call function */			\
-	MOV	f+8(FP), R11;			\
-	MOV	(R11), R0;			\
+	MOV	f+8(FP), R26;			\
+	MOV	(R26), R0;			\
 	PCDATA  $PCDATA_StackMapIndex, $0;	\
 	BL	(R0);				\
 	/* copy return values back */		\
