@@ -189,11 +189,11 @@ func printhex(v uint64) {
 	var buf [100]byte
 	i := len(buf)
 	for i--; i > 0; i-- {
-		buf[i] = dig[v%16]
+		buf[i] = dig[v & 0xf]
 		if v < 16 {
 			break
 		}
-		v /= 16
+		v >>= 4
 	}
 	i--
 	buf[i] = 'x'

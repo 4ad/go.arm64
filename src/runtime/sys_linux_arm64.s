@@ -357,7 +357,7 @@ TEXT runtime·sched_getaffinity(SB),NOSPLIT,$-8
 
 // int32 runtime·epollcreate(int32 size);
 TEXT runtime·epollcreate(SB),NOSPLIT,$-8
-	MOVW	ZR, R0
+	MOVW	$0, R0
 	MOV	$SYS_epoll_create1, R8
 	SVC
 	MOVW	R0, ret+8(FP)
@@ -388,7 +388,7 @@ TEXT runtime·epollwait(SB),NOSPLIT,$-8
 	MOV	ev+8(FP), R1
 	MOVW	nev+16(FP), R2
 	MOVW	timeout+20(FP), R3
-	MOV	ZR, R4
+	MOV	$0, R4
 	MOV	$SYS_epoll_pwait, R8
 	SVC
 	MOVW	R0, ret+24(FP)

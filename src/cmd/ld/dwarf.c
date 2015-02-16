@@ -213,6 +213,7 @@ static struct DWAbbrev {
 		DW_AT_low_pc,	 DW_FORM_addr,
 		DW_AT_high_pc,	 DW_FORM_addr,
 		DW_AT_external,	 DW_FORM_flag,
+		DW_AT_frame_base,	 DW_FORM_block1,
 		0, 0
 	},
 	/* VARIABLE */
@@ -1469,19 +1470,15 @@ putpclcdelta(vlong delta_pc, vlong delta_lc)
 }
 
 static void
-newcfaoffsetattr(DWDie *die, int32 offs)
+newfbregoffsetattr(DWDie *die, int32 offs)
 {
 	char block[10];
 	int i;
 
 	i = 0;
+	block[i++] = DW_OP_fbreg;
+	i += sleb128enc(offs, block+i);
 
-	block[i++] = DW_OP_call_frame_cfa;
-	if (offs != 0) {
-		block[i++] = DW_OP_consts;
-		i += sleb128enc(offs, block+i);
-		block[i++] = DW_OP_plus;
-	}
 	newattr(die, DW_AT_location, DW_CLS_BLOCK, i, mal(i));
 	memmove(die->attr->data, block, i);
 }
@@ -1539,6 +1536,7 @@ writelines(void)
 	char *n, *nn;
 	Pciter pcfile, pcline;
 	LSym **files, *f;
+	char dat;
 
 	if(linesec == S)
 		linesec = linklookup(ctxt, ".dwarfline", 0);
@@ -1619,6 +1617,9 @@ writelines(void)
 		newattr(dwfunc, DW_AT_high_pc, DW_CLS_ADDRESS, epc, (char*)s);
 		if (s->version == 0)
 			newattr(dwfunc, DW_AT_external, DW_CLS_FLAG, 1, 0);
+		dat = DW_OP_call_frame_cfa;
+		newattr(dwfunc, DW_AT_frame_base, DW_CLS_BLOCK, 1, mal(1));
+		memmove(dwfunc->attr->data, &dat, 1);
 
 		if(s->pcln == nil)
 			continue;
@@ -1672,6 +1673,10 @@ writelines(void)
 			}
 			if (strstr(a->asym->name, ".autotmp_"))
 				continue;
+			// Some debugging tools are not happy with ~rN and ~bN names,
+			// so rewrite then to _rN and _bN instead.
+			if (nn = strchr(a->asym->name, '~'))
+				*nn = '_';
 			if (find(dwfunc, a->asym->name) != nil)
 				n = mkvarname(a->asym->name, da);
 			else
@@ -1682,7 +1687,7 @@ writelines(void)
 				n = nn + 1;
 
 			dwvar = newdie(dwfunc, dt, n);
-			newcfaoffsetattr(dwvar, offs);
+			newfbregoffsetattr(dwvar, offs);
 			newrefattr(dwvar, DW_AT_type, defgotype(a->gotype));
 
 			// push dwvar down dwfunc->child to preserve order
