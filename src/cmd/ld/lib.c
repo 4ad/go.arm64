@@ -1095,6 +1095,9 @@ dostkcheck(void)
 static int
 stkcheck(Chain *up, int depth)
 {
+	// TODO(minux): reenable the nosplit overflow check
+	return 0;
+
 	Chain ch, ch1;
 	LSym *s;
 	int limit;
