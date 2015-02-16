@@ -127,6 +127,10 @@ func Pconv(p *obj.Prog) string {
 		break
 	}
 
+	if p.Spadj != 0 {
+		fp += fmt.Sprintf("%s # spadj=%d", str, p.Spadj)
+		return fp
+	}
 	fp += str
 	return fp
 }

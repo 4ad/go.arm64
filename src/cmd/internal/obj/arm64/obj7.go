@@ -518,6 +518,7 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 				q.From.Offset = int64(ctxt.Autosize) - int64(aoffset)
 				q.To.Type = D_REG
 				q.To.Reg = REGSP
+				q.Spadj = int32(q.From.Offset)
 				q.Link = p.Link
 				p.Link = q
 				if cursym.Text.Mark&LEAF != 0 {
@@ -534,6 +535,7 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 			q1.To.Offset = int64(-aoffset)
 			q1.To.Reg = REGSP
 			q1.Link = q.Link
+			q1.Spadj = aoffset
 			q.Link = q1
 
 		case ARETURN:
@@ -556,6 +558,7 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 					p.From.Offset = int64(ctxt.Autosize)
 					p.To.Type = D_REG
 					p.To.Reg = REGSP
+					p.Spadj = -ctxt.Autosize
 				}
 			} else {
 
@@ -571,6 +574,7 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 				p.From.Reg = REGSP
 				p.To.Type = D_REG
 				p.To.Reg = REGLINK
+				p.Spadj = -aoffset
 				if ctxt.Autosize > aoffset {
 					q = ctxt.NewProg()
 					q.As = AADD
@@ -579,6 +583,8 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 					q.To.Type = D_REG
 					q.To.Reg = REGSP
 					q.Link = p.Link
+					q.Spadj = int32(-q.From.Offset)
+					q.Lineno = p.Lineno
 					p.Link = q
 					p = q
 				}
@@ -597,6 +603,18 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 			p.To.Type = D_OREG
 			p.To.Offset = 0
 			p.To.Reg = REGLINK
+			p.Spadj = +ctxt.Autosize
+
+		case AADD,
+			ASUB:
+			if p.To.Type == D_SP && p.To.Reg == REGSP && p.From.Type == D_CONST {
+				if p.As == AADD {
+					p.Spadj = int32(-p.From.Offset)
+				} else {
+
+					p.Spadj = int32(+p.From.Offset)
+				}
+			}
 			break
 		}
 	}
