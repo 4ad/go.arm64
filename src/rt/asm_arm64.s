@@ -211,6 +211,7 @@ nocgo:
 	MOV	R0, g_m(g)
 
 	//BL	runtime·check(SB)
+	BL	runtime·rtinit(SB)
 	BL	main·init(SB)
 	BL	main·main(SB)
 	BL 	runtime·exit(SB)
