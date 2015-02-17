@@ -319,7 +319,7 @@ func EpollWait(epfd int, events []EpollEvent, msec int) (n int, err error) {
 	} else {
 		_p0 = unsafe.Pointer(&_zero)
 	}
-	r0, _, e1 := Syscall6(SYS_EPOLL_WAIT, uintptr(epfd), uintptr(_p0), uintptr(len(events)), uintptr(msec), 0, 0)
+	r0, _, e1 := Syscall6(SYS_EPOLL_PWAIT, uintptr(epfd), uintptr(_p0), uintptr(len(events)), uintptr(msec), 0, 0)
 	n = int(r0)
 	if e1 != 0 {
 		err = e1

@@ -98,7 +98,6 @@ func (cmsg *Cmsghdr) SetLen(length int) {
 // TODO(dfc) constants that should be in zsysnum_linux_arm64.go, remove these when the
 // depricated syscalls that the syscall package relies on are removed.
 const (
-	SYS_EPOLL_WAIT   = 1069
 	SYS_LINK         = 1025
 	SYS_MKDIR        = 1030
 	SYS_MKNOD        = 1027
