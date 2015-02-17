@@ -17,10 +17,9 @@ import "unsafe"
  * Wrapped
  */
 
-//sys	open(path string, mode int, perm uint32) (fd int, err error)
-
 func Open(path string, mode int, perm uint32) (fd int, err error) {
-	return open(path, mode|O_LARGEFILE, perm)
+	const AT_FDCWD = -100
+	return openat(AT_FDCWD, path, mode|O_LARGEFILE, perm)
 }
 
 //sys	openat(dirfd int, path string, flags int, mode uint32) (fd int, err error)
