@@ -597,6 +597,9 @@ struct
 	{ "MOVWU",		LTYPE3, AMOVWU },
 	{ "MOV",		LTYPE3, AMOV },
 
+	{ "STP",		LTYPEX, ASTP },
+	{ "LDP",		LTYPEZ, ALDP },
+
 	{ "MOVP",	LTYPEJ,	AMOVP },
 	{ "MOVPD",	LTYPEJ,	AMOVPD },
 	{ "MOVPQ",	LTYPEJ,	AMOVPQ },

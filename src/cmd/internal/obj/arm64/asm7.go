@@ -414,6 +414,13 @@ var optab = []Optab{
 	Optab{AFMOVS, C_FREG, C_NONE, C_XPRE, 23, 4, 0, 0},
 	Optab{AFMOVD, C_FREG, C_NONE, C_XPRE, 23, 4, 0, 0},
 
+	/* pre/post-indexed load/store register pair
+	   (unscaled, signed 10-bit quad-aligned offset) */
+	Optab{ALDP, C_XPRE, C_NONE, C_PAIR, 66, 4, 0, 0},
+	Optab{ALDP, C_XPOST, C_NONE, C_PAIR, 66, 4, 0, 0},
+	Optab{ASTP, C_PAIR, C_NONE, C_XPRE, 67, 4, 0, 0},
+	Optab{ASTP, C_PAIR, C_NONE, C_XPOST, 67, 4, 0, 0},
+
 	/* special */
 	Optab{AMOV, C_SPR, C_NONE, C_REG, 35, 4, 0, 0},
 	Optab{AMRS, C_SPR, C_NONE, C_REG, 35, 4, 0, 0},
@@ -987,6 +994,9 @@ func aclass(ctxt *obj.Link, a *obj.Addr) int {
 
 	case D_REG:
 		return C_REG
+
+	case D_PAIR:
+		return C_PAIR
 
 	case D_VREG:
 		return C_VREG
@@ -1660,7 +1670,9 @@ func buildop(ctxt *obj.Link) {
 			ARET,
 			ATEXT,
 			ACASE,
-			ABCASE:
+			ABCASE,
+			ASTP,
+			ALDP:
 			break
 
 		case AERET:
@@ -2912,6 +2924,35 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 			break
 		}
 		o2 = olsr12u(ctxt, int32(opldr12(ctxt, int(p.As))), 0, REGTMP, int(p.To.Reg))
+
+	case 66: /* ldp O(R)!, (r1, r2); ldp (R)O!, (r1, r2) */
+		v = int32(p.From.Offset)
+
+		if v < -512 || v > 504 {
+			ctxt.Diag("offset out of range\n%v", p)
+		}
+		if p.To.Type == D_XPOST {
+			o1 |= 1 << 23
+		} else {
+
+			o1 |= 3 << 23
+		}
+		o1 |= 1 << 22
+		o1 |= uint32(int64(2<<30|5<<27|((uint32(v)/8)&0x7f)<<15) | p.To.Offset<<10 | int64(uint32(p.From.Reg)<<5) | int64(p.To.Reg))
+
+	case 67: /* stp (r1, r2), O(R)!; stp (r1, r2), (R)O! */
+		v = int32(p.To.Offset)
+
+		if v < -512 || v > 504 {
+			ctxt.Diag("offset out of range\n%v", p)
+		}
+		if p.To.Type == D_XPOST {
+			o1 |= 1 << 23
+		} else {
+
+			o1 |= 3 << 23
+		}
+		o1 |= uint32(int64(2<<30|5<<27|((uint32(v)/8)&0x7f)<<15) | p.From.Offset<<10 | int64(uint32(p.To.Reg)<<5) | int64(p.From.Reg))
 
 		// This is supposed to be something that stops execution.
 	// It's not supposed to be reached, ever, but if it is, we'd

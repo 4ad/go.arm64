@@ -524,6 +524,13 @@ static Optab optab[] = {
 	{ AFMOVS, 	C_FREG,	C_NONE,	C_XPRE,		23, 4, 0 },
 	{ AFMOVD, 	C_FREG,	C_NONE,	C_XPRE,		23, 4, 0 },
 
+	/* pre/post-indexed load/store register pair
+	   (unscaled, signed 10-bit quad-aligned offset) */
+	{ ALDP,		C_XPRE, C_NONE, C_PAIR, 	66, 4, 0 },
+	{ ALDP,		C_XPOST, C_NONE, C_PAIR, 	66, 4, 0 },
+	{ ASTP,		C_PAIR, C_NONE, C_XPRE, 	67, 4, 0 },
+	{ ASTP,		C_PAIR, C_NONE, C_XPOST, 	67, 4, 0 },
+
 	/* special */
 	{ AMOV,		C_SPR,	C_NONE,	C_REG,		35, 4, 0 },
 	{ AMRS,		C_SPR,	C_NONE,	C_REG,		35, 4, 0 },
@@ -1070,6 +1077,8 @@ aclass(Link *ctxt, Addr *a)
 		return C_NONE;
 	case D_REG:
 		return C_REG;
+	case D_PAIR:
+		return C_PAIR;
 	case D_VREG:
 		return C_VREG;
 	case D_SP:
@@ -1634,6 +1643,8 @@ buildop(Link *ctxt)
 		case ATEXT:
 		case ACASE:
 		case ABCASE:
+		case ASTP:
+		case ALDP:
 			break;
 		case AERET:
 			oprange[ANOP] = t;
@@ -2675,6 +2686,27 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 		if(!o1)
 			break;
 		o2 = olsr12u(ctxt, opldr12(ctxt, p->as), 0, REGTMP, p->to.reg);
+		break;
+	case 66: /* ldp O(R)!, (r1, r2); ldp (R)O!, (r1, r2) */
+		v = p->from.offset;
+		if(v < -512 || v > 504)
+			ctxt->diag("offset out of range\n%P", p);
+		if(p->to.type == D_XPOST)
+			o1 |= 1 << 23;
+		else
+			o1 |= 3 << 23;
+		o1 |= 1 << 22;
+		o1 |= (2<<30) | (5<<27) | (((v/8)&0x7f)<<15) | (p->to.offset<<10) | (p->from.reg<<5) | p->to.reg;
+		break;
+	case 67: /* stp (r1, r2), O(R)!; stp (r1, r2), (R)O! */
+		v = p->to.offset;
+		if(v < -512 || v > 504)
+			ctxt->diag("offset out of range\n%P", p);
+		if(p->to.type == D_XPOST)
+			o1 |= 1 << 23;
+		else
+			o1 |= 3 << 23;
+		o1 |= (2<<30) | (5<<27) | (((v/8)&0x7f)<<15) | (p->from.offset<<10) | (p->to.reg<<5) | p->from.reg;
 		break;
 	case 90:
 		// This is supposed to be something that stops execution.

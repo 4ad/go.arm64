@@ -246,6 +246,9 @@ Dconv(Fmt *fp)
 		if(a->name != D_NONE || a->sym != nil)
 			sprint(str, "%M(R%d)(REG)", a, a->reg);
 		break;
+	case D_PAIR:
+		sprint(str, "(R%d, R%d)", a->reg, a->offset);
+		break;
 	case D_SP:
 		if(a->name != D_NONE || a->sym != nil)
 			sprint(str, "%M(R%d)(REG)", a, a->reg);

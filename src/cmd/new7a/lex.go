@@ -454,6 +454,8 @@ var lexinit = []asm.Lextab{
 	{"MOVW", LTYPE3, arm64.AMOVW},
 	{"MOVWU", LTYPE3, arm64.AMOVWU},
 	{"MOV", LTYPE3, arm64.AMOV},
+	{"STP", LTYPEX, arm64.ASTP},
+	{"LDP", LTYPEZ, arm64.ALDP},
 	{"MOVP", LTYPEJ, arm64.AMOVP},
 	{"MOVPD", LTYPEJ, arm64.AMOVPD},
 	{"MOVPQ", LTYPEJ, arm64.AMOVPQ},

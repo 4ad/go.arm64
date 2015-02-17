@@ -35,7 +35,7 @@
 %token	<sym>	LNAME LLAB LVAR
 %type	<lval>	con expr pointer offset sreg spreg
 %type	<lval>	scon indexreg vset vreglist
-%type	<addr>	addr rel reg freg vreg shift fcon frcon extreg vlane vaddr
+%type	<addr>	addr rel reg regreg freg vreg shift fcon frcon extreg vlane vaddr
 %type	<addr>	imm ximm name oreg nireg ioreg imsr spr cond sysarg
 %%
 prog:
@@ -419,6 +419,23 @@ inst:
 	{
 		outtcode($1, &$2, &$4, &$6);
 	}
+
+/*
+ * STP
+ */
+|	LTYPEX regreg ',' addr
+	{
+		outcode($1, &$2, NREG, &$4);
+	}
+
+/*
+ * LDP
+ */
+|	LTYPEZ addr ',' regreg
+	{
+		outcode($1, &$2, NREG, &$4);
+	}
+
 /*
  * END
  */
@@ -617,6 +634,15 @@ reg:
 		$$ = nullgen;
 		$$.type = D_SP;
 		$$.reg = REGSP;
+	}
+
+regreg:
+	'(' spreg ',' spreg ')'
+	{
+		$$ = nullgen;
+		$$.type = D_PAIR;
+		$$.reg = $2;
+		$$.offset = $4;
 	}
 
 shift:

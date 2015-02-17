@@ -93,6 +93,7 @@ const (
 const (
 	C_NONE = iota
 	C_REG
+	C_PAIR
 	C_RSP
 	C_SHIFT
 	C_EXTREG
@@ -255,6 +256,7 @@ const (
 	ALDAXRB
 	ALDAXRH
 	ALDAXRW
+	ALDP
 	ALDXR
 	ALDXRB
 	ALDXRH
@@ -348,6 +350,7 @@ const (
 	ASTLXRB
 	ASTLXRH
 	ASTLXRW
+	ASTP
 	ASUB
 	ASUBS
 	ASUBSW

@@ -104,6 +104,7 @@ var Anames = []string{
 	"LDAXRB",
 	"LDAXRH",
 	"LDAXRW",
+	"LDP",
 	"LDXR",
 	"LDXRB",
 	"LDXRH",
@@ -197,6 +198,7 @@ var Anames = []string{
 	"STLXRB",
 	"STLXRH",
 	"STLXRW",
+	"STP",
 	"SUB",
 	"SUBS",
 	"SUBSW",
@@ -393,6 +395,7 @@ var Anames = []string{
 var cnames7 = []string{
 	"NONE",
 	"REG",
+	"PAIR",
 	"RSP",
 	"SHIFT",
 	"EXTREG",

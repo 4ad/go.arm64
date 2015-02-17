@@ -247,6 +247,9 @@ func Dconv(p *obj.Prog, flag int, a *obj.Addr) string {
 			str = fmt.Sprintf("%v(R%d)(REG)", Mconv(a), a.Reg)
 		}
 
+	case D_PAIR:
+		str = fmt.Sprintf("(R%d, R%d)", a.Reg, a.Offset)
+
 	case D_SP:
 		if a.Name != D_NONE || a.Sym != nil {
 			str = fmt.Sprintf("%v(R%d)(REG)", Mconv(a), a.Reg)

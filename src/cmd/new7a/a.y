@@ -39,7 +39,7 @@ import (
 %token	<sym>	LNAME LLAB LVAR
 %type	<lval>	con expr pointer offset sreg spreg
 %type	<lval>	scon indexreg vset vreglist
-%type	<addr>	addr rel reg freg vreg shift fcon frcon extreg vlane vaddr
+%type	<addr>	addr rel reg regreg freg vreg shift fcon frcon extreg vlane vaddr
 %type	<addr>	imm ximm name oreg nireg ioreg imsr spr cond sysarg
 %%
 prog:
@@ -429,6 +429,20 @@ inst:
 		outtcode(int($1), &$2, &$4, &$6);
 	}
 /*
+ * STP
+ */
+|	LTYPEX regreg ',' addr
+	{
+		outcode(int($1), &$2, NREG, &$4);
+	}
+/*
+ * LDP
+ */
+|	LTYPEZ addr ',' regreg
+	{
+		outcode(int($1), &$2, NREG, &$4);
+	}
+/*
  * END
  */
 |	LTYPEE comma
@@ -627,6 +641,15 @@ reg:
 		$$ = nullgen;
 		$$.Type = D_SP;
 		$$.Reg = REGSP;
+	}
+
+regreg:
+	'(' spreg ',' spreg ')'
+	{
+		$$ = nullgen;
+		$$.Type = D_PAIR;
+		$$.Reg = int8($2);
+		$$.Offset = $4;
 	}
 
 shift:

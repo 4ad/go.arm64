@@ -102,6 +102,7 @@ enum cs
 {
 	C_NONE,
 	C_REG,
+	C_PAIR,		/* register pair */
 	C_RSP,		/* D_REG or D_SP */
 	C_SHIFT,		/* D_SHIFT: shift type, amount, value */
 	C_EXTREG,	/* D_EXTREG: reg, ext type, shift */
@@ -276,6 +277,7 @@ enum	as
 	ALDAXRB,
 	ALDAXRH,
 	ALDAXRW,
+	ALDP,
 	ALDXR,
 	ALDXRB,
 	ALDXRH,
@@ -369,6 +371,7 @@ enum	as
 	ASTLXRB,
 	ASTLXRH,
 	ASTLXRW,
+	ASTP,
 	ASUB,
 	ASUBS,
 	ASUBSW,
