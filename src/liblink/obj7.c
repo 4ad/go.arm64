@@ -103,14 +103,14 @@ settextflag(Prog *p, int f)
 }
 
 static short complements[] = {
-	[AADD]	ASUB,
-	[AADDW]	ASUBW,
-	[ASUB]	AADD,
-	[ASUBW]	AADDW,
-	[ACMP]	ACMN,
-	[ACMPW]	ACMNW,
-	[ACMN]	ACMP,
-	[ACMNW]	ACMPW,
+	[AADD]	= ASUB,
+	[AADDW]	= ASUBW,
+	[ASUB]	= AADD,
+	[ASUBW]	= AADDW,
+	[ACMP]	= ACMN,
+	[ACMPW]	= ACMNW,
+	[ACMN]	= ACMP,
+	[ACMNW]	= ACMPW,
 };
 
 static void
