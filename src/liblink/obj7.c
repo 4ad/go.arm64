@@ -348,7 +348,7 @@ addstacksplit(Link *ctxt, LSym *cursym)
 {
 	Prog *p;
 	Prog *q;
-	Prog *q1;
+	Prog *q1, *q2;
 	int o;
 	vlong textstksiz, textarg;
 	int32 aoffset;
@@ -490,6 +490,92 @@ addstacksplit(Link *ctxt, LSym *cursym)
 			q1->link = q->link;
 			q1->spadj = aoffset;
 			q->link = q1;
+
+			if(cursym->text->reg & WRAPPER) {
+				// if(g->panic != nil && g->panic->argp == FP) g->panic->argp = bottom-of-frame
+				//
+				//	MOV g_panic(g), R1
+				//	CMP $0, R1
+				//	BEQ end
+				//	MOV panic_argp(R0), R2
+				//	ADD $(autosize+8), RSP, R3
+				//	CMP R2, R3
+				//	BNE end
+				//	ADD $8, RSP, R4
+				//	MOVD R4, panic_argp(R1)
+				// end:
+				//	NOP
+				//
+				// The NOP is needed to give the jumps somewhere to land.
+				// It is a liblink NOP, not a ARM64 NOP: it encodes to 0 instruction bytes.
+				q = q1;
+				q = appendp(ctxt, q);
+				q->as = AMOV;
+				q->from.type = D_OREG;
+				q->from.reg = REGG;
+				q->from.offset = 4*ctxt->arch->ptrsize; // G.panic
+				q->to.type = D_REG;
+				q->to.reg = 1;
+
+				q = appendp(ctxt, q);
+				q->as = ACMP;
+				q->from.type = D_CONST;
+				q->from.offset = 0;
+				q->reg = 1;
+
+				q = appendp(ctxt, q);
+				q->as = ABEQ;
+				q->to.type = D_BRANCH;
+				q1 = q;
+
+				q = appendp(ctxt, q);
+				q->as = AMOV;
+				q->from.type = D_OREG;
+				q->from.reg = 1;
+				q->from.offset = 0; // Panic.argp
+				q->to.type = D_REG;
+				q->to.reg = 2;
+
+				q = appendp(ctxt, q);
+				q->as = AADD;
+				q->from.type = D_CONST;
+				q->from.offset = ctxt->autosize+8;
+				q->reg = REGSP;
+				q->to.type = D_REG;
+				q->to.reg = 3;
+
+				q = appendp(ctxt, q);
+				q->as = ACMP;
+				q->from.type = D_REG;
+				q->from.reg = 2;
+				q->reg = 3;
+
+				q = appendp(ctxt, q);
+				q->as = ABNE;
+				q->to.type = D_BRANCH;
+				q2 = q;
+
+				q = appendp(ctxt, q);
+				q->as = AADD;
+				q->from.type = D_CONST;
+				q->from.offset = 8;
+				q->reg = REGSP;
+				q->to.type = D_REG;
+				q->to.reg = 4;
+
+				q = appendp(ctxt, q);
+				q->as = AMOV;
+				q->from.type = D_REG;
+				q->from.reg = 4;
+				q->to.type = D_OREG;
+				q->to.reg = 1;
+				q->to.offset = 0; // Panic.argp
+
+				q = appendp(ctxt, q);
+				q->as = ANOP;
+				q1->pcond = q;
+				q2->pcond = q;
+			}
 			break;
 		case ARETURN:
 			nocache(p);
