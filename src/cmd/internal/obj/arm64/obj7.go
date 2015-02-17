@@ -374,6 +374,7 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 	var p *obj.Prog
 	var q *obj.Prog
 	var q1 *obj.Prog
+	var q2 *obj.Prog
 	var o int
 	var textstksiz int64
 	var textarg int64
@@ -537,6 +538,94 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 			q1.Link = q.Link
 			q1.Spadj = aoffset
 			q.Link = q1
+
+			if cursym.Text.Reg&obj.WRAPPER != 0 {
+				// if(g->panic != nil && g->panic->argp == FP) g->panic->argp = bottom-of-frame
+				//
+				//	MOV g_panic(g), R1
+				//	CMP $0, R1
+				//	BEQ end
+				//	MOV panic_argp(R0), R2
+				//	ADD $(autosize+8), RSP, R3
+				//	CMP R2, R3
+				//	BNE end
+				//	ADD $8, RSP, R4
+				//	MOVD R4, panic_argp(R1)
+				// end:
+				//	NOP
+				//
+				// The NOP is needed to give the jumps somewhere to land.
+				// It is a liblink NOP, not a ARM64 NOP: it encodes to 0 instruction bytes.
+				q = q1
+
+				q = obj.Appendp(ctxt, q)
+				q.As = AMOV
+				q.From.Type = D_OREG
+				q.From.Reg = REGG
+				q.From.Offset = 4 * int64(ctxt.Arch.Ptrsize) // G.panic
+				q.To.Type = D_REG
+				q.To.Reg = 1
+
+				q = obj.Appendp(ctxt, q)
+				q.As = ACMP
+				q.From.Type = D_CONST
+				q.From.Offset = 0
+				q.Reg = 1
+
+				q = obj.Appendp(ctxt, q)
+				q.As = ABEQ
+				q.To.Type = D_BRANCH
+				q1 = q
+
+				q = obj.Appendp(ctxt, q)
+				q.As = AMOV
+				q.From.Type = D_OREG
+				q.From.Reg = 1
+				q.From.Offset = 0 // Panic.argp
+				q.To.Type = D_REG
+				q.To.Reg = 2
+
+				q = obj.Appendp(ctxt, q)
+				q.As = AADD
+				q.From.Type = D_CONST
+				q.From.Offset = int64(ctxt.Autosize) + 8
+				q.Reg = REGSP
+				q.To.Type = D_REG
+				q.To.Reg = 3
+
+				q = obj.Appendp(ctxt, q)
+				q.As = ACMP
+				q.From.Type = D_REG
+				q.From.Reg = 2
+				q.Reg = 3
+
+				q = obj.Appendp(ctxt, q)
+				q.As = ABNE
+				q.To.Type = D_BRANCH
+				q2 = q
+
+				q = obj.Appendp(ctxt, q)
+				q.As = AADD
+				q.From.Type = D_CONST
+				q.From.Offset = 8
+				q.Reg = REGSP
+				q.To.Type = D_REG
+				q.To.Reg = 4
+
+				q = obj.Appendp(ctxt, q)
+				q.As = AMOV
+				q.From.Type = D_REG
+				q.From.Reg = 4
+				q.To.Type = D_OREG
+				q.To.Reg = 1
+				q.To.Offset = 0 // Panic.argp
+
+				q = obj.Appendp(ctxt, q)
+
+				q.As = ANOP
+				q1.Pcond = q
+				q2.Pcond = q
+			}
 
 		case ARETURN:
 			nocache(p)
