@@ -90,3 +90,33 @@ func (msghdr *Msghdr) SetControllen(length int) {
 func (cmsg *Cmsghdr) SetLen(length int) {
 	cmsg.Len = uint64(length)
 }
+
+// TODO(dfc) constants that should be in zsysnum_linux_arm64.go, remove these when the
+// depricated syscalls that the syscall package relies on are removed.
+const (
+	SYS_EPOLL_WAIT   = 1069
+	SYS_LINK         = 1025
+	SYS_MKDIR        = 1030
+	SYS_MKNOD        = 1027
+	SYS_INOTIFY_INIT = 1043
+	SYS_GETPGRP      = 1060
+	SYS_CREAT        = 1064
+	SYS_CHMOD        = 1028
+	SYS_PIPE         = 1040
+	SYS_UTIMES       = 1037
+	SYS_FUTIMESAT    = 1066
+	SYS_PAUSE        = 1061
+	SYS_READLINK     = 1035
+	SYS_RENAME       = 1034
+	SYS_RMDIR        = 1031
+	SYS_SYMLINK      = 1036
+	SYS_UNLINK       = 1026
+	SYS_USTAT        = 1070
+	SYS_UTIME        = 1063
+	SYS_CHOWN        = 1029
+	SYS_LCHOWN       = 1032
+	SYS_LSTAT        = 1050
+	SYS_SELECT       = 1067
+	SYS_STAT         = 1049
+	SYS_TIME         = 1062
+)
