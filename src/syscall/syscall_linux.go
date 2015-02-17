@@ -17,10 +17,8 @@ import "unsafe"
  * Wrapped
  */
 
-//sys	open(path string, mode int, perm uint32) (fd int, err error)
-
 func Open(path string, mode int, perm uint32) (fd int, err error) {
-	return open(path, mode|O_LARGEFILE, perm)
+	return openat(_AT_FDCWD, path, mode|O_LARGEFILE, perm)
 }
 
 //sys	openat(dirfd int, path string, flags int, mode uint32) (fd int, err error)
@@ -29,14 +27,12 @@ func Openat(dirfd int, path string, flags int, mode uint32) (fd int, err error) 
 	return openat(dirfd, path, flags|O_LARGEFILE, mode)
 }
 
-//sysnb	pipe(p *[2]_C_int) (err error)
-
 func Pipe(p []int) (err error) {
 	if len(p) != 2 {
 		return EINVAL
 	}
 	var pp [2]_C_int
-	err = pipe(&pp)
+	err = pipe2(&pp, 0)
 	p[0] = int(pp[0])
 	p[1] = int(pp[1])
 	return
@@ -783,7 +779,11 @@ func Mount(source string, target string, fstype string, flags uintptr, data stri
 /*
  * Direct access
  */
-//sys	Access(path string, mode uint32) (err error)
+
+func Access(path string, mode uint32) (err error) {
+	return Faccessat(_AT_FDCWD, path, mode, 0)
+}
+
 //sys	Acct(path string) (err error)
 //sys	Adjtimex(buf *Timex) (state int, err error)
 //sys	Chdir(path string) (err error)
@@ -792,12 +792,20 @@ func Mount(source string, target string, fstype string, flags uintptr, data stri
 //sys	Close(fd int) (err error)
 //sys	Creat(path string, mode uint32) (fd int, err error)
 //sysnb	Dup(oldfd int) (fd int, err error)
-//sysnb	Dup2(oldfd int, newfd int) (err error)
+
+func Dup2(oldfd int, newfd int) (err error) {
+	return Dup3(oldfd, newfd, 0)
+}
+
 //sysnb	Dup3(oldfd int, newfd int, flags int) (err error)
-//sysnb	EpollCreate(size int) (fd int, err error)
+
+func EpollCreate(size int) (fd int, err error) {
+	return EpollCreate1(0)
+}
+
 //sysnb	EpollCreate1(flag int) (fd int, err error)
 //sysnb	EpollCtl(epfd int, op int, fd int, event *EpollEvent) (err error)
-//sys	EpollWait(epfd int, events []EpollEvent, msec int) (n int, err error)
+//sys	EpollWait(epfd int, events []EpollEvent, msec int) (n int, err error) = SYS_EPOLL_PWAIT
 //sys	Exit(code int) = SYS_EXIT_GROUP
 //sys	Faccessat(dirfd int, path string, mode uint32, flags int) (err error)
 //sys	Fallocate(fd int, mode uint32, off int64, len int64) (err error)

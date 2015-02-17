@@ -200,28 +200,28 @@ TEXT runtime·sigtramp(SB),NOSPLIT,$64
 	// check that g exists
 	CMP	g, ZR
 	BNE	6(PC)
-	MOV	R3, 8(SP)
+	MOV	R3, 8(RSP)
 	MOV	$runtime·badsignal(SB), R0
 	BL	(R0)
 	RETURN
 
 	// save g
-	MOV	g, 40(SP)
+	MOV	g, 40(RSP)
 	MOV	g, R6
 
 	// g = m->gsignal
 	MOV	g_m(g), R7
 	MOV	m_gsignal(R7), g
 
-	MOVW	R3, 8(SP)
-	MOV	R4, 16(SP)
-	MOV	R5, 24(SP)
-	MOV	R6, 32(SP)
+	MOVW	R3, 8(RSP)
+	MOV	R4, 16(RSP)
+	MOV	R5, 24(RSP)
+	MOV	R6, 32(RSP)
 
 	BL	runtime·sighandler(SB)
 
 	// restore g
-	MOV	40(SP), g
+	MOV	40(RSP), g
 	RETURN
 
 TEXT runtime·mmap(SB),NOSPLIT,$-8
