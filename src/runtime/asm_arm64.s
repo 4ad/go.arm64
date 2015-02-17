@@ -11,7 +11,8 @@ DATA	runtime·main·f+0(SB)/8,$runtime·main(SB)
 GLOBL	runtime·main·f(SB),RODATA,$8
 
 TEXT runtime·breakpoint(SB),NOSPLIT,$-8-0
-	MOV	ZR, (ZR) // TODO: TD
+	MOV	$0, R0
+	MOV	R0, (R0) // TODO: TD
 	RETURN
 
 TEXT runtime·asminit(SB),NOSPLIT,$-8-0
@@ -234,8 +235,9 @@ nocgo:
 	// start this M
 	BL	runtime·mstart(SB)
 
-	MOV	$0, (ZR)
-	RETURN
+	MOV	$0, R0
+	MOV	R0, (R0)	// boom
+	UNDEF
 
 TEXT runtime·fastrand1(SB),NOSPLIT,$-8-4
 	MOV	g_m(g), R1
