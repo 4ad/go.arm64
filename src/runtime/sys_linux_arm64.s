@@ -197,14 +197,20 @@ TEXT runtime·rt_sigaction(SB),NOSPLIT,$-8-36
 	RETURN
 
 TEXT runtime·sigtramp(SB),NOSPLIT,$64
+	// this might be called in external code context,
+	// where g is not set.
+	// first save R0, because runtime·load_g will clobber it
+	MOVW	R0, 8(RSP)
+	// TODO(minux): iscgo & load_g
+
 	// check that g exists
 	CMP	g, ZR
-	BNE	6(PC)
-	MOV	R3, 8(RSP)
+	BNE	ok
 	MOV	$runtime·badsignal(SB), R0
 	BL	(R0)
 	RETURN
 
+ok:
 	// save g
 	MOV	g, 40(RSP)
 	MOV	g, R6
@@ -213,9 +219,9 @@ TEXT runtime·sigtramp(SB),NOSPLIT,$64
 	MOV	g_m(g), R7
 	MOV	m_gsignal(R7), g
 
-	MOVW	R3, 8(RSP)
-	MOV	R4, 16(RSP)
-	MOV	R5, 24(RSP)
+	// R0 is already saved above
+	MOV	R1, 16(RSP)
+	MOV	R2, 24(RSP)
 	MOV	R6, 32(RSP)
 
 	BL	runtime·sighandler(SB)
