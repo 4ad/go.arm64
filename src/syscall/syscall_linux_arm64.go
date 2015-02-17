@@ -7,6 +7,7 @@ package syscall
 //sys	Chown(path string, uid int, gid int) (err error)
 //sys	Fchown(fd int, uid int, gid int) (err error)
 //sys	Fstat(fd int, stat *Stat_t) (err error)
+//sys	Fstatat(fd int, path string, stat *Stat_t, flags int) (err error)
 //sys	Fstatfs(fd int, buf *Statfs_t) (err error)
 //sys	Ftruncate(fd int, length int64) (err error)
 //sysnb	Getegid() (egid int)
@@ -31,7 +32,10 @@ package syscall
 //sysnb	Setreuid(ruid int, euid int) (err error)
 //sys	Shutdown(fd int, how int) (err error)
 //sys	Splice(rfd int, roff *int64, wfd int, woff *int64, len int, flags int) (n int64, err error)
-//sys	Stat(path string, stat *Stat_t) (err error)
+func Stat(path string, stat *Stat_t) (err error) {
+	return Fstatat(_AT_FDCWD, path, stat, 0)
+}
+
 //sys	Statfs(path string, buf *Statfs_t) (err error)
 //sys	SyncFileRange(fd int, off int64, n int64, flags int) (err error) = SYS_SYNC_FILE_RANGE2
 //sys	Truncate(path string, length int64) (err error)
@@ -117,6 +121,5 @@ const (
 	SYS_LCHOWN       = 1032
 	SYS_LSTAT        = 1050
 	SYS_SELECT       = 1067
-	SYS_STAT         = 1049
 	SYS_TIME         = 1062
 )
