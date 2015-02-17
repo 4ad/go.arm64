@@ -105,7 +105,6 @@ const (
 	SYS_GETPGRP      = 1060
 	SYS_CREAT        = 1064
 	SYS_CHMOD        = 1028
-	SYS_PIPE         = 1040
 	SYS_UTIMES       = 1037
 	SYS_FUTIMESAT    = 1066
 	SYS_PAUSE        = 1061
