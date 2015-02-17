@@ -1971,19 +1971,22 @@ func newproc1(fn *funcval, argp *uint8, narg int32, nret int32, callerpc uintptr
 		throw("newproc1: new g is not Gdead")
 	}
 
-	sp := newg.stack.hi
-	sp -= 4 * regSize // extra space in case of reads slightly beyond frame
-	sp -= uintptr(siz)
-	memmove(unsafe.Pointer(sp), unsafe.Pointer(argp), uintptr(narg))
+	totalSize := 4*regSize + uintptr(siz) // extra space in case of reads slightly beyond frame
+	if hasLinkRegister {
+		totalSize += ptrSize
+	}
+	if totalSize%spAlign != 0 {
+		totalSize += spAlign
+		totalSize &= ^uintptr(spAlign - 1)
+	}
+	sp := newg.stack.hi - totalSize
+	spArg := sp
 	if hasLinkRegister {
 		// caller's LR
-		sp -= ptrSize
 		*(*unsafe.Pointer)(unsafe.Pointer(sp)) = nil
+		spArg += ptrSize
 	}
-	if sp%spAlign != 0 {
-		sp -= spAlign
-		sp &= ^uintptr(spAlign-1)
-	}
+	memmove(unsafe.Pointer(spArg), unsafe.Pointer(argp), uintptr(narg))
 
 	memclr(unsafe.Pointer(&newg.sched), unsafe.Sizeof(newg.sched))
 	newg.sched.sp = sp
