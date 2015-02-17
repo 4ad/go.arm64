@@ -51,9 +51,10 @@ func (c *sigctxt) fault() uint64     { return c.regs().fault_address }
 func (c *sigctxt) sigcode() uint64 { return uint64(c.info.si_code) }
 func (c *sigctxt) sigaddr() uint64 { return c.info.si_addr }
 
-func (c *sigctxt) set_pc(x uint64) { c.regs().pc = x }
-func (c *sigctxt) set_sp(x uint64) { c.regs().sp = x }
-func (c *sigctxt) set_lr(x uint64) { c.regs().regs[30] = x }
+func (c *sigctxt) set_pc(x uint64)  { c.regs().pc = x }
+func (c *sigctxt) set_sp(x uint64)  { c.regs().sp = x }
+func (c *sigctxt) set_lr(x uint64)  { c.regs().regs[30] = x }
+func (c *sigctxt) set_r28(x uint64) { c.regs().regs[28] = x }
 
 func (c *sigctxt) set_sigaddr(x uint64) {
 	*(*uintptr)(add(unsafe.Pointer(c.info), 2*ptrSize)) = uintptr(x)

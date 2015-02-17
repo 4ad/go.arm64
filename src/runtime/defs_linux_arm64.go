@@ -169,5 +169,7 @@ type ucontext struct {
 	uc_link     *ucontext
 	uc_stack    sigaltstackt
 	uc_sigmask  uint64
+	_pad        [(1024 - 64) / 8]byte
+	_pad2       [8]byte // sigcontext must be aligned to 16-byte
 	uc_mcontext sigcontext
 }
