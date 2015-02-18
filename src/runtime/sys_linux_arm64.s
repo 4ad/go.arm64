@@ -182,7 +182,8 @@ TEXT runtime·rtsigprocmask(SB),NOSPLIT,$-8-28
 	MOVW	size+24(FP), R3
 	MOV	$SYS_rt_sigprocmask, R8
 	SVC
-	BVC	done
+	CMN	$4095, R0
+	BCC	done
 	B	(ZR)	// crash
 done:
 	RETURN
@@ -249,7 +250,8 @@ TEXT runtime·munmap(SB),NOSPLIT,$-8
 	MOV	n+8(FP), R1
 	MOV	$SYS_munmap, R8
 	SVC
-	BVC	cool
+	CMN	$4095, R0
+	BCC	cool
 	MOV	R0, 0xf0(R0)
 cool:
 	RETURN
@@ -343,7 +345,8 @@ TEXT runtime·sigaltstack(SB),NOSPLIT,$-8
 	MOV	old+8(FP), R1
 	MOV	$SYS_sigaltstack, R8
 	SVC
-	BVC	ok
+	CMN	$4095, R0
+	BCC	ok
 	B	(ZR)  // crash
 ok:
 	RETURN
