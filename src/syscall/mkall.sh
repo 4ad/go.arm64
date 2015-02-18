@@ -184,7 +184,9 @@ linux_arm64)
 		exit 1
 	fi
 	mksysnum="./mksysnum_linux.pl $unistd_h"
-	mktypes="GOARCH=$GOARCH go tool cgo -godefs"
+	# Let the type of C char be singed for making the bare syscall
+	# API consistent across over platforms.
+	mktypes="GOARCH=$GOARCH go tool cgo -godefs -- -fsigned-char"
 	;;
 linux_ppc64)
 	GOOSARCH_in=syscall_linux_ppc64x.go
