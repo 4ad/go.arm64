@@ -785,8 +785,10 @@ func scanframe(frame *stkframe, unused unsafe.Pointer) bool {
 	// Scan local variables if stack frame has been allocated.
 	size := frame.varp - frame.sp
 	var minsize uintptr
-	if thechar != '6' && thechar != '8' {
+	if thechar != '6' && thechar != '7' && thechar != '8' {
 		minsize = ptrSize
+	} else if thechar == '7' {
+		minsize = spAlign
 	} else {
 		minsize = 0
 	}
