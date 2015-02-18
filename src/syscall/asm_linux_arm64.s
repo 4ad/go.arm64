@@ -6,7 +6,7 @@
 
 // func Syscall(trap int64, a1, a2, a3 int64) (r1, r2, err int64);
 
-TEXT	·Syscall(SB),NOSPLIT,$0-56
+TEXT ·Syscall(SB),NOSPLIT,$0-56
 	BL	runtime·entersyscall(SB)
 	MOV	a1+8(FP), R0
 	MOV	a2+16(FP), R1
@@ -21,6 +21,7 @@ TEXT	·Syscall(SB),NOSPLIT,$0-56
 	MOV	$-1, R4
 	MOV	R4, r1+32(FP)	// r1
 	MOV	ZR, r2+40(FP)	// r2
+	NEG	R0, R0
 	MOV	R0, err+48(FP)	// errno
 	BL	runtime·exitsyscall(SB)
 	RETURN
@@ -46,6 +47,7 @@ TEXT ·Syscall6(SB),NOSPLIT,$0-80
 	MOV	$-1, R4
 	MOV	R4, r1+56(FP)	// r1
 	MOV	ZR, r2+64(FP)	// r2
+	NEG	R0, R0
 	MOV	R0, err+72(FP)	// errno
 	BL	runtime·exitsyscall(SB)
 	RETURN
@@ -70,6 +72,7 @@ TEXT ·RawSyscall(SB),NOSPLIT,$0-56
 	MOV	$-1, R4
 	MOV	R4, r1+32(FP)	// r1
 	MOV	ZR, r2+40(FP)	// r2
+	NEG	R0, R0
 	MOV	ZR, err+48(FP)	// errno
 	RETURN
 ok:
@@ -92,6 +95,7 @@ TEXT ·RawSyscall6(SB),NOSPLIT,$0-80
 	MOV	$-1, R4
 	MOV	R4, r1+56(FP)	// r1
 	MOV	ZR, r2+64(FP)	// r2
+	NEG	R0, R0
 	MOV	R0, err+72(FP)	// errno
 	RETURN
 ok:
