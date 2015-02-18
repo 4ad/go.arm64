@@ -98,14 +98,16 @@ TEXT runtime·getrlimit(SB),NOSPLIT,$-8-20
 	RETURN
 
 TEXT runtime·usleep(SB),NOSPLIT,$16-4
-	MOVW	usec+0(FP), R3
+	MOVWU	usec+0(FP), R3
 	MOV	R3, R5
-	MOVW	$1000000000, R4
+	MOVW	$1000000, R4
 	UDIV	R4, R3
-	MOV	R3, 8(SP)
+	MOV	R3, 8(RSP)
 	MUL	R3, R4
 	SUB	R4, R5
-	MOV	R5, 16(SP)
+	MOVW	$1000, R4
+	MUL	R4, R5
+	MOV	R5, 16(RSP)
 
 	// pselect6(0, 0, 0, 0, &ts, 0)
 	MOV	$0, R0
@@ -145,27 +147,26 @@ TEXT runtime·mincore(SB),NOSPLIT,$-8-28
 	RETURN
 
 // func now() (sec int64, nsec int32)
-TEXT time·now(SB),NOSPLIT,$16
-	MOV	$0(SP), R0
+TEXT time·now(SB),NOSPLIT,$16-12
+	MOV	SP, R0
 	MOV	$0, R1
 	MOV	$SYS_gettimeofday, R8
 	SVC
-	MOV	0(SP), R3	// sec
-	MOV	8(SP), R5	// usec
+	MOV	0(RSP), R3	// sec
+	MOV	8(RSP), R5	// usec
 	MOV	$1000, R4
 	MUL	R4, R5
 	MOV	R3, sec+0(FP)
 	MOVW	R5, nsec+8(FP)
 	RETURN
 
-TEXT runtime·nanotime(SB),NOSPLIT,$16
+TEXT runtime·nanotime(SB),NOSPLIT,$16-8
 	MOVW	$1, R0 // CLOCK_MONOTONIC
-//	MOV	$0(SP), R1
 	MOV	SP, R1
 	MOV	$SYS_clock_gettime, R8
 	SVC
-	MOV	0(SP), R3	// sec
-	MOV	8(SP), R5	// nsec
+	MOV	0(RSP), R3	// sec
+	MOV	8(RSP), R5	// nsec
 	// sec is in R3, nsec in R5
 	// return nsec in R3
 	MOV	$1000000000, R4
