@@ -641,7 +641,7 @@ TEXT runtime·setg(SB), NOSPLIT, $0-8
 // Note: can't just "B NAME(SB)" - bad inlining results.
 
 TEXT reflect·call(SB), NOSPLIT, $0-0
-	BL	·reflectcall(SB)
+	B	·reflectcall(SB)
 
 TEXT ·reflectcall(SB), NOSPLIT, $-8-32
 	MOVWU argsize+24(FP), R16
