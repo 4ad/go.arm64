@@ -36,7 +36,7 @@
 
 enum
 {
-	STRINGSZ = 200,
+	STRINGSZ = 1000,
 };
 
 static int Pconv(Fmt*);
