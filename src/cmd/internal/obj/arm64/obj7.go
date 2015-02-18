@@ -99,6 +99,169 @@ var complements = []int16{
 	ACMNW: ACMPW,
 }
 
+func stacksplit(ctxt *obj.Link, p *obj.Prog, framesize int32, noctxt int) *obj.Prog {
+	var q *obj.Prog
+	var q1 *obj.Prog
+
+	// MOV	g_stackguard(g), R1
+	p = obj.Appendp(ctxt, p)
+
+	p.As = AMOV
+	p.From.Type = D_OREG
+	p.From.Reg = REGG
+	p.From.Offset = 2 * int64(ctxt.Arch.Ptrsize) // G.stackguard0
+	if ctxt.Cursym.Cfunc != 0 {
+		p.From.Offset = 3 * int64(ctxt.Arch.Ptrsize) // G.stackguard1
+	}
+	p.To.Type = D_REG
+	p.To.Reg = 1
+
+	q = nil
+	if framesize <= obj.StackSmall {
+		// small stack: SP < stackguard
+		//	MOV	SP, R2
+		//	CMP	stackguard, R2
+		p = obj.Appendp(ctxt, p)
+
+		p.As = AMOV
+		p.From.Type = D_SP
+		p.From.Reg = REGSP
+		p.To.Type = D_REG
+		p.To.Reg = 2
+
+		p = obj.Appendp(ctxt, p)
+		p.As = ACMP
+		p.From.Type = D_REG
+		p.From.Reg = 1
+		p.Reg = 2
+	} else if framesize <= obj.StackBig {
+		// large stack: SP-framesize < stackguard-StackSmall
+		//	ADD	$-framesize(SP), R2
+		//	CMP	stackguard, R2
+		p = obj.Appendp(ctxt, p)
+
+		p.As = AADD
+		p.From.Type = D_CONST
+		p.From.Offset = int64(-framesize)
+		p.Reg = REGSP
+		p.To.Type = D_REG
+		p.To.Reg = 2
+
+		p = obj.Appendp(ctxt, p)
+		p.As = ACMP
+		p.From.Type = D_REG
+		p.From.Reg = 1
+		p.Reg = 2
+	} else {
+
+		// Such a large stack we need to protect against wraparound
+		// if SP is close to zero.
+		//	SP-stackguard+StackGuard < framesize + (StackGuard-StackSmall)
+		// The +StackGuard on both sides is required to keep the left side positive:
+		// SP is allowed to be slightly below stackguard. See stack.h.
+		//	CMP	$StackPreempt, R1
+		//	BEQ	label_of_call_to_morestack
+		//	ADD	$StackGuard, SP, R2
+		//	SUB	R1, R2
+		//	MOV	$(framesize+(StackGuard-StackSmall)), R3
+		//	CMP	R3, R2
+		p = obj.Appendp(ctxt, p)
+
+		p.As = ACMP
+		p.From.Type = D_CONST
+		p.From.Offset = obj.StackPreempt
+		p.Reg = 1
+
+		p = obj.Appendp(ctxt, p)
+		q = p
+		p.As = ABEQ
+		p.To.Type = D_BRANCH
+
+		p = obj.Appendp(ctxt, p)
+		p.As = AADD
+		p.From.Type = D_CONST
+		p.From.Offset = obj.StackGuard
+		p.Reg = REGSP
+		p.To.Type = D_REG
+		p.To.Reg = 2
+
+		p = obj.Appendp(ctxt, p)
+		p.As = ASUB
+		p.From.Type = D_REG
+		p.From.Reg = 1
+		p.To.Type = D_REG
+		p.To.Reg = 2
+
+		p = obj.Appendp(ctxt, p)
+		p.As = AMOV
+		p.From.Type = D_CONST
+		p.From.Offset = int64(framesize) + (obj.StackGuard - obj.StackSmall)
+		p.To.Type = D_REG
+		p.To.Reg = 3
+
+		p = obj.Appendp(ctxt, p)
+		p.As = ACMP
+		p.From.Type = D_REG
+		p.From.Reg = 3
+		p.Reg = 2
+	}
+
+	// BHI	done
+	p = obj.Appendp(ctxt, p)
+	q1 = p
+
+	p.As = ABHI
+	p.To.Type = D_BRANCH
+
+	// MOV	LR, R3
+	p = obj.Appendp(ctxt, p)
+
+	p.As = AMOV
+	p.From.Type = D_REG
+	p.From.Reg = REGLINK
+	p.To.Type = D_REG
+	p.To.Reg = 3
+	if q != nil {
+		q.Pcond = p
+	}
+
+	// only for debug
+	p = obj.Appendp(ctxt, p)
+
+	p.As = AMOV
+	p.From.Type = D_CONST
+	p.From.Offset = int64(framesize)
+	p.To.Type = D_REG
+	p.To.Reg = REGTMP
+
+	// BL	runtime.morestack(SB)
+	p = obj.Appendp(ctxt, p)
+
+	p.As = ABL
+	p.To.Type = D_BRANCH
+	if ctxt.Cursym.Cfunc != 0 {
+		p.To.Sym = obj.Linklookup(ctxt, "runtime.morestackc", 0)
+	} else {
+
+		p.To.Sym = ctxt.Symmorestack[noctxt]
+	}
+
+	// B	start
+	p = obj.Appendp(ctxt, p)
+
+	p.As = AB
+	p.To.Type = D_BRANCH
+	p.Pcond = ctxt.Cursym.Text.Link
+
+	// placeholder for q1's jump target
+	p = obj.Appendp(ctxt, p)
+
+	p.As = ANOP
+	q1.Pcond = p
+
+	return p
+}
+
 func progedit(ctxt *obj.Link, p *obj.Prog) {
 	var literal string
 	var s *obj.LSym
@@ -498,7 +661,12 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 				cursym.Text.Mark |= LEAF
 			}
 
+			if !(p.Reg&obj.NOSPLIT != 0) {
+				p = stacksplit(ctxt, p, ctxt.Autosize, bool2int(!(cursym.Text.Reg&obj.NEEDCTXT != 0))) // emit split check
+			}
+
 			aoffset = ctxt.Autosize
+
 			if aoffset > 0xF0 {
 				aoffset = 0xF0
 			}
