@@ -7,85 +7,85 @@
 #include "textflag.h"
 
 TEXT ·Asin(SB),NOSPLIT,$0
-	BL ·asin(SB)
+	B ·asin(SB)
 
 TEXT ·Acos(SB),NOSPLIT,$0
-	BL ·acos(SB)
+	B ·acos(SB)
 
 TEXT ·Atan2(SB),NOSPLIT,$0
-	BL ·atan2(SB)
+	B ·atan2(SB)
 
 TEXT ·Atan(SB),NOSPLIT,$0
-	BL ·atan(SB)
+	B ·atan(SB)
 
 TEXT ·Dim(SB),NOSPLIT,$0
-	BL ·dim(SB)
+	B ·dim(SB)
 
 TEXT ·Min(SB),NOSPLIT,$0
-	BL ·min(SB)
+	B ·min(SB)
 
 TEXT ·Max(SB),NOSPLIT,$0
-	BL ·max(SB)
+	B ·max(SB)
 
 TEXT ·Exp2(SB),NOSPLIT,$0
-	BL ·exp2(SB)
+	B ·exp2(SB)
 
 TEXT ·Expm1(SB),NOSPLIT,$0
-	BL ·expm1(SB)
+	B ·expm1(SB)
 
 TEXT ·Exp(SB),NOSPLIT,$0
-	BL ·exp(SB)
+	B ·exp(SB)
 
 TEXT ·Floor(SB),NOSPLIT,$0
-	BL ·floor(SB)
+	B ·floor(SB)
 
 TEXT ·Ceil(SB),NOSPLIT,$0
-	BL ·ceil(SB)
+	B ·ceil(SB)
 
 TEXT ·Trunc(SB),NOSPLIT,$0
-	BL ·trunc(SB)
+	B ·trunc(SB)
 
 TEXT ·Frexp(SB),NOSPLIT,$0
-	BL ·frexp(SB)
+	B ·frexp(SB)
 
 TEXT ·Hypot(SB),NOSPLIT,$0
-	BL ·hypot(SB)
+	B ·hypot(SB)
 
 TEXT ·Ldexp(SB),NOSPLIT,$0
-	BL ·ldexp(SB)
+	B ·ldexp(SB)
 
 TEXT ·Log10(SB),NOSPLIT,$0
-	BL ·log10(SB)
+	B ·log10(SB)
 
 TEXT ·Log2(SB),NOSPLIT,$0
-	BL ·log2(SB)
+	B ·log2(SB)
 
 TEXT ·Log1p(SB),NOSPLIT,$0
-	BL ·log1p(SB)
+	B ·log1p(SB)
 
 TEXT ·Log(SB),NOSPLIT,$0
-	BL ·log(SB)
+	B ·log(SB)
 
 TEXT ·Modf(SB),NOSPLIT,$0
-	BL ·modf(SB)
+	B ·modf(SB)
 
 TEXT ·Mod(SB),NOSPLIT,$0
-	BL ·mod(SB)
+	B ·mod(SB)
 
 TEXT ·Remainder(SB),NOSPLIT,$0
-	BL ·remainder(SB)
+	B ·remainder(SB)
 
 TEXT ·Sincos(SB),NOSPLIT,$0
-	BL ·sincos(SB)
+	B ·sincos(SB)
 
 TEXT ·Sin(SB),NOSPLIT,$0
-	BL ·sin(SB)
+	B ·sin(SB)
 
 TEXT ·Cos(SB),NOSPLIT,$0
-	BL ·cos(SB)
+	B ·cos(SB)
 
 TEXT ·Sqrt(SB),NOSPLIT,$0
-	BL ·sqrt(SB)
+	B ·sqrt(SB)
 
 TEXT ·Tan(SB),NOSPLIT,$0
-	BL ·tan(SB)
+	B ·tan(SB)
