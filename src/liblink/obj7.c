@@ -36,6 +36,7 @@
 #include "../runtime/stack.h"
 
 void addstacksplit(Link*, LSym*);
+static	Prog*	stacksplit(Link*, Prog*, int32, int);
 static void nocache(Prog*);
 static int relinv(int);
 static void xfol(Link *, Prog *, Prog **);
@@ -112,6 +113,153 @@ static short complements[] = {
 	[ACMN]	= ACMP,
 	[ACMNW]	= ACMPW,
 };
+
+static Prog*
+stacksplit(Link *ctxt, Prog *p, int32 framesize, int noctxt)
+{
+	Prog *q, *q1;
+
+	// MOV	g_stackguard(g), R1
+	p = appendp(ctxt, p);
+	p->as = AMOV;
+	p->from.type = D_OREG;
+	p->from.reg = REGG;
+	p->from.offset = 2*ctxt->arch->ptrsize;	// G.stackguard0
+	if(ctxt->cursym->cfunc)
+		p->from.offset = 3*ctxt->arch->ptrsize;	// G.stackguard1
+	p->to.type = D_REG;
+	p->to.reg = 1;
+
+	q = nil;
+	if(framesize <= StackSmall) {
+		// small stack: SP < stackguard
+		//	MOV	SP, R2
+		//	CMP	stackguard, R2
+		p = appendp(ctxt, p);
+		p->as = AMOV;
+		p->from.type = D_SP;
+		p->from.reg = REGSP;
+		p->to.type = D_REG;
+		p->to.reg = 2;
+
+		p = appendp(ctxt, p);
+		p->as = ACMP;
+		p->from.type = D_REG;
+		p->from.reg = 1;
+		p->reg = 2;
+	} else if(framesize <= StackBig) {
+		// large stack: SP-framesize < stackguard-StackSmall
+		//	ADD	$-framesize(SP), R2
+		//	CMP	stackguard, R2
+		p = appendp(ctxt, p);
+		p->as = AADD;
+		p->from.type = D_CONST;
+		p->from.offset = -framesize;
+		p->reg = REGSP;
+		p->to.type = D_REG;
+		p->to.reg = 2;
+
+		p = appendp(ctxt, p);
+		p->as = ACMP;
+		p->from.type = D_REG;
+		p->from.reg = 1;
+		p->reg = 2;
+	} else {
+		// Such a large stack we need to protect against wraparound
+		// if SP is close to zero.
+		//	SP-stackguard+StackGuard < framesize + (StackGuard-StackSmall)
+		// The +StackGuard on both sides is required to keep the left side positive:
+		// SP is allowed to be slightly below stackguard. See stack.h.
+		//	CMP	$StackPreempt, R1
+		//	BEQ	label_of_call_to_morestack
+		//	ADD	$StackGuard, SP, R2
+		//	SUB	R1, R2
+		//	MOV	$(framesize+(StackGuard-StackSmall)), R3
+		//	CMP	R3, R2
+		p = appendp(ctxt, p);
+		p->as = ACMP;
+		p->from.type = D_CONST;
+		p->from.offset = StackPreempt;
+		p->reg = 1;
+
+		q = p = appendp(ctxt, p);
+		p->as = ABEQ;
+		p->to.type = D_BRANCH;
+
+		p = appendp(ctxt, p);
+		p->as = AADD;
+		p->from.type = D_CONST;
+		p->from.offset = StackGuard;
+		p->reg = REGSP;
+		p->to.type = D_REG;
+		p->to.reg = 2;
+
+		p = appendp(ctxt, p);
+		p->as = ASUB;
+		p->from.type = D_REG;
+		p->from.reg = 1;
+		p->to.type = D_REG;
+		p->to.reg = 2;
+
+		p = appendp(ctxt, p);
+		p->as = AMOV;
+		p->from.type = D_CONST;
+		p->from.offset = framesize + (StackGuard - StackSmall);
+		p->to.type = D_REG;
+		p->to.reg = 3;
+
+		p = appendp(ctxt, p);
+		p->as = ACMP;
+		p->from.type = D_REG;
+		p->from.reg = 3;
+		p->reg = 2;
+	}
+
+	// BHI	done
+	q1 = p = appendp(ctxt, p);
+	p->as = ABHI;
+	p->to.type = D_BRANCH;
+
+	// MOV	LR, R3
+	p = appendp(ctxt, p);
+	p->as = AMOV;
+	p->from.type = D_REG;
+	p->from.reg = REGLINK;
+	p->to.type = D_REG;
+	p->to.reg = 3;
+	if(q)
+		q->pcond = p;
+
+// only for debug
+p = appendp(ctxt, p);
+p->as = AMOV;
+p->from.type = D_CONST;
+p->from.offset = framesize;
+p->to.type = D_REG;
+p->to.reg = REGTMP;
+
+	// BL	runtime.morestack(SB)
+	p = appendp(ctxt, p);
+	p->as = ABL;
+	p->to.type = D_BRANCH;
+	if(ctxt->cursym->cfunc)
+		p->to.sym = linklookup(ctxt, "runtime.morestackc", 0);
+	else
+		p->to.sym = ctxt->symmorestack[noctxt];
+
+	// B	start
+	p = appendp(ctxt, p);
+	p->as = AB;
+	p->to.type = D_BRANCH;
+	p->pcond = ctxt->cursym->text->link;
+
+	// placeholder for q1's jump target
+	p = appendp(ctxt, p);
+	p->as = ANOP;
+	q1->pcond = p;
+
+	return p;
+}
 
 static void
 progedit(Link *ctxt, Prog *p)
@@ -455,6 +603,10 @@ addstacksplit(Link *ctxt, LSym *cursym)
 				Bflush(ctxt->bso);
 				cursym->text->mark |= LEAF;
 			}
+
+			if(!(p->reg & NOSPLIT))
+				p = stacksplit(ctxt, p, ctxt->autosize, !(cursym->text->reg&NEEDCTXT)); // emit split check
+
 			aoffset = ctxt->autosize;
 			if(aoffset > 0xF0)
 				aoffset = 0xF0;
