@@ -26,7 +26,7 @@ func rewindmorestack(buf *gobuf) {
 		inst = *(*uint32)(unsafe.Pointer(buf.pc))
 		// section C3.2.6 Unconditional branch (immediate)
 		if inst>>26 == 0x05 {
-			buf.pc += uintptr(int32(inst<<6)>>4) + 8
+			buf.pc += uintptr(int32(inst<<6)>>4)
 			return
 		}
 	}
