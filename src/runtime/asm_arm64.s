@@ -899,6 +899,54 @@ TEXT runtime·prefetcht2(SB),NOSPLIT,$0-8
 TEXT runtime·prefetchnta(SB),NOSPLIT,$0-8
 	RETURN
 
-// TODO(aram):
+// Called during function prolog when more stack is needed.
+// Caller has already loaded:
+// R3 prolog's LR (R30)
+//
+// The traceback routines see morestack on a g0 as being
+// the top of a stack (for example, morestack calling newstack
+// calling the scheduler calling newm calling gc), so we must
+// record an argument size. For that purpose, it has no arguments.
 TEXT runtime·morestack(SB),NOSPLIT,$-8-0
-	RET
+	// Cannot grow scheduler stack (m->g0).
+	MOV	g_m(g), R8
+	MOV	m_g0(R8), R4
+	CMP	g, R4
+	BNE	2(PC)
+	B	runtime·abort(SB)
+
+	// Cannot grow signal stack (m->gsignal).
+	MOV	m_gsignal(R8), R4
+	CMP	g, R4
+	BNE	2(PC)
+	B	runtime·abort(SB)
+
+	// Called from f.
+	// Set g->sched to context in f
+	MOV	R26, (g_sched+gobuf_ctxt)(g)
+	MOV	SP, R0
+	MOV	R0, (g_sched+gobuf_sp)(g)
+	MOV	LR, (g_sched+gobuf_pc)(g)
+	MOV	R3, (g_sched+gobuf_lr)(g)
+
+	// Called from f.
+	// Set m->morebuf to f's callers.
+	MOV	R3, (m_morebuf+gobuf_pc)(R8)	// f's caller's PC
+	MOV	SP, R0
+	MOV	R0, (m_morebuf+gobuf_sp)(R8)	// f's caller's SP
+	MOV	g, (m_morebuf+gobuf_g)(R8)
+
+	// Call newstack on m->g0's stack.
+	MOV	m_g0(R8), g
+	BL	runtime·save_g(SB)
+	MOV	(g_sched+gobuf_sp)(g), R0
+	MOV	R0, SP
+	BL	runtime·newstack(SB)
+
+	// Not reached, but make sure the return PC from the call to newstack
+	// is still in this function, and not the beginning of the next.
+	UNDEF
+
+TEXT runtime·morestack_noctxt(SB),NOSPLIT,$-4-0
+	MOVW	$0, R26
+	B runtime·morestack(SB)
