@@ -11,7 +11,7 @@
 // No arg size here, runtime pulls arg map out of the func value.
 TEXT ·makeFuncStub(SB),(NOSPLIT|WRAPPER),$16
 	NO_LOCAL_POINTERS
-	MOV	R11, 8(SP)
+	MOV	R26, 8(SP)
 	MOV	$argframe+0(FP), R3
 	MOV	R3, 16(SP)
 	BL	·callReflect(SB)
@@ -23,7 +23,7 @@ TEXT ·makeFuncStub(SB),(NOSPLIT|WRAPPER),$16
 // No arg size here; runtime pulls arg map out of the func value.
 TEXT ·methodValueCall(SB),(NOSPLIT|WRAPPER),$16
 	NO_LOCAL_POINTERS
-	MOV	R11, 8(SP)
+	MOV	R26, 8(SP)
 	MOV	$argframe+0(FP), R3
 	MOV	R3, 16(SP)
 	BL	·callMethod(SB)
