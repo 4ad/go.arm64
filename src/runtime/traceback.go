@@ -341,6 +341,11 @@ func gentraceback(pc0 uintptr, sp0 uintptr, lr0 uintptr, gp *g, skip int, pcbuf 
 		if usesLR && waspanic {
 			x := *(*uintptr)(unsafe.Pointer(frame.sp))
 			frame.sp += ptrSize
+			if GOARCH == "arm64" {
+				// arm64 needs 16-byte aligned SP, always
+				// NOTE: can we just use spAlign always?
+				frame.sp += ptrSize
+			}
 			f = findfunc(frame.pc)
 			frame.fn = f
 			if f == nil {
