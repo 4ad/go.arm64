@@ -892,7 +892,12 @@ func Setgid(uid int) (err error) {
 
 //sys	Setpriority(which int, who int, prio int) (err error)
 //sys	Setxattr(path string, attr string, data []byte, flags int) (err error)
-//sys	Symlink(oldpath string, newpath string) (err error)
+//sys	symlinkat(oldpath string, newdirfd int, newpath string) (err error)
+
+func Symlink(oldpath string, newpath string) (err error) {
+	return symlinkat(oldpath, _AT_FDCWD, newpath)
+}
+
 //sys	Sync()
 //sysnb	Sysinfo(info *Sysinfo_t) (err error)
 //sys	Tee(rfd int, wfd int, len int, flags int) (n int64, err error)
