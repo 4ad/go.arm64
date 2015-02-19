@@ -15,7 +15,7 @@ TEXT runtime·memmove(SB), NOSPLIT, $-8-24
 
 check:
 	CMP	R3, R4
-	BGT	backward
+	BLT	backward
 
 	ADD	R3, R5
 loop:
