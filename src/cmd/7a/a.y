@@ -39,7 +39,11 @@
 %type	<addr>	imm ximm name oreg nireg ioreg imsr spr cond sysarg
 %%
 prog:
-|	prog line
+|	prog
+	{
+		stmtline = lineno;
+	}
+	line
 
 line:
 |	LNAME ':'
@@ -846,7 +850,7 @@ name:
 		$$ = nullgen;
 		$$.type = D_OREG;
 		$$.name = D_STATIC;
-		$$.sym = linklookup(ctxt, $1->name, 0);
+		$$.sym = linklookup(ctxt, $1->name, 1);
 		$$.offset = $4;
 	}
 

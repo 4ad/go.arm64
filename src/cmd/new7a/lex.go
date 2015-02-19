@@ -9,8 +9,9 @@ import (
 )
 
 var (
-	yyerror = asm.Yyerror
-	nullgen obj.Addr
+	yyerror  = asm.Yyerror
+	nullgen  obj.Addr
+	stmtline int32
 )
 
 func main() {
@@ -630,7 +631,7 @@ func outcode(a int, g1 *obj.Addr, reg int, g2 *obj.Addr) {
 
 	p = asm.Ctxt.NewProg()
 	p.As = int16(a)
-	p.Lineno = asm.Lineno
+	p.Lineno = stmtline
 	if nosched != 0 {
 		p.Mark |= arm64.NOSCHED
 	}
@@ -664,7 +665,7 @@ func outgcode(a int, g1 *obj.Addr, reg int, g2 *obj.Addr, g3 *obj.Addr) {
 
 	p = asm.Ctxt.NewProg()
 	p.As = int16(a)
-	p.Lineno = asm.Lineno
+	p.Lineno = stmtline
 	if nosched != 0 {
 		p.Mark |= arm64.NOSCHED
 	}
@@ -697,7 +698,7 @@ func outtcode(a int, from *obj.Addr, to *obj.Addr, to3 *obj.Addr) {
 	}
 	p = asm.Ctxt.NewProg()
 	p.As = int16(a)
-	p.Lineno = asm.Lineno
+	p.Lineno = stmtline
 	if nosched != 0 {
 		p.Mark |= arm64.NOSCHED
 	}

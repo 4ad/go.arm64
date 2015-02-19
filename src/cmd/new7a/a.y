@@ -43,7 +43,11 @@ import (
 %type	<addr>	imm ximm name oreg nireg ioreg imsr spr cond sysarg
 %%
 prog:
-|	prog line
+|	prog
+	{
+		stmtline = asm.Lineno
+	}
+	line
 
 line:
 |	LNAME ':'
@@ -857,7 +861,7 @@ name:
 		$$ = nullgen;
 		$$.Type = D_OREG;
 		$$.Name = D_STATIC;
-		$$.Sym = obj.Linklookup(asm.Ctxt, $1.Name, 0);
+		$$.Sym = obj.Linklookup(asm.Ctxt, $1.Name, 1);
 		$$.Offset = $4;
 	}
 
