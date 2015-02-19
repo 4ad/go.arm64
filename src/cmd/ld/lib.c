@@ -594,12 +594,14 @@ hostlink(void)
 		argv[argc++] = "-m32";
 		break;
 	case '6':
-	case '7':
 	case '9':
 		argv[argc++] = "-m64";
 		break;
 	case '5':
 		argv[argc++] = "-marm";
+		break;
+	case '7':
+		// nothing needed
 		break;
 	}
 	if(!debug['s'] && !debug_s) {

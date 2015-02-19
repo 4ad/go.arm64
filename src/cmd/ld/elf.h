@@ -585,6 +585,11 @@ typedef struct {
 #define	R_ARM_COUNT		38	/* Count of defined relocation types. */
 
 
+#define R_AARCH64_ABS64		257
+#define R_AARCH64_ABS32		258
+#define R_AARCH64_CALL26	283
+
+
 #define	R_386_NONE	0	/* No relocation. */
 #define	R_386_32	1	/* Add symbol value. */
 #define	R_386_PC32	2	/* Add PC-relative symbol value. */
