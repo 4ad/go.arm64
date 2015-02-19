@@ -950,3 +950,78 @@ TEXT runtime·morestack(SB),NOSPLIT,$-8-0
 TEXT runtime·morestack_noctxt(SB),NOSPLIT,$-4-0
 	MOVW	$0, R26
 	B runtime·morestack(SB)
+
+
+//
+// functions for other packages
+//
+
+TEXT bytes·IndexByte(SB),NOSPLIT,$0
+	MOV	b+0(FP), R0
+	MOV	b_len+8(FP), R1
+	MOVBU	c+24(FP), R2	// byte to find
+	MOV	R0, R4		// store base for later
+	ADD	R0, R1		// end
+loop:
+	CMP	R0, R1
+	BEQ	notfound
+	MOVBU	(R0)1!, R3
+	CMP	R2, R3
+	BNE	loop
+
+	SUB	$1, R0		// R0 will be one beyond the position we want
+	SUB	R4, R0		// remove base
+	MOV	R0, ret+32(FP)
+	RETURN
+
+notfound:
+	MOV	$-1, R0
+	MOV	R0, ret+32(FP)
+	RETURN
+
+// TODO: share code with memeq?
+TEXT bytes·Equal(SB),NOSPLIT,$0
+	MOV	a_len+8(FP), R1
+	MOV	b_len+32(FP), R3
+	CMP	R1, R3		// unequal lengths are not equal
+	BNE	notequal
+	MOV	a+0(FP), R0
+	MOV	b+24(FP), R2
+	ADD	R0, R1		// end
+loop:
+	CMP	R0, R1
+	BEQ	equal		// reaches the end
+	MOVBU	(R0)1!, R4
+	MOVBU	(R2)1!, R5
+	CMP	R4, R5
+	BEQ	loop
+notequal:
+	MOVB	ZR, ret+48(FP)
+	RETURN
+equal:
+	MOV	$1, R0
+	MOVB	R0, ret+48(FP)
+	RETURN
+
+TEXT strings·IndexByte(SB),NOSPLIT,$0
+	MOV	s+0(FP), R0
+	MOV	s_len+8(FP), R1
+	MOVBU	c+16(FP), R2	// byte to find
+	MOV	R0, R4		// store base for later
+	ADD	R0, R1		// end
+loop:
+	CMP	R0, R1
+	BEQ	notfound
+	MOVBU	(R0)1!, R3
+	CMP	R2, R3
+	BNE	loop
+
+	SUB	$1, R0		// R0 will be one beyond the position we want
+	SUB	R4, R0		// remove base
+	MOV	R0, ret+24(FP)
+	RETURN
+
+notfound:
+	MOV	$-1, R0
+	MOV	R0, ret+24(FP)
+	RETURN
