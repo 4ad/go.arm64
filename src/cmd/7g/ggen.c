@@ -930,7 +930,7 @@ clearfat(Node *nl)
 		f = sysfunc("duffzero");
 		p = gins(ADUFFZERO, N, f);
 		afunclit(&p->to, f);
-		// 4 and 128 = magic constants: see ../../runtime/asm_ppc64x.s
+		// 4 and 128 = magic constants: see ../../runtime/asm_arm64.s
 		p->to.offset = 4*(128-q);
 		// duffzero leaves R16 on the last zeroed dword
 		boff = 8;
