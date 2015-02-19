@@ -970,7 +970,7 @@ expandchecks(Prog *firstp)
 		// check is
 		//	CMP arg, ZR
 		//	BNE 2(PC) [likely]
-		//	MOV arg, 0(ZR)
+		//	MOV ZR, 0(arg)
 		p1 = mal(sizeof *p1);
 		p2 = mal(sizeof *p2);
 		clearp(p1);
@@ -989,10 +989,13 @@ expandchecks(Prog *firstp)
 		//p1->from.offset = 1; // likely
 		p1->to.type = D_BRANCH;
 		p1->to.u.branch = p2->link;
-		// crash by jumping to memory address 0.
-		p2->as = AB;
+		// We cannot crash by jumping to memory address 0, that will
+		// destroy the current PC which is vital to the backtracer.
+		p2->as = AMOV;
+		p2->from.type = D_REG;
+		p2->from.reg = REGZERO;
 		p2->to.type = D_OREG;
-		p2->to.reg = REGZERO;
+		p2->to.reg = p1->from.reg;
 		p2->to.offset = 0;
 	}
 }
