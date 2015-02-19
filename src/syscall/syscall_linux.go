@@ -17,14 +17,18 @@ import "unsafe"
  * Wrapped
  */
 
-func Open(path string, mode int, perm uint32) (fd int, err error) {
-	return openat(_AT_FDCWD, path, mode|O_LARGEFILE, perm)
-}
-
 //sys	openat(dirfd int, path string, flags int, mode uint32) (fd int, err error)
+
+func Creat(path string, mode uint32) (fd int, err error) {
+	return openat(_AT_FDCWD, path, int(mode|O_CREAT|O_WRONLY|O_TRUNC|O_LARGEFILE), 0)
+}
 
 func Openat(dirfd int, path string, flags int, mode uint32) (fd int, err error) {
 	return openat(dirfd, path, flags|O_LARGEFILE, mode)
+}
+
+func Open(path string, mode int, perm uint32) (fd int, err error) {
+	return openat(_AT_FDCWD, path, mode|O_LARGEFILE, perm)
 }
 
 //sys	Linkat(olddirfd int, oldpath string, newdirfd int, newpath string, flags int) (err error)
@@ -796,7 +800,6 @@ func Access(path string, mode uint32) (err error) {
 //sys	Chmod(path string, mode uint32) (err error)
 //sys	Chroot(path string) (err error)
 //sys	Close(fd int) (err error)
-//sys	Creat(path string, mode uint32) (fd int, err error)
 //sysnb	Dup(oldfd int) (fd int, err error)
 
 func Dup2(oldfd int, newfd int) (err error) {
