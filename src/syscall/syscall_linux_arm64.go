@@ -104,7 +104,6 @@ func (cmsg *Cmsghdr) SetLen(length int) {
 const (
 	SYS_INOTIFY_INIT = 1043
 	SYS_GETPGRP      = 1060
-	SYS_CHMOD        = 1028
 	SYS_UTIMES       = 1037
 	SYS_FUTIMESAT    = 1066
 	SYS_PAUSE        = 1061

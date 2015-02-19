@@ -797,7 +797,6 @@ func Access(path string, mode uint32) (err error) {
 //sys	Acct(path string) (err error)
 //sys	Adjtimex(buf *Timex) (state int, err error)
 //sys	Chdir(path string) (err error)
-//sys	Chmod(path string, mode uint32) (err error)
 //sys	Chroot(path string) (err error)
 //sys	Close(fd int) (err error)
 //sysnb	Dup(oldfd int) (fd int, err error)
@@ -821,6 +820,11 @@ func EpollCreate(size int) (fd int, err error) {
 //sys	Fchdir(fd int) (err error)
 //sys	Fchmod(fd int, mode uint32) (err error)
 //sys	Fchmodat(dirfd int, path string, mode uint32, flags int) (err error)
+
+func Chmod(path string, mode uint32) (err error) {
+	return Fchmodat(_AT_FDCWD, path, mode, 0)
+}
+
 //sys	Fchownat(dirfd int, path string, uid int, gid int, flags int) (err error)
 //sys	fcntl(fd int, cmd int, arg int) (val int, err error)
 //sys	Fdatasync(fd int) (err error)
