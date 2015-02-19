@@ -27,6 +27,16 @@ func Openat(dirfd int, path string, flags int, mode uint32) (fd int, err error) 
 	return openat(dirfd, path, flags|O_LARGEFILE, mode)
 }
 
+//sys	linkat(olddirfd int, oldpath string, newdirfd int, newpath string, flags int) (err error)
+
+func Link(oldpath string, newpath string) (err error) {
+	return linkat(_AT_FDCWD, oldpath, _AT_FDCWD, newpath, 0)
+}
+
+func Linkat(olddirfd int, oldpath string, newdirfd int, newpath string, flags int) (err error) {
+	return linkat(olddirfd, oldpath, newdirfd, newpath, flags)
+}
+
 func Pipe(p []int) (err error) {
 	if len(p) != 2 {
 		return EINVAL
@@ -832,7 +842,6 @@ func EpollCreate(size int) (fd int, err error) {
 //sysnb	InotifyRmWatch(fd int, watchdesc uint32) (success int, err error)
 //sysnb	Kill(pid int, sig Signal) (err error)
 //sys	Klogctl(typ int, buf []byte) (n int, err error) = SYS_SYSLOG
-//sys	Link(oldpath string, newpath string) (err error)
 //sys	Listxattr(path string, dest []byte) (sz int, err error)
 //sys	Mkdirat(dirfd int, path string, mode uint32) (err error)
 
