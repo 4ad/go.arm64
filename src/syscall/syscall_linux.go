@@ -851,7 +851,6 @@ func Mkdir(path string, mode uint32) error {
 //sys	Removexattr(path string, attr string) (err error)
 //sys	Rename(oldpath string, newpath string) (err error)
 //sys	Renameat(olddirfd int, oldpath string, newdirfd int, newpath string) (err error)
-//sys	Rmdir(path string) (err error)
 //sys	Setdomainname(p []byte) (err error)
 //sys	Sethostname(p []byte) (err error)
 //sysnb	Setpgid(pid int, pgid int) (err error)
@@ -887,8 +886,12 @@ func Unlinkat(dirfd int, path string) error {
 	return unlinkat(dirfd, path, 0)
 }
 
-func Unlink(path string) error {
+func Rmdir(path string) error {
 	return unlinkat(_AT_FDCWD, path, _AT_REMOVEDIR)
+}
+
+func Unlink(path string) error {
+	return unlinkat(_AT_FDCWD, path, 0)
 }
 
 //sys	Unmount(target string, flags int) (err error) = SYS_UMOUNT2
