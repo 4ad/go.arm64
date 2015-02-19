@@ -111,7 +111,6 @@ const (
 	SYS_FUTIMESAT    = 1066
 	SYS_PAUSE        = 1061
 	SYS_READLINK     = 1035
-	SYS_RENAME       = 1034
 	SYS_SYMLINK      = 1036
 	SYS_USTAT        = 1070
 	SYS_UTIME        = 1063

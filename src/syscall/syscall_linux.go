@@ -865,8 +865,12 @@ func Mknod(path string, mode uint32, dev int) (err error) {
 //sys	read(fd int, p []byte) (n int, err error)
 //sys	Readlink(path string, buf []byte) (n int, err error)
 //sys	Removexattr(path string, attr string) (err error)
-//sys	Rename(oldpath string, newpath string) (err error)
 //sys	Renameat(olddirfd int, oldpath string, newdirfd int, newpath string) (err error)
+
+func Rename(oldpath string, newpath string) (err error) {
+	return Renameat(_AT_FDCWD, oldpath, _AT_FDCWD, newpath)
+}
+
 //sys	Setdomainname(p []byte) (err error)
 //sys	Sethostname(p []byte) (err error)
 //sysnb	Setpgid(pid int, pgid int) (err error)
