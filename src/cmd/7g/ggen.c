@@ -74,8 +74,9 @@ zerorange(Prog *p, vlong frame, vlong lo, vlong hi)
 		for(i = 0; i < cnt; i += widthptr)
 			p = appendpp(p, AMOV, D_REG, REGZERO, 0, D_OREG, REGSP, 8+frame+lo+i);
 	} else if(cnt <= 128*widthptr) {
+		p = appendpp(p, AMOV, D_SP, REGSP, 0, D_REG, REGRT1, 0);
 		p = appendpp(p, AADD, D_CONST, NREG, 8+frame+lo-8, D_REG, REGRT1, 0);
-		p->reg = REGSP;
+		p->reg = REGRT1;
 		p = appendpp(p, ADUFFZERO, D_NONE, NREG, 0, D_OREG, NREG, 0);
 		f = sysfunc("duffzero");
 		naddr(f, &p->to, 1);
@@ -90,7 +91,7 @@ zerorange(Prog *p, vlong frame, vlong lo, vlong hi)
 		p = appendpp(p, AADD, D_REG, REGTMP, 0, D_REG, REGRT2, 0);
 		p->reg = REGRT1;
 		p1 = p = appendpp(p, AMOV, D_REG, REGZERO, 0, D_XPRE, REGRT1, widthptr);
-		p = appendpp(p, ACMP, D_REG, REGRT1, 0, D_NONE, 0, 0);
+		p = appendpp(p, ACMP, D_REG, REGRT1, 0, D_NONE, NREG, 0);
 		p->reg = REGRT2;
 		p = appendpp(p, ABNE, D_NONE, NREG, 0, D_BRANCH, NREG, 0);
 		patch(p, p1);
