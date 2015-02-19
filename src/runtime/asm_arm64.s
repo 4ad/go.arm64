@@ -407,7 +407,8 @@ TEXT runtime·getcallersp(SB),NOSPLIT,$0-16
 	RETURN
 
 TEXT runtime·abort(SB),NOSPLIT,$-8-0
-	B	(ZR)
+	MOV	$0, R0
+	MOV	R0, (R0)
 	UNDEF
 
 // bool cas(uint32 *ptr, uint32 old, uint32 new)

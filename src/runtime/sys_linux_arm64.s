@@ -184,7 +184,8 @@ TEXT runtime·rtsigprocmask(SB),NOSPLIT,$-8-28
 	SVC
 	CMN	$4095, R0
 	BCC	done
-	B	(ZR)	// crash
+	MOV	$0, R0
+	MOV	R0, (R0) // crash	
 done:
 	RETURN
 
@@ -310,7 +311,8 @@ child:
 	MOV	$1234, R0
 	CMP	R0, R10
 	BEQ	good
-	B	(ZR) // crash
+	MOV	$0, R0
+	MOV	R0, (R0) // crash
 
 	// Initialize m->procid to Linux tid
 good:
@@ -348,7 +350,8 @@ TEXT runtime·sigaltstack(SB),NOSPLIT,$-8
 	SVC
 	CMN	$4095, R0
 	BCC	ok
-	B	(ZR)  // crash
+	MOV	$0, R0
+	MOV	R0, (R0) // crash
 ok:
 	RETURN
 
