@@ -1322,8 +1322,6 @@ optoas(int op, Type *t)
 	case CASE(OLT, TINT16):
 	case CASE(OLT, TINT32):
 	case CASE(OLT, TINT64):
-	case CASE(OLT, TFLOAT32):
-	case CASE(OLT, TFLOAT64):
 		a = ABLT;
 		break;
 
@@ -1331,6 +1329,8 @@ optoas(int op, Type *t)
 	case CASE(OLT, TUINT16):
 	case CASE(OLT, TUINT32):
 	case CASE(OLT, TUINT64):
+	case CASE(OLT, TFLOAT32):
+	case CASE(OLT, TFLOAT64):
 		a = ABLO;
 		break;
 
@@ -1338,8 +1338,6 @@ optoas(int op, Type *t)
 	case CASE(OLE, TINT16):
 	case CASE(OLE, TINT32):
 	case CASE(OLE, TINT64):
-	case CASE(OLE, TFLOAT32):
-	case CASE(OLE, TFLOAT64):
 		a = ABLE;
 		break;
 
@@ -1347,6 +1345,8 @@ optoas(int op, Type *t)
 	case CASE(OLE, TUINT16):
 	case CASE(OLE, TUINT32):
 	case CASE(OLE, TUINT64):
+	case CASE(OLE, TFLOAT32):
+	case CASE(OLE, TFLOAT64):
 		a = ABLS;
 		break;
 
