@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// +build !arm64
-
 package strings
 
 // IndexByte returns the index of the first instance of c in s, or -1 if c is not present in s.
