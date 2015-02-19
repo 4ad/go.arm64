@@ -83,8 +83,9 @@ zerorange(Prog *p, vlong frame, vlong lo, vlong hi)
 		p->to.offset = 4*(128-cnt/widthptr);
 	} else {
 		p = appendpp(p, AMOV, D_CONST, NREG, 8+frame+lo-8, D_REG, REGTMP, 0);
+		p = appendpp(p, AMOV, D_SP, REGSP, 0, D_REG, REGRT1, 0);
 		p = appendpp(p, AADD, D_REG, REGTMP, 0, D_REG, REGRT1, 0);
-		p->reg = REGSP;
+		p->reg = REGRT1;
 		p = appendpp(p, AMOV, D_CONST, NREG, cnt, D_REG, REGTMP, 0);
 		p = appendpp(p, AADD, D_REG, REGTMP, 0, D_REG, REGRT2, 0);
 		p->reg = REGRT1;
