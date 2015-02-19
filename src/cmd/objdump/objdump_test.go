@@ -104,6 +104,8 @@ func TestDisasm(t *testing.T) {
 	switch runtime.GOARCH {
 	case "ppc64", "ppc64le":
 		t.Skipf("skipping on %s, issue 9039", runtime.GOARCH)
+	case "arm64":
+		t.Skipf("skipping on %s, issue github.com/4ad/go/issues/129", runtime.GOARCH)
 	}
 	testDisasm(t)
 }
@@ -116,6 +118,8 @@ func TestDisasmExtld(t *testing.T) {
 	switch runtime.GOARCH {
 	case "ppc64", "ppc64le":
 		t.Skipf("skipping on %s, no support for external linking, issue 9038", runtime.GOARCH)
+	case "arm64":
+		t.Skipf("skipping on %s, issue github.com/4ad/go/issues/130", runtime.GOARCH)
 	}
 	testDisasm(t, "-ldflags=-linkmode=external")
 }
