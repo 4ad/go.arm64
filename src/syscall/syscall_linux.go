@@ -834,8 +834,12 @@ func EpollCreate(size int) (fd int, err error) {
 //sys	Klogctl(typ int, buf []byte) (n int, err error) = SYS_SYSLOG
 //sys	Link(oldpath string, newpath string) (err error)
 //sys	Listxattr(path string, dest []byte) (sz int, err error)
-//sys	Mkdir(path string, mode uint32) (err error)
 //sys	Mkdirat(dirfd int, path string, mode uint32) (err error)
+
+func Mkdir(path string, mode uint32) error {
+	return Mkdirat(_AT_FDCWD, path, mode)
+}
+
 //sys	Mknod(path string, mode uint32, dev int) (err error)
 //sys	Mknodat(dirfd int, path string, mode uint32, dev int) (err error)
 //sys	Nanosleep(time *Timespec, leftover *Timespec) (err error)
@@ -877,8 +881,16 @@ func Setgid(uid int) (err error) {
 //sysnb	Times(tms *Tms) (ticks uintptr, err error)
 //sysnb	Umask(mask int) (oldmask int)
 //sysnb	Uname(buf *Utsname) (err error)
-//sys	Unlink(path string) (err error)
-//sys	Unlinkat(dirfd int, path string) (err error)
+//sys	unlinkat(dirfd int, path string, flags int) (err error)
+
+func Unlinkat(dirfd int, path string) error {
+	return unlinkat(dirfd, path, 0)
+}
+
+func Unlink(path string) error {
+	return unlinkat(_AT_FDCWD, path, _AT_REMOVEDIR)
+}
+
 //sys	Unmount(target string, flags int) (err error) = SYS_UMOUNT2
 //sys	Unshare(flags int) (err error)
 //sys	Ustat(dev int, ubuf *Ustat_t) (err error)
