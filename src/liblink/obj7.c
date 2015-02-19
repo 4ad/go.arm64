@@ -149,12 +149,12 @@ stacksplit(Link *ctxt, Prog *p, int32 framesize, int noctxt)
 		p->reg = 2;
 	} else if(framesize <= StackBig) {
 		// large stack: SP-framesize < stackguard-StackSmall
-		//	ADD	$-framesize(SP), R2
+		//	SUB	$framesize, SP, R2
 		//	CMP	stackguard, R2
 		p = appendp(ctxt, p);
-		p->as = AADD;
+		p->as = ASUB;
 		p->from.type = D_CONST;
-		p->from.offset = -framesize;
+		p->from.offset = framesize;
 		p->reg = REGSP;
 		p->to.type = D_REG;
 		p->to.reg = 2;
