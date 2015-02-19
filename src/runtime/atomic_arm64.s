@@ -110,4 +110,4 @@ again:
 	RETURN
 
 TEXT runtime·xchguintptr(SB), NOSPLIT, $0-24
-	BL	runtime·xchg64(SB)
+	B	runtime·xchg64(SB)
