@@ -4,7 +4,10 @@
 
 package syscall
 
-//sys	Chown(path string, uid int, gid int) (err error)
+func Chown(path string, uid int, gid int) (err error) {
+	return Fchownat(_AT_FDCWD, path, uid, gid, 0)
+}
+
 //sys	Fchown(fd int, uid int, gid int) (err error)
 //sys	Fstat(fd int, stat *Stat_t) (err error)
 //sys	Fstatat(fd int, path string, stat *Stat_t, flags int) (err error)
@@ -112,7 +115,6 @@ const (
 	SYS_SYMLINK      = 1036
 	SYS_USTAT        = 1070
 	SYS_UTIME        = 1063
-	SYS_CHOWN        = 1029
 	SYS_LCHOWN       = 1032
 	SYS_TIME         = 1062
 )
