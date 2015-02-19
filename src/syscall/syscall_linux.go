@@ -863,7 +863,12 @@ func Mknod(path string, mode uint32, dev int) (err error) {
 //sys	PivotRoot(newroot string, putold string) (err error) = SYS_PIVOT_ROOT
 //sysnb prlimit(pid int, resource int, old *Rlimit, newlimit *Rlimit) (err error) = SYS_PRLIMIT64
 //sys	read(fd int, p []byte) (n int, err error)
-//sys	Readlink(path string, buf []byte) (n int, err error)
+//sys	readlinkat(dirfd int, path string, buf []byte) (n int, err error)
+
+func Readlink(path string, buf []byte) (n int, err error) {
+	return readlinkat(_AT_FDCWD, path, buf)
+}
+
 //sys	Removexattr(path string, attr string) (err error)
 //sys	Renameat(olddirfd int, oldpath string, newdirfd int, newpath string) (err error)
 

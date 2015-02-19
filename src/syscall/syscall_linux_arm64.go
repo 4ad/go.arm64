@@ -110,7 +110,6 @@ const (
 	SYS_UTIMES       = 1037
 	SYS_FUTIMESAT    = 1066
 	SYS_PAUSE        = 1061
-	SYS_READLINK     = 1035
 	SYS_USTAT        = 1070
 	SYS_UTIME        = 1063
 	SYS_LCHOWN       = 1032
