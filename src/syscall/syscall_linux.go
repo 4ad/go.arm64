@@ -27,14 +27,10 @@ func Openat(dirfd int, path string, flags int, mode uint32) (fd int, err error) 
 	return openat(dirfd, path, flags|O_LARGEFILE, mode)
 }
 
-//sys	linkat(olddirfd int, oldpath string, newdirfd int, newpath string, flags int) (err error)
+//sys	Linkat(olddirfd int, oldpath string, newdirfd int, newpath string, flags int) (err error)
 
 func Link(oldpath string, newpath string) (err error) {
-	return linkat(_AT_FDCWD, oldpath, _AT_FDCWD, newpath, 0)
-}
-
-func Linkat(olddirfd int, oldpath string, newdirfd int, newpath string, flags int) (err error) {
-	return linkat(olddirfd, oldpath, newdirfd, newpath, flags)
+	return Linkat(_AT_FDCWD, oldpath, _AT_FDCWD, newpath, 0)
 }
 
 func Pipe(p []int) (err error) {
@@ -849,8 +845,12 @@ func Mkdir(path string, mode uint32) error {
 	return Mkdirat(_AT_FDCWD, path, mode)
 }
 
-//sys	Mknod(path string, mode uint32, dev int) (err error)
 //sys	Mknodat(dirfd int, path string, mode uint32, dev int) (err error)
+
+func Mknod(path string, mode uint32, dev int) (err error) {
+	return Mknodat(_AT_FDCWD, path, mode, dev)
+}
+
 //sys	Nanosleep(time *Timespec, leftover *Timespec) (err error)
 //sys	Pause() (err error)
 //sys	PivotRoot(newroot string, putold string) (err error) = SYS_PIVOT_ROOT
