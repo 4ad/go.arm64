@@ -102,9 +102,34 @@ adddynrel(LSym *s, Reloc *r)
 int
 elfreloc1(Reloc *r, vlong sectoff)
 {
-	USED(r); USED(sectoff);
-	// TODO(aram): FIXME
-	return -1;
+	int elfsym;
+
+	VPUT(sectoff);
+
+	elfsym = r->xsym->elfsym;
+	switch (r->type) {
+	default:
+		return -1;
+
+	case R_ADDR:
+		if(r->siz == 4)
+			VPUT(R_AARCH64_ABS32 | (uint64)elfsym<<32);
+		else if(r->siz == 8)
+			VPUT(R_AARCH64_ABS64 | (uint64)elfsym<<32);
+		else
+			return -1;
+		break;
+
+	case R_CALLARM64:
+		if(r->siz == 4)
+			VPUT(R_AARCH64_CALL26 | (uint64)elfsym<<32);
+		else
+			return -1;
+		break;
+	}
+
+	VPUT(r->xadd);
+	return 0;
 }
 
 void
@@ -129,8 +154,18 @@ archreloc(Reloc *r, LSym *s, vlong *val)
 	USED(s);
 
 	if(linkmode == LinkExternal) {
-		// TODO(aram):
-		return -1;
+		switch (r->type) {
+		default:
+			return -1;
+
+		case R_CALLARM64:
+			r->done = 0;
+			r->xsym = r->sym;
+			*val = (0xfc000000u & (uint32)r->add);
+			r->xadd = ((~0xfc000000u) & ((uint32)r->add))*4;
+			r->add = 0;
+			return 0;
+		}
 	}
 	switch(r->type) {
 	case R_CONST:

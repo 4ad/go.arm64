@@ -59,6 +59,8 @@ archinit(void)
 		if(linkmode == LinkExternal && strcmp(getgoextlinkenabled(), "1") != 0)
 			sysfatal("cannot use -linkmode=external with -H %s", headstr(HEADTYPE));
 		break;
+	case Hlinux:
+		break;
 	}
 
 	switch(HEADTYPE) {

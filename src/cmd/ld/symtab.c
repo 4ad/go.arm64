@@ -174,7 +174,9 @@ putelfsymshndx(vlong sympos, int shndx)
 
 	here = cpos();
 	switch(thechar) {
+	case '7':
 	case '6':
+		// TODO(mwhudson): bet we want '9' here too.
 		cseek(sympos+6);
 		break;
 	default:
