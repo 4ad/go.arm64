@@ -649,7 +649,7 @@ addstacksplit(Link *ctxt, LSym *cursym)
 				//	MOV g_panic(g), R1
 				//	CMP $0, R1
 				//	BEQ end
-				//	MOV panic_argp(R0), R2
+				//	MOV panic_argp(R1), R2
 				//	ADD $(autosize+8), RSP, R3
 				//	CMP R2, R3
 				//	BNE end
