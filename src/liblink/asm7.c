@@ -114,7 +114,7 @@ static uint32 opldr9(Link*, int);
 static uint32 opstr9(Link *, int);
 static uint32 opldrpp(Link*, int);
 static uint32 olsxrr(Link*, int, int, int, int);
-static uint32 oaddi(int32, int32, int, int);
+static uint32 oaddi(Link*, int32, int32, int, int);
 static uint32 omovlit(Link*, int, Prog*, Addr*, int);
 static uint32 opbfm(Link*, int, int, int, int, int);
 static uint32 opextr(Link*, int, int32, int, int, int);
@@ -260,9 +260,6 @@ static Optab optab[] = {
 	{ AADD,		C_ADDCON,	C_RSP,	C_RSP,		 2, 4, 0 },
 	{ AADD,		C_ADDCON,	C_NONE,	C_RSP,		 2, 4, 0 },
 	{ ACMP,		C_ADDCON,	C_RSP,	C_NONE,		 2, 4, 0 },
-	{ AADD,		C_MBCON,	C_RSP,	C_RSP,		 2, 4, 0 },
-	{ AADD,		C_MBCON,	C_NONE,	C_RSP,		 2, 4, 0 },
-	{ ACMP,		C_MBCON,	C_RSP,	C_NONE,		 2, 4, 0 },
 
 	{ AADD,		C_VCON,	C_REG,	C_REG,		13, 8, 0,	LFROM },
 	{ AADD,		C_VCON,	C_NONE,	C_REG,		13, 8, 0,	LFROM },
@@ -909,6 +906,10 @@ addpool(Link *ctxt, Prog *p, Addr *a)
 	Because of this, we need to load the constant from memory. */
 	case C_BITCON:
 	case C_ABCON:
+
+	/* This is here because some some instruction cannot handle either MOVCON
+	or BITCON, e.g. ADD */
+	case C_MBCON:
 
 	case C_PSAUTO:
 	case C_PPAUTO:
@@ -1914,7 +1915,7 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 		if(r == NREG)
 			r = rt;
 		v = regoff(ctxt, &p->from);
-		o1 = oaddi(o1, v, r, rt);
+		o1 = oaddi(ctxt, o1, v, r, rt);
 		break;
 	case 3: /* op R<<n[,R],R (shifted register) */
 		o1 = oprrr(ctxt, p->as);
@@ -2270,7 +2271,7 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 		r = p->to.reg;
 		if(r == NREG)
 			r = o->param;
-		o1 = oaddi(opirr(ctxt, AADD), hi, r, REGTMP);
+		o1 = oaddi(ctxt, opirr(ctxt, AADD), hi, r, REGTMP);
 		o2 = olsr12u(ctxt, opstr12(ctxt, p->as), ((((v - hi)) >> s)) & 0xFFF, REGTMP, p->from.reg);
 		break;
 	case 31: /* movT L(R), R -> ldrT */
@@ -2289,7 +2290,7 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 		r = p->from.reg;
 		if(r == NREG)
 			r = o->param;
-		o1 = oaddi(opirr(ctxt, AADD), hi, r, REGTMP);
+		o1 = oaddi(ctxt, opirr(ctxt, AADD), hi, r, REGTMP);
 		o2 = olsr12u(ctxt, opldr12(ctxt, p->as), ((((v - hi)) >> s)) & 0xFFF, REGTMP, p->to.reg);
 		break;
 	case 32: /* mov $con, R -> movz/movn */
@@ -3683,9 +3684,11 @@ olsxrr(Link *ctxt, int as, int rt, int r1, int r2)
 }
 
 static uint32
-oaddi(int32 o1, int32 v, int r, int rt)
+oaddi(Link *ctxt, int32 o1, int32 v, int r, int rt)
 {
 	if(((v & 0xFFF000)) != 0) {
+		if(v & 0xFFF)
+			ctxt->diag("%P misuses oaddi", ctxt->curp);
 		v >>= 12;
 		o1 |= 1 << 22;
 	}
