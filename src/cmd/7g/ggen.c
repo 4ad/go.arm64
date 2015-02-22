@@ -997,7 +997,7 @@ expandchecks(Prog *firstp)
 		p2->from.type = D_REG;
 		p2->from.reg = REGZERO;
 		p2->to.type = D_OREG;
-		p2->to.reg = p1->from.reg;
+		p2->to.reg = p->from.reg;
 		p2->to.offset = 0;
 	}
 }
