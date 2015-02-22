@@ -947,7 +947,7 @@ TEXT runtime·morestack(SB),NOSPLIT,$-8-0
 	// is still in this function, and not the beginning of the next.
 	UNDEF
 
-TEXT runtime·morestack_noctxt(SB),NOSPLIT,$-4-0
+TEXT runtime·morestack_noctxt(SB),NOSPLIT,$-8-0
 	MOVW	$0, R26
 	B runtime·morestack(SB)
 

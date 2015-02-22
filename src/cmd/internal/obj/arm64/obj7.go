@@ -541,6 +541,7 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 	var o int
 	var textstksiz int64
 	var textarg int64
+	var stkadj int64
 	var aoffset int32
 
 	if ctxt.Symmorestack[0] == nil {
@@ -650,7 +651,9 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 			if (cursym.Text.Mark&LEAF != 0) && ctxt.Autosize <= 8 {
 				ctxt.Autosize = 0
 			} else if ctxt.Autosize&(16-1) != 0 {
-				ctxt.Autosize += 16 - (ctxt.Autosize & (16 - 1))
+				stkadj = 16 - (int64(ctxt.Autosize) & (16 - 1))
+				ctxt.Autosize += int32(stkadj)
+				cursym.Locals += int32(stkadj)
 			}
 			p.To.Offset = int64(uint64(p.To.Offset)&(0xffffffff<<32) | uint64(uint32(ctxt.Autosize-8)))
 			if ctxt.Autosize == 0 && !(cursym.Text.Mark&LEAF != 0) {

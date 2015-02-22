@@ -498,7 +498,7 @@ addstacksplit(Link *ctxt, LSym *cursym)
 	Prog *q;
 	Prog *q1, *q2;
 	int o;
-	vlong textstksiz, textarg;
+	vlong textstksiz, textarg, stkadj;
 	int32 aoffset;
 
 	if(ctxt->symmorestack[0] == nil) {
@@ -594,8 +594,11 @@ addstacksplit(Link *ctxt, LSym *cursym)
 			if(((cursym->text->mark & LEAF)) && ctxt->autosize <= 8)
 				ctxt->autosize = 0;
 			else
-				if(ctxt->autosize & ((16 - 1)))
-					ctxt->autosize += 16 - ((ctxt->autosize & ((16 - 1))));
+				if(ctxt->autosize & ((16 - 1))) {
+					stkadj = 16 - ((ctxt->autosize & ((16 - 1))));
+					ctxt->autosize += stkadj;
+					cursym->locals += stkadj;
+				}
 			p->to.offset = ((uint64)p->to.offset & (0xffffffffull<<32)) | (uint32)(ctxt->autosize-8);
 			if(ctxt->autosize == 0 && !((cursym->text->mark & LEAF))) {
 				if(ctxt->debugvlog)
