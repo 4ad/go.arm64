@@ -73,7 +73,7 @@ TEXT ·RawSyscall(SB),NOSPLIT,$0-56
 	MOV	R4, r1+32(FP)	// r1
 	MOV	ZR, r2+40(FP)	// r2
 	NEG	R0, R0
-	MOV	ZR, err+48(FP)	// errno
+	MOV	R0, err+48(FP)	// errno
 	RETURN
 ok:
 	MOV	R0, r1+32(FP)	// r1
