@@ -497,6 +497,7 @@ addstacksplit(Link *ctxt, LSym *cursym)
 	Prog *p;
 	Prog *q;
 	Prog *q1, *q2;
+	LSym *retjmp;
 	int o;
 	vlong textstksiz, textarg, stkadj;
 	int32 aoffset;
@@ -738,11 +739,8 @@ addstacksplit(Link *ctxt, LSym *cursym)
 				ctxt->diag("using BECOME (%P) is not supported!", p);
 				break;
 			}
-			if(p->to.sym) { // retjmp
-				p->as = AB;
-				p->to.type = D_BRANCH;
-				break;
-			}
+			retjmp = p->to.sym;
+			p->to = zprg.to;
 			if(cursym->text->mark & LEAF) {
 				if(ctxt->autosize != 0) {
 					p->as = AADD;
@@ -784,6 +782,13 @@ addstacksplit(Link *ctxt, LSym *cursym)
 				q->link = p->link;
 				p->link = q;
 				p = q;
+			}
+			if(retjmp != nil) { // retjmp
+				p->as = AB;
+				p->to.type = D_BRANCH;
+				p->to.sym = retjmp;
+				p->spadj = +ctxt->autosize;
+				break;
 			}
 			p->as = ARET;
 			p->lineno = p->lineno;
