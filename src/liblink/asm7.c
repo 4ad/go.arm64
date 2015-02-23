@@ -566,9 +566,13 @@ static Optab optab[] = {
 
 	{ AFMOVS,	C_FREG,	C_NONE,	C_LAUTO,	30, 8, REGSP,	LTO },
 	{ AFMOVS,	C_FREG,	C_NONE,	C_LOREG,	30, 8, 0,	LTO },
+	{ AFMOVD,	C_FREG,	C_NONE,	C_LAUTO,	30, 8, REGSP,	LTO },
+	{ AFMOVD,	C_FREG,	C_NONE,	C_LOREG,	30, 8, 0,	LTO },
 
 	{ AFMOVS,	C_LAUTO,C_NONE,	C_FREG,		31, 8, REGSP,	LFROM },
 	{ AFMOVS,	C_LOREG,C_NONE,	C_FREG,		31, 8, 0,	LFROM },
+	{ AFMOVD,	C_LAUTO,C_NONE,	C_FREG,		31, 8, REGSP,	LFROM },
+	{ AFMOVD,	C_LOREG,C_NONE,	C_FREG,		31, 8, 0,	LFROM },
 
 	{ AFMOVS,	C_FREG,	C_NONE,	C_ADDR,		64, 8, 0,	LTO },
 	{ AFMOVS,	C_ADDR,	C_NONE,	C_FREG,		65, 8, 0,	LFROM },
@@ -1167,6 +1171,8 @@ aclass(Link *ctxt, Addr *a)
 			}
 			if(isbitcon(v))
 				return C_BITCON;
+			if(v == (uvlong)(uint32)v || v == (vlong)(int32)v)
+				return C_LCON;
 			return C_VCON;
 		case D_EXTERN:
 		case D_STATIC:

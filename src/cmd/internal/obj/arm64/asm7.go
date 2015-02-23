@@ -181,9 +181,6 @@ var optab = []Optab{
 	Optab{AADD, C_ADDCON, C_RSP, C_RSP, 2, 4, 0, 0},
 	Optab{AADD, C_ADDCON, C_NONE, C_RSP, 2, 4, 0, 0},
 	Optab{ACMP, C_ADDCON, C_RSP, C_NONE, 2, 4, 0, 0},
-	Optab{AADD, C_MBCON, C_RSP, C_RSP, 2, 4, 0, 0},
-	Optab{AADD, C_MBCON, C_NONE, C_RSP, 2, 4, 0, 0},
-	Optab{ACMP, C_MBCON, C_RSP, C_NONE, 2, 4, 0, 0},
 	Optab{AADD, C_VCON, C_REG, C_REG, 13, 8, 0, LFROM},
 	Optab{AADD, C_VCON, C_NONE, C_REG, 13, 8, 0, LFROM},
 	Optab{ACMP, C_VCON, C_REG, C_NONE, 13, 8, 0, LFROM},
@@ -451,8 +448,12 @@ var optab = []Optab{
 	Optab{AFMOVD, C_NSOREG, C_NONE, C_FREG, 21, 4, 0, 0},
 	Optab{AFMOVS, C_FREG, C_NONE, C_LAUTO, 30, 8, REGSP, LTO},
 	Optab{AFMOVS, C_FREG, C_NONE, C_LOREG, 30, 8, 0, LTO},
+	Optab{AFMOVD, C_FREG, C_NONE, C_LAUTO, 30, 8, REGSP, LTO},
+	Optab{AFMOVD, C_FREG, C_NONE, C_LOREG, 30, 8, 0, LTO},
 	Optab{AFMOVS, C_LAUTO, C_NONE, C_FREG, 31, 8, REGSP, LFROM},
 	Optab{AFMOVS, C_LOREG, C_NONE, C_FREG, 31, 8, 0, LFROM},
+	Optab{AFMOVD, C_LAUTO, C_NONE, C_FREG, 31, 8, REGSP, LFROM},
+	Optab{AFMOVD, C_LOREG, C_NONE, C_FREG, 31, 8, 0, LFROM},
 	Optab{AFMOVS, C_FREG, C_NONE, C_ADDR, 64, 8, 0, LTO},
 	Optab{AFMOVS, C_ADDR, C_NONE, C_FREG, 65, 8, 0, LFROM},
 	Optab{AFMOVD, C_FREG, C_NONE, C_ADDR, 64, 8, 0, LTO},
@@ -816,6 +817,10 @@ func addpool(ctxt *obj.Link, p *obj.Prog, a *obj.Addr) {
 		Because of this, we need to load the constant from memory. */
 		C_BITCON,
 		C_ABCON,
+
+		/* This is here because some some instruction cannot handle either MOVCON
+		or BITCON, e.g. ADD */
+		C_MBCON,
 		C_PSAUTO,
 		C_PPAUTO,
 		C_UAUTO4K,
@@ -1117,6 +1122,9 @@ func aclass(ctxt *obj.Link, a *obj.Addr) int {
 
 			if isbitcon(uint64(v)) != 0 {
 				return C_BITCON
+			}
+			if uint64(v) == uint64(uint32(v)) || v == int64(int32(v)) {
+				return C_LCON
 			}
 			return C_VCON
 
@@ -1974,7 +1982,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 			r = rt
 		}
 		v = int32(regoff(ctxt, &p.From))
-		o1 = oaddi(int32(o1), v, r, rt)
+		o1 = oaddi(ctxt, int32(o1), v, r, rt)
 
 	case 3: /* op R<<n[,R],R (shifted register) */
 		o1 = oprrr(ctxt, int(p.As))
@@ -2415,7 +2423,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		if r == NREG {
 			r = int(o.param)
 		}
-		o1 = oaddi(int32(opirr(ctxt, AADD)), hi, r, REGTMP)
+		o1 = oaddi(ctxt, int32(opirr(ctxt, AADD)), hi, r, REGTMP)
 		o2 = olsr12u(ctxt, int32(opstr12(ctxt, int(p.As))), ((v-hi)>>uint(s))&0xFFF, REGTMP, int(p.From.Reg))
 
 	case 31: /* movT L(R), R -> ldrT */
@@ -2442,7 +2450,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		if r == NREG {
 			r = int(o.param)
 		}
-		o1 = oaddi(int32(opirr(ctxt, AADD)), hi, r, REGTMP)
+		o1 = oaddi(ctxt, int32(opirr(ctxt, AADD)), hi, r, REGTMP)
 		o2 = olsr12u(ctxt, int32(opldr12(ctxt, int(p.As))), ((v-hi)>>uint(s))&0xFFF, REGTMP, int(p.To.Reg))
 
 	case 32: /* mov $con, R -> movz/movn */
@@ -4247,8 +4255,11 @@ func olsxrr(ctxt *obj.Link, as int, rt int, r1 int, r2 int) uint32 {
 	return 0xffffffff
 }
 
-func oaddi(o1 int32, v int32, r int, rt int) uint32 {
+func oaddi(ctxt *obj.Link, o1 int32, v int32, r int, rt int) uint32 {
 	if (v & 0xFFF000) != 0 {
+		if v&0xFFF != 0 {
+			ctxt.Diag("%v misuses oaddi", ctxt.Curp)
+		}
 		v >>= 12
 		o1 |= 1 << 22
 	}

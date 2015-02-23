@@ -538,6 +538,7 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 	var q *obj.Prog
 	var q1 *obj.Prog
 	var q2 *obj.Prog
+	var retjmp *obj.LSym
 	var o int
 	var textstksiz int64
 	var textarg int64
@@ -655,6 +656,7 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 				ctxt.Autosize += int32(stkadj)
 				cursym.Locals += int32(stkadj)
 			}
+
 			p.To.Offset = int64(uint64(p.To.Offset)&(0xffffffff<<32) | uint64(uint32(ctxt.Autosize-8)))
 			if ctxt.Autosize == 0 && !(cursym.Text.Mark&LEAF != 0) {
 				if ctxt.Debugvlog != 0 {
@@ -716,7 +718,7 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 				//	MOV g_panic(g), R1
 				//	CMP $0, R1
 				//	BEQ end
-				//	MOV panic_argp(R0), R2
+				//	MOV panic_argp(R1), R2
 				//	ADD $(autosize+8), RSP, R3
 				//	CMP R2, R3
 				//	BNE end
@@ -805,12 +807,8 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 				break
 			}
 
-			if p.To.Sym != nil { // retjmp
-				p.As = AB
-				p.To.Type = D_BRANCH
-				break
-			}
-
+			retjmp = p.To.Sym
+			p.To = zprg.To
 			if cursym.Text.Mark&LEAF != 0 {
 				if ctxt.Autosize != 0 {
 					p.As = AADD
@@ -856,6 +854,14 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 				q.Link = p.Link
 				p.Link = q
 				p = q
+			}
+
+			if retjmp != nil { // retjmp
+				p.As = AB
+				p.To.Type = D_BRANCH
+				p.To.Sym = retjmp
+				p.Spadj = +ctxt.Autosize
+				break
 			}
 
 			p.As = ARET
