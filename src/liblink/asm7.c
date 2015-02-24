@@ -700,9 +700,9 @@ span7(Link *ctxt, LSym *cursym)
 		if(p->as == ADWORD && ((c & 7)) != 0)
 			c += 4;
 		p->pc = c;
-		if (p->from.type == D_CONST && p->from.reg == NREG && p->from.offset == 0)
+		if (p->from.type == TYPE_CONST && p->from.reg == 0 && p->from.offset == 0)
 			p->from.reg = REGZERO;
-		if (p->to.type == D_CONST &&  p->to.reg == NREG && p->to.offset == 0)
+		if (p->to.type == TYPE_CONST &&  p->to.reg == 0 && p->to.offset == 0)
 			p->to.reg = REGZERO;
 		o = oplook(ctxt, p);
 		m = o->size;
@@ -752,14 +752,14 @@ span7(Link *ctxt, LSym *cursym)
 								q->link = p->link;
 								p->link = q;
 								q->as = AB;
-								q->to.type = D_BRANCH;
+								q->to.type = TYPE_BRANCH;
 								q->cond = p->cond;
 								p->cond = q;
 								q = ctxt->arch->prg();
 								q->link = p->link;
 								p->link = q;
 								q->as = AB;
-								q->to.type = D_BRANCH;
+								q->to.type = TYPE_BRANCH;
 								q->cond = q->link->link;
 								bflag = 1;
 							}
@@ -831,7 +831,7 @@ flushpool(Link *ctxt, Prog *p, int skip)
 				print("note: flush literal pool at %#llux: len=%lud ref=%lux\n", p->pc + 4, pool.size, pool.start);
 			q = ctxt->arch->prg();
 			q->as = AB;
-			q->to.type = D_BRANCH;
+			q->to.type = TYPE_BRANCH;
 			q->pcond = p->link;
 			q->link = ctxt->blitrl;
 			q->lineno = p->lineno;
@@ -880,7 +880,7 @@ addpool(Link *ctxt, Prog *p, Addr *a)
 	switch(c) {
 	default:
 		// TODO(aram): remove.
-		if(a->name != D_EXTERN) {
+		if(a->name != NAME_EXTERN) {
 			print("addpool: %^ in %P shouldn't go to default case\n", c, p);
 		}
 		t.to.offset = a->offset;
@@ -938,10 +938,10 @@ addpool(Link *ctxt, Prog *p, Addr *a)
 	case C_LACON:
 	case C_LCON:
 	case C_VCON:
-		if(a->name == D_EXTERN) {
+		if(a->name == NAME_EXTERN) {
 			print("addpool: %^ in %P needs reloc\n", c, p);
 		}
-		t.to.type = D_CONST;
+		t.to.type = TYPE_CONST;
 		t.to.offset = ctxt->instoffset;
 		break;
 	}
@@ -1078,9 +1078,10 @@ aclass(Link *ctxt, Addr *a)
 	int t;
 	ctxt->instoffset = 0;
 	switch(a->type) {
-	case D_NONE:
+	case TYPE_NONE:
 		return C_NONE;
-	case D_REG:
+	case TYPE_REG:
+		// TODO(aram): add float, special, etc
 		return C_REG;
 	case D_PAIR:
 		return C_PAIR;
@@ -1100,25 +1101,23 @@ aclass(Link *ctxt, Addr *a)
 		return C_XPOST;
 	case D_XPRE:
 		return C_XPRE;
-	case D_FREG:
-		return C_FREG;
-	case D_OREG:
+	case TYPE_MEM:
 		switch(a->name) {
-		case D_EXTERN:
-		case D_STATIC:
+		case NAME_EXTERN:
+		case NAME_STATIC:
 			if(a->sym == nil)
 				break;
 			ctxt->instoffset = a->offset;
 			if(a->sym != nil) // use relocation
 				return C_ADDR;
 			return C_LEXT;
-		case D_AUTO:
+		case NAME_AUTO:
 			ctxt->instoffset = ctxt->autosize + a->offset;
 			return autoclass[constclass(ctxt->instoffset)];
-		case D_PARAM:
+		case NAME_PARAM:
 			ctxt->instoffset = ctxt->autosize + a->offset + 8;
 			return autoclass[constclass(ctxt->instoffset)];
-		case D_NONE:
+		case TYPE_NONE:
 			ctxt->instoffset = a->offset;
 			return oregclass[constclass(ctxt->instoffset)];
 		}
@@ -1127,8 +1126,8 @@ aclass(Link *ctxt, Addr *a)
 		return C_SPR;
 	case D_OCONST:
 		switch(a->name) {
-		case D_EXTERN:
-		case D_STATIC:
+		case NAME_EXTERN:
+		case NAME_STATIC:
 			if(a->sym == nil)
 				break;
 			ctxt->instoffset = a->offset;
@@ -1137,13 +1136,13 @@ aclass(Link *ctxt, Addr *a)
 			return C_VCON;
 		}
 		return C_GOK;
-	case D_FCONST:
+	case TYPE_FCONST:
 		return C_FCON;
-	case D_CONST:
+	case TYPE_CONST:
 		switch(a->name) {
-		case D_NONE:
+		case TYPE_NONE:
 			ctxt->instoffset = a->offset;
-			if(a->reg != NREG && a->reg != REGZERO)
+			if(a->reg != 0 && a->reg != REGZERO)
 				goto aconsize;
 			if(a->reg == REGSP && ctxt->instoffset != 0)
 				goto aconsize;
@@ -1174,17 +1173,17 @@ aclass(Link *ctxt, Addr *a)
 			if(v == (uvlong)(uint32)v || v == (vlong)(int32)v)
 				return C_LCON;
 			return C_VCON;
-		case D_EXTERN:
-		case D_STATIC:
+		case NAME_EXTERN:
+		case NAME_STATIC:
 			s = a->sym;
 			if(s == nil)
 				break;
 			ctxt->instoffset = a->offset;
 			return C_VCONADDR;
-		case D_AUTO:
+		case NAME_AUTO:
 			ctxt->instoffset = ctxt->autosize + a->offset;
 			goto aconsize;
-		case D_PARAM:
+		case NAME_PARAM:
 			ctxt->instoffset = ctxt->autosize + a->offset + 8;
 			goto aconsize;
 		}
@@ -1195,7 +1194,7 @@ aclass(Link *ctxt, Addr *a)
 			return C_AACON;
 		return C_LACON;
 
-	case D_BRANCH:
+	case TYPE_BRANCH:
 		return C_SBRA;
 	}
 	return C_GOK;
@@ -1229,7 +1228,7 @@ oplook(Link *ctxt, Prog *p)
 	}
 	a3--;
 	a2 = C_NONE;
-	if(p->reg != NREG)
+	if(p->reg != 0)
 		a2 = C_REG;
 	r = p->as;
 	o = oprange[r].start;
@@ -1903,22 +1902,22 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 		rf = p->from.reg;
 		rt = p->to.reg;
 		r = p->reg;
-		if(p->to.type == D_NONE)
+		if(p->to.type == TYPE_NONE)
 			rt = REGZERO;
-		if(r == NREG)
+		if(r == 0)
 			r = rt;
 		o1 |= ((rf << 16)) | ((r << 5)) | rt;
 		break;
 	case 2: /* add/sub $(uimm12|uimm24)[,R],R; cmp $(uimm12|uimm24),R */
 		o1 = opirr(ctxt, p->as);
 		rt = p->to.reg;
-		if(p->to.type == D_NONE) {
+		if(p->to.type == TYPE_NONE) {
 			if(((o1 & Sbit)) == 0)
 				ctxt->diag("ineffective ZR destination\n%P", p);
 			rt = REGZERO;
 		}
 		r = p->reg;
-		if(r == NREG)
+		if(r == 0)
 			r = rt;
 		v = regoff(ctxt, &p->from);
 		o1 = oaddi(ctxt, o1, v, r, rt);
@@ -1927,13 +1926,13 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 		o1 = oprrr(ctxt, p->as);
 		o1 |= p->from.offset; /* includes reg, op, etc */
 		rt = p->to.reg;
-		if(p->to.type == D_NONE)
+		if(p->to.type == TYPE_NONE)
 			rt = REGZERO;
 		r = p->reg;
 		if(p->as == AMVN || p->as == AMVNW)
 			r = REGZERO;
 		else
-			if(r == NREG)
+			if(r == 0)
 				r = rt;
 		o1 |= ((r << 5)) | rt;
 		break;
@@ -1945,7 +1944,7 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 			r = REGZERO;
 		else if(r == REGFROM)
 			r = p->from.reg;
-		if(r == NREG)
+		if(r == 0)
 			r = REGSP;
 		v = regoff(ctxt, &p->from);
 		if(((v & 0xFFF000)) != 0) {
@@ -1982,7 +1981,7 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 	case 8: /* lsl $c,[R],R -> ubfm $(W-1)-c,$(-c MOD (W-1)),Rn,Rd */
 		rt = p->to.reg;
 		rf = p->reg;
-		if(rf == NREG)
+		if(rf == 0)
 			rf = rt;
 		v = p->from.offset;
 		switch(p->as) {
@@ -2018,13 +2017,13 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 	case 9: /* lsl Rm,[Rn],Rd -> lslv Rm, Rn, Rd */
 		o1 = oprrr(ctxt, p->as);
 		r = p->reg;
-		if(r == NREG)
+		if(r == 0)
 			r = p->to.reg;
 		o1 |= ((p->from.reg << 16)) | ((r << 5)) | p->to.reg;
 		break;
 	case 10: /* brk/hvc/.../svc [$con] */
 		o1 = opimm(ctxt, p->as);
-		if(p->to.type != D_NONE)
+		if(p->to.type != TYPE_NONE)
 			o1 |= ((p->to.offset & 0xffff)) << 5;
 		break;
 	case 11: /* dword */
@@ -2049,12 +2048,12 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 		if(!o1)
 			break;
 		rt = p->to.reg;
-		if(p->to.type == D_NONE)
+		if(p->to.type == TYPE_NONE)
 			rt = REGZERO;
 		r = p->reg;
-		if(r == NREG)
+		if(r == 0)
 			r = rt;
-		if(p->to.type != D_NONE && ((p->to.reg == REGSP || r == REGSP))) {
+		if(p->to.type != TYPE_NONE && ((p->to.reg == REGSP || r == REGSP))) {
 			o2 = opxrrr(ctxt, p->as);
 			o2 |= REGTMP << 16;
 			o2 |= LSL0_64;
@@ -2085,14 +2084,14 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 		o1 = oprrr(ctxt, p->as);
 		rf = p->from.reg;
 		rt = p->to.reg;
-		if(p->from3.type == D_REG) {
+		if(p->from3.type == TYPE_REG) {
 			r = p->from3.reg;
 			ra = p->reg;
-			if(ra == NREG)
+			if(ra == 0)
 				ra = REGZERO;
 		} else {
 			r = p->reg;
-			if(r == NREG)
+			if(r == 0)
 				r = rt;
 			ra = REGZERO;
 		}
@@ -2103,7 +2102,7 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 		rf = p->from.reg;
 		rt = p->to.reg;
 		r = p->reg;
-		if(r == NREG)
+		if(r == 0)
 			r = rt;
 		o1 |= ((rf << 16)) | ((r << 5)) | REGTMP;
 		o2 = oprrr(ctxt, AMSUBW);
@@ -2115,9 +2114,9 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 		rf = p->from.reg;
 		rt = p->to.reg;
 		r = p->reg;
-		if(p->to.type == D_NONE)
+		if(p->to.type == TYPE_NONE)
 			rt = REGZERO;
-		if(r == NREG)
+		if(r == 0)
 			r = REGZERO;
 		o1 |= ((rf << 16)) | ((r << 5)) | rt;
 		break;
@@ -2125,8 +2124,8 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 		o1 = oprrr(ctxt, p->as);
 		cond = p->from.reg;
 		r = p->reg;
-		if(r != NREG) {
-			if(p->from3.type == D_NONE) {
+		if(r != 0) {
+			if(p->from3.type == TYPE_NONE) {
 				/* CINC/CINV/CNEG */
 				rf = r;
 				cond ^= 1;
@@ -2134,7 +2133,7 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 				rf = p->from3.reg; /* CSEL */
 		} else {
 			/* CSET */
-			if(p->from3.type != D_NONE)
+			if(p->from3.type != TYPE_NONE)
 				ctxt->diag("invalid combination\n%P", p);
 			r = rf = REGZERO;
 			cond ^= 1;
@@ -2145,7 +2144,7 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 	case 19: /* CCMN cond, (Rm|uimm5),Rn, uimm4 -> ccmn Rn,Rm,uimm4,cond */
 		nzcv = p->to.offset;
 		cond = p->from.reg;
-		if(p->from3.type == D_REG) {
+		if(p->from3.type == TYPE_REG) {
 			o1 = oprrr(ctxt, p->as);
 			rf = p->from3.reg; /* Rm */
 		} else {
@@ -2157,7 +2156,7 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 	case 20: /* movT R,O(R) -> strT */
 		v = regoff(ctxt, &p->to);
 		r = p->to.reg;
-		if(r == NREG)
+		if(r == 0)
 			r = o->param;
 		if(v < 0) { /* unscaled 9-bit signed */
 			o1 = olsr9s(ctxt, opstr9(ctxt, p->as), v, r, p->from.reg);
@@ -2169,7 +2168,7 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 	case 21: /* movT O(R),R -> ldrT */
 		v = regoff(ctxt, &p->from);
 		r = p->from.reg;
-		if(r == NREG)
+		if(r == 0)
 			r = o->param;
 		if(v < 0) { /* unscaled 9-bit signed */
 			o1 = olsr9s(ctxt, opldr9(ctxt, p->as), v, r, p->to.reg);
@@ -2238,10 +2237,10 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 		else
 			o1 |= p->from.reg << 16;
 		rt = p->to.reg;
-		if(p->to.type == D_NONE)
+		if(p->to.type == TYPE_NONE)
 			rt = REGZERO;
 		r = p->reg;
-		if(r == NREG)
+		if(r == 0)
 			r = rt;
 		o1 |= ((r << 5)) | rt;
 		break;
@@ -2250,7 +2249,7 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 		if(!o1)
 			break;
 		r = p->reg;
-		if(r == NREG)
+		if(r == 0)
 			r = p->to.reg;
 		o2 = oprrr(ctxt, p->as);
 		o2 |= REGTMP << 16; /* shift is 0 */
@@ -2275,7 +2274,7 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 			ctxt->diag("internal: miscalculated offset %ld [%d]\n%P", v, s, p);
 		//fprint(2, "v=%ld (%#lux) s=%d hi=%ld (%#lux) v'=%ld (%#lux)\n", v, v, s, hi, hi, ((v-hi)>>s)&0xFFF, ((v-hi)>>s)&0xFFF);
 		r = p->to.reg;
-		if(r == NREG)
+		if(r == 0)
 			r = o->param;
 		o1 = oaddi(ctxt, opirr(ctxt, AADD), hi, r, REGTMP);
 		o2 = olsr12u(ctxt, opstr12(ctxt, p->as), ((((v - hi)) >> s)) & 0xFFF, REGTMP, p->from.reg);
@@ -2294,7 +2293,7 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 			ctxt->diag("internal: miscalculated offset %ld [%d]\n%P", v, s, p);
 		//fprint(2, "v=%ld (%#lux) s=%d hi=%ld (%#lux) v'=%ld (%#lux)\n", v, v, s, hi, hi, ((v-hi)>>s)&0xFFF, ((v-hi)>>s)&0xFFF);
 		r = p->from.reg;
-		if(r == NREG)
+		if(r == 0)
 			r = o->param;
 		o1 = oaddi(ctxt, opirr(ctxt, AADD), hi, r, REGTMP);
 		o2 = olsr12u(ctxt, opldr12(ctxt, p->as), ((((v - hi)) >> s)) & 0xFFF, REGTMP, p->to.reg);
@@ -2329,8 +2328,8 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 		if(((d >> 16)) != 0)
 			ctxt->diag("requires uimm16\n%P", p);
 		s = 0;
-		if(p->from3.type != D_NONE) {
-			if(p->from3.type != D_CONST)
+		if(p->from3.type != TYPE_NONE) {
+			if(p->from3.type != TYPE_CONST)
 				ctxt->diag("missing bit position\n%P", p);
 			s = p->from3.offset/16;
 			if(((s*16 & 0xF)) != 0 || s >= 4 || ((o1 & S64)) == 0 && s >= 2)
@@ -2347,7 +2346,7 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 		o2 |= REGTMP << 16;
 		o2 |= LSL0_64;
 		r = p->from.reg;
-		if(r == NREG)
+		if(r == 0)
 			r = o->param;
 		o2 |= r << 5;
 		o2 |= p->to.reg;
@@ -2385,7 +2384,7 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 		break;
 	case 38: /* clrex [$imm] */
 		o1 = opimm(ctxt, p->as);
-		if(p->to.type == D_NONE)
+		if(p->to.type == TYPE_NONE)
 			o1 |= 0xF << 8;
 		else
 			o1 |= ((p->to.offset & 0xF)) << 8;
@@ -2415,7 +2414,7 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 		s = p->from3.offset;
 		rf = p->reg;
 		rt = p->to.reg;
-		if(rf == NREG)
+		if(rf == 0)
 			rf = rt;
 		switch(p->as) {
 		case ABFI:
@@ -2522,7 +2521,7 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 		if(!o1)
 			break;
 		r = p->to.reg;
-		if(r == NREG)
+		if(r == 0)
 			r = o->param;
 		o2 = olsxrr(ctxt, p->as, REGTMP, r, p->from.reg);
 		break;
@@ -2531,7 +2530,7 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 		if(!o1)
 			break;
 		r = p->from.reg;
-		if(r == NREG)
+		if(r == 0)
 			r = o->param;
 		o2 = olsxrr(ctxt, p->as, REGTMP, r, p->to.reg);
 		break;
@@ -2540,17 +2539,17 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 		if(((p->from.offset & ~SYSARG4(0x7, 0xF, 0xF, 0x7))) != 0)
 			ctxt->diag("illegal SYS argument\n%P", p);
 		o1 |= p->from.offset;
-		if(p->to.type == D_REG)
+		if(p->to.type == TYPE_REG)
 			o1 |= p->to.reg;
 		else
-			if(p->reg != NREG)
+			if(p->reg != 0)
 				o1 |= p->reg;
 			else
 				o1 |= 0x1F;
 		break;
 	case 51: /* dmb */
 		o1 = opirr(ctxt, p->as);
-		if(p->from.type == D_CONST)
+		if(p->from.type == TYPE_CONST)
 			o1 |= ((p->from.offset & 0xF)) << 8;
 		break;
 	case 52: /* hint */
@@ -2561,7 +2560,7 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 		as = p->as;
 		rt = p->to.reg;
 		r = p->reg;
-		if(r == NREG)
+		if(r == 0)
 			r = rt;
 		if(as == AMOV) {
 			as = AORR;
@@ -2595,7 +2594,7 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 		break;
 	case 54: /* floating point arith */
 		o1 = oprrr(ctxt, p->as);
-		if(p->from.type == D_FCONST) {
+		if(p->from.type == TYPE_FCONST) {
 			rf = chipfloat7(ctxt, p->from.u.dval);
 			if(rf < 0 || 1) {
 				ctxt->diag("invalid floating-point immediate\n%P", p);
@@ -2610,13 +2609,13 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 			r = rf;
 			rf = 0;
 		} else
-			if(r == NREG)
+			if(r == 0)
 				r = rt;
 		o1 |= ((rf << 16)) | ((r << 5)) | rt;
 		break;
 	case 56: /* floating point compare */
 		o1 = oprrr(ctxt, p->as);
-		if(p->from.type == D_FCONST) {
+		if(p->from.type == TYPE_FCONST) {
 			o1 |= 8; /* zero */
 			rf = 0;
 		} else
@@ -2640,7 +2639,7 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 		o1 = opload(ctxt, p->as);
 		o1 |= 0x1F << 16;
 		o1 |= p->from.reg << 5;
-		if(p->reg != NREG)
+		if(p->reg != 0)
 			o1 |= p->reg << 10;
 		else
 			o1 |= 0x1F << 10;
@@ -2648,7 +2647,7 @@ if(0 /*debug['P']*/) print("%ux: %P	type %d\n", (uint32)(p->pc), p, o->type);
 		break;
 	case 59: /* stxr/stlxr */
 		o1 = opstore(ctxt, p->as);
-		if(p->to3.type != D_NONE)
+		if(p->to3.type != TYPE_NONE)
 			o1 |= p->to3.reg << 16;
 		else
 			o1 |= 0x1F << 16;

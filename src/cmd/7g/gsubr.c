@@ -116,14 +116,14 @@ gbranch(int as, Type *t, int likely)
 	USED(t);
 
 	p = prog(as);
-	p->to.type = D_BRANCH;
+	p->to.type = TYPE_BRANCH;
 	p->to.u.branch = P;
 	// TODO(minux): Enable this code.
 	// Note: liblink used Bcc CR0, label form, so we need another way
 	// to set likely/unlikely flag. Also note the y bit is not exactly
 	// likely/unlikely bit.
 	if(0 && as != AB && likely != 0) {
-		p->from.type = D_CONST;
+		p->from.type = TYPE_CONST;
 		p->from.offset = likely > 0;
 	}
 	return p;
@@ -135,7 +135,7 @@ gbranch(int as, Type *t, int likely)
 void
 patch(Prog *p, Prog *to)
 {
-	if(p->to.type != D_BRANCH)
+	if(p->to.type != TYPE_BRANCH)
 		fatal("patch: not a branch");
 	p->to.u.branch = to;
 	p->to.offset = to->pc;
@@ -146,7 +146,7 @@ unpatch(Prog *p)
 {
 	Prog *q;
 
-	if(p->to.type != D_BRANCH)
+	if(p->to.type != TYPE_BRANCH)
 		fatal("unpatch: not a branch");
 	q = p->to.u.branch;
 	p->to.u.branch = P;
@@ -197,7 +197,7 @@ ggloblnod(Node *nam)
 	p->lineno = nam->lineno;
 	p->from.sym->gotype = linksym(ngotype(nam));
 	p->to.sym = nil;
-	p->to.type = D_CONST;
+	p->to.type = TYPE_CONST;
 	p->to.offset = nam->type->width;
 	if(nam->readonly)
 		p->reg = RODATA;
@@ -211,8 +211,8 @@ gtrack(Sym *s)
 	Prog *p;
 	
 	p = gins(AUSEFIELD, N, N);
-	p->from.type = D_OREG;
-	p->from.name = D_EXTERN;
+	p->from.type = TYPE_MEM;
+	p->from.name = NAME_EXTERN;
 	p->from.sym = linksym(s);
 }
 
@@ -222,11 +222,11 @@ ggloblsym(Sym *s, int32 width, int8 flags)
 	Prog *p;
 
 	p = gins(AGLOBL, N, N);
-	p->from.type = D_OREG;
-	p->from.name = D_EXTERN;
+	p->from.type = TYPE_MEM;
+	p->from.name = NAME_EXTERN;
 	p->from.sym = linksym(s);
-	p->to.type = D_CONST;
-	p->to.name = D_NONE;
+	p->to.type = TYPE_CONST;
+	p->to.name = TYPE_NONE;
 	p->to.offset = width;
 	p->reg = flags;
 }
@@ -253,8 +253,8 @@ isfat(Type *t)
 void
 afunclit(Addr *a, Node *n)
 {
-	if(a->type == D_CONST && a->name == D_EXTERN) {
-		a->type = D_OREG;
+	if(a->type == TYPE_CONST && a->name == NAME_EXTERN) {
+		a->type = TYPE_MEM;
 		a->sym = linksym(n->sym);
 	}
 }
@@ -266,10 +266,10 @@ static	int	resvd[] =
 	REGSP,
 	REGZERO,
 
-	FREGZERO+NREG,
-	FREGHALF+NREG,
-	FREGONE+NREG,
-	FREGTWO+NREG,
+	FREGZERO,
+	FREGHALF,
+	FREGONE,
+	FREGTWO,
 };
 
 void
@@ -279,13 +279,11 @@ ginit(void)
 
 	for(i=0; i<nelem(reg); i++)
 		reg[i] = 1;
-	for(i=0; i<NREG; i++)
-		reg[i] = 0;
-	for(i=NREG; i<NREG+NREG; i++)
+	for(i=0; i<NREG+NFREG; i++)
 		reg[i] = 0;
 
 	for(i=0; i<nelem(resvd); i++)
-		reg[resvd[i]]++;
+		reg[resvd[i] - REG_R0]++;
 }
 
 static	uintptr	regpc[nelem(reg)];
@@ -296,11 +294,11 @@ gclean(void)
 	int i;
 
 	for(i=0; i<nelem(resvd); i++)
-		reg[resvd[i]]--;
+		reg[resvd[i] - REG_R0]--;
 
 	for(i=0; i<nelem(reg); i++)
 		if(reg[i])
-			yyerror("reg %R left allocated, %p\n", i, regpc[i]);
+			yyerror("reg %R left allocated, %p\n", i+REG_R0, regpc[i]);
 }
 
 int32
@@ -338,9 +336,9 @@ regalloc(Node *n, Type *t, Node *o)
 	if(debug['r']) {
 		fixfree = 0;
 		fltfree = 0;
-		for(i = D_R0; i < D_F0+NREG; i++)
-			if(reg[i] == 0) {
-				if(i < D_F0)
+		for(i = REG_R0; i < REG_F31; i++)
+			if(reg[i - REG_R0] == 0) {
+				if(i < REG_F0)
 					fixfree++;
 				else
 					fltfree++;
@@ -362,16 +360,16 @@ regalloc(Node *n, Type *t, Node *o)
 	case TBOOL:
 		if(o != N && o->op == OREGISTER) {
 			i = o->val.u.reg;
-			if(i >= D_R0+REGMIN && i <= D_R0+REGMAX)
+			if(i >= REGMIN && i <= REGMAX)
 				goto out;
 		}
-		for(i=D_R0+REGMIN; i<=D_R0+REGMAX; i++)
+		for(i=REGMIN; i<=REGMAX; i++)
 			if(reg[i] == 0) {
 				regpc[i] = (uintptr)getcallerpc(&n);
 				goto out;
 			}
 		flusherrors();
-		for(i=D_R0; i<D_R0+NREG; i++)
+		for(i=REG_R0; i<REG_R0+NREG; i++)
 			print("R%d %p\n", i, regpc[i]);
 		fatal("out of fixed registers");
 
@@ -379,16 +377,16 @@ regalloc(Node *n, Type *t, Node *o)
 	case TFLOAT64:
 		if(o != N && o->op == OREGISTER) {
 			i = o->val.u.reg;
-			if(i >= D_F0+FREGMIN && i <= D_F0+FREGMAX)
+			if(i >= FREGMIN && i <= FREGMAX)
 				goto out;
 		}
-		for(i=D_F0+FREGMIN; i<=D_F0+FREGMAX; i++)
+		for(i=FREGMIN; i<=FREGMAX; i++)
 			if(reg[i] == 0) {
 				regpc[i] = (uintptr)getcallerpc(&n);
 				goto out;
 			}
 		flusherrors();
-		for(i=D_F0; i<D_F0+NREG; i++)
+		for(i=REG_F0; i<REG_F0+NREG; i++)
 			print("F%d %p\n", i, regpc[i]);
 		fatal("out of floating registers");
 
@@ -401,7 +399,7 @@ regalloc(Node *n, Type *t, Node *o)
 	return;
 
 out:
-	reg[i]++;
+	reg[i - REG_R0]++;
 	nodreg(n, t, i);
 }
 
@@ -414,8 +412,8 @@ regfree(Node *n)
 		return;
 	if(n->op != OREGISTER && n->op != OINDREG)
 		fatal("regfree: not a register");
-	i = n->val.u.reg;
-	if(i == D_R0 + REGSP)
+	i = n->val.u.reg - REG_R0;
+	if(i == REGSP - REG_R0)
 		return;
 	if(i < 0 || i >= nelem(reg))
 		fatal("regfree: reg out of range");
@@ -510,7 +508,7 @@ fp:
 
 	case 0:		// output arg for calling another function
 		n->op = OINDREG;
-		n->val.u.reg = D_R0+REGSP;
+		n->val.u.reg = REGSP;
 		n->xoffset += 8;
 		break;
 
@@ -521,7 +519,7 @@ fp:
 	case 2:		// offset output arg
 fatal("shouldn't be used");
 		n->op = OINDREG;
-		n->val.u.reg = D_R0 + REGSP;
+		n->val.u.reg = REGSP;
 		n->xoffset += types[tptr]->width;
 		break;
 	}
@@ -972,8 +970,6 @@ gins(int as, Node *f, Node *t)
 		p->from = af;
 	if(t != N)
 		p->to = at;
-	if(as == ATEXT)
-		p->reg = 0;
 	if(debug['g'])
 		print("%P\n", p);
 
@@ -992,12 +988,12 @@ gins(int as, Node *f, Node *t)
 		w = 4;
 		break;
 	case AMOV:
-		if(af.type == D_CONST)
+		if(af.type == TYPE_CONST)
 			break;
 		w = 8;
 		break;
 	}
-	if(w != 0 && ((f != N && af.width < w) || (t != N && at.type != D_REG && at.width > w))) {
+	if(w != 0 && ((f != N && af.width < w) || (t != N && at.type != TYPE_REG && at.width > w))) {
 		dump("f", f);
 		dump("t", t);
 		fatal("bad width: %P (%d, %d)\n", p, af.width, at.width);
@@ -1036,12 +1032,12 @@ raddr(Node *n, Prog *p)
 	Addr a;
 
 	naddr(n, &a, 1);
-	if(a.type != D_REG && a.type != D_FREG) {
+	if(a.type != TYPE_REG) {
 		if(n)
 			fatal("bad in raddr: %O", n->op);
 		else
 			fatal("bad in raddr: <null>");
-		p->reg = NREG;
+		p->reg = 0;
 	} else
 		p->reg = a.reg;
 }
@@ -1071,9 +1067,9 @@ naddr(Node *n, Addr *a, int canemitcode)
 {
 	Sym *s;
 
-	a->type = D_NONE;
-	a->name = D_NONE;
-	a->reg = NREG;
+	a->type = TYPE_NONE;
+	a->name = TYPE_NONE;
+	a->reg = 0;
 	a->gotype = nil;
 	a->node = N;
 	a->etype = 0;
@@ -1093,7 +1089,7 @@ naddr(Node *n, Addr *a, int canemitcode)
 
 	case ONAME:
 		a->etype = 0;
-		a->reg = NREG;
+		a->reg = 0;
 		if(n->type != T)
 			a->etype = simtype[n->type->etype];
 		a->offset = n->xoffset;
@@ -1110,23 +1106,23 @@ naddr(Node *n, Addr *a, int canemitcode)
 				s = pkglookup(s->name, n->type->sym->pkg);
 		}
 
-		a->type = D_OREG;
+		a->type = TYPE_MEM;
 		switch(n->class) {
 		default:
 			fatal("naddr: ONAME class %S %d\n", n->sym, n->class);
 		case PEXTERN:
-			a->name = D_EXTERN;
+			a->name = NAME_EXTERN;
 			break;
 		case PAUTO:
-			a->name = D_AUTO;
+			a->name = NAME_AUTO;
 			break;
 		case PPARAM:
 		case PPARAMOUT:
-			a->name = D_PARAM;
+			a->name = NAME_PARAM;
 			break;
 		case PFUNC:
-			a->name = D_EXTERN;
-			a->type = D_CONST;
+			a->name = NAME_EXTERN;
+			a->type = TYPE_CONST;
 			a->width = widthptr;
 			s = funcsym(s);
 			break;
@@ -1140,13 +1136,13 @@ naddr(Node *n, Addr *a, int canemitcode)
 			fatal("naddr: const %lT", n->type);
 			break;
 		case CTFLT:
-			a->type = D_FCONST;
+			a->type = TYPE_FCONST;
 			a->u.dval = mpgetflt(n->val.u.fval);
 			break;
 		case CTINT:
 		case CTRUNE:
 			a->sym = nil;
-			a->type = D_CONST;
+			a->type = TYPE_CONST;
 			a->offset = mpgetfix(n->val.u.xval);
 			break;
 		case CTSTR:
@@ -1154,30 +1150,25 @@ naddr(Node *n, Addr *a, int canemitcode)
 			break;
 		case CTBOOL:
 			a->sym = nil;
-			a->type = D_CONST;
+			a->type = TYPE_CONST;
 			a->offset = n->val.u.bval;
 			break;
 		case CTNIL:
 			a->sym = nil;
-			a->type = D_CONST;
+			a->type = TYPE_CONST;
 			a->offset = 0;
 			break;
 		}
 		break;
 
 	case OREGISTER:
-		if(n->val.u.reg < D_F0) {
-			a->type = D_REG;
-			a->reg = n->val.u.reg;
-		} else {
-			a->type = D_FREG;
-			a->reg = n->val.u.reg - D_F0;
-		}
+		a->type = TYPE_REG;
+		a->reg = n->val.u.reg;
 		a->sym = nil;
 		break;
 
 	case OINDREG:
-		a->type = D_OREG;
+		a->type = TYPE_MEM;
 		a->reg = n->val.u.reg;
 		a->sym = linksym(n->sym);
 		a->offset = n->xoffset;
@@ -1192,15 +1183,15 @@ naddr(Node *n, Addr *a, int canemitcode)
 		a->width = n->left->type->width;
 		a->offset = n->xoffset;
 		a->sym = linksym(n->left->sym);
-		a->type = D_OREG;
-		a->name = D_PARAM;
+		a->type = TYPE_MEM;
+		a->name = NAME_PARAM;
 		a->node = n->left->orig;
 		break;
 
 	case OCLOSUREVAR:
 		if(!curfn->needctxt)
 			fatal("closurevar without needctxt");
-		a->type = D_OREG;
+		a->type = TYPE_MEM;
 		a->reg = REGENV;
 		a->offset = n->xoffset;
 		a->sym = nil;
@@ -1215,7 +1206,7 @@ naddr(Node *n, Addr *a, int canemitcode)
 		// itable of interface value
 		naddr(n->left, a, canemitcode);
 		a->etype = simtype[tptr];
-		if(a->type == D_CONST && a->offset == 0)
+		if(a->type == TYPE_CONST && a->offset == 0)
 			break;	// itab(nil)
 		a->width = widthptr;
 		break;
@@ -1224,7 +1215,7 @@ naddr(Node *n, Addr *a, int canemitcode)
 		// pointer in a string or slice
 		naddr(n->left, a, canemitcode);
 		a->etype = simtype[tptr];
-		if(a->type == D_CONST && a->offset == 0)
+		if(a->type == TYPE_CONST && a->offset == 0)
 			break;	// ptr(nil)
 		a->offset += Array_array;
 		a->width = widthptr;
@@ -1234,7 +1225,7 @@ naddr(Node *n, Addr *a, int canemitcode)
 		// len of string or slice
 		naddr(n->left, a, canemitcode);
 		a->etype = simtype[TINT];
-		if(a->type == D_CONST && a->offset == 0)
+		if(a->type == TYPE_CONST && a->offset == 0)
 			break;	// len(nil)
 		a->offset += Array_nel;
 		a->width = widthint;
@@ -1244,7 +1235,7 @@ naddr(Node *n, Addr *a, int canemitcode)
 		// cap of string or slice
 		naddr(n->left, a, canemitcode);
 		a->etype = simtype[TINT];
-		if(a->type == D_CONST && a->offset == 0)
+		if(a->type == TYPE_CONST && a->offset == 0)
 			break;	// cap(nil)
 		a->offset += Array_cap;
 		a->width = widthint;
@@ -1254,12 +1245,12 @@ naddr(Node *n, Addr *a, int canemitcode)
 		naddr(n->left, a, canemitcode);
 		a->etype = tptr;
 		switch(a->type) {
-		case D_OREG:
-			a->type = D_CONST;
+		case TYPE_MEM:
+			a->type = TYPE_CONST;
 			break;
 
-		case D_REG:
-		case D_CONST:
+		case TYPE_REG:
+		case TYPE_CONST:
 			break;
 
 		default:

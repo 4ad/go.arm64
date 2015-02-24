@@ -719,7 +719,7 @@ agenr(Node *n, Node *a, Node *res)
 				else {
 					regalloc(&n4, types[TUINT64], N);
 					p1 = gins(AMOV, N, &n4);
-					p1->from.type = D_CONST;
+					p1->from.type = TYPE_CONST;
 					p1->from.offset = nl->type->bound;
 				}
 			}
@@ -737,7 +737,7 @@ agenr(Node *n, Node *a, Node *res)
 			regalloc(&n3, types[tptr], res);
 			p1 = gins(AMOV, N, &n3);
 			datastring(nl->val.u.sval->s, nl->val.u.sval->len, &p1->from);
-			p1->from.type = D_CONST;
+			p1->from.type = TYPE_CONST;
 		} else if(isslice(nl->type) || nl->type->etype == TSTRING) {
 			n1 = n3;
 			n1.op = OINDREG;
@@ -956,7 +956,7 @@ igen(Node *n, Node *a, Node *res)
 	case OINDREG:
 		// Increase the refcount of the register so that igen's caller
 		// has to call regfree.
-		if(n->val.u.reg != D_R0+REGSP)
+		if(n->val.u.reg != REGSP)
 			reg[n->val.u.reg]++;
 		*a = *n;
 		return;
@@ -994,7 +994,7 @@ igen(Node *n, Node *a, Node *res)
 		fp = structfirst(&flist, getoutarg(n->left->type));
 		memset(a, 0, sizeof *a);
 		a->op = OINDREG;
-		a->val.u.reg = D_R0+REGSP;
+		a->val.u.reg = REGSP;
 		a->addable = 1;
 		a->xoffset = fp->width + widthptr; // +widthptr: saved lr at 0(SP)
 		a->type = n->type;
@@ -1453,25 +1453,25 @@ sgen(Node *n, Node *ns, int64 w)
 		}
 
 		p = gins(AADD, N, &src);
-		p->from.type = D_CONST;
+		p->from.type = TYPE_CONST;
 		p->from.offset = w;
 
 		p = gins(AADD, N, &dst);
-		p->from.type = D_CONST;
+		p->from.type = TYPE_CONST;
 		p->from.offset = w;
 	} else {
 		p = gins(AADD, N, &src);
-		p->from.type = D_CONST;
+		p->from.type = TYPE_CONST;
 		p->from.offset = -dir;
 
 		p = gins(AADD, N, &dst);
-		p->from.type = D_CONST;
+		p->from.type = TYPE_CONST;
 		p->from.offset = -dir;
 
 		if(c >= 4) {
 			regalloc(&nend, types[tptr], N);
 			p = gins(AMOV, &src, &nend);
-			p->from.type = D_CONST;
+			p->from.type = TYPE_CONST;
 			p->from.offset = w;
 		}
 	}

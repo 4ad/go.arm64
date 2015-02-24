@@ -112,15 +112,15 @@ Pconv(Fmt *fp)
 	a = p->as;
 	switch(a) {
 	default:
-		if(p->reg == NREG && p->from3.type == D_NONE && p->to3.type == D_NONE)
+		if(p->reg == 0 && p->from3.type == TYPE_NONE && p->to3.type == TYPE_NONE)
 			sprint(str, "%.5lld (%L)	%A	%D,%D", p->pc, p->lineno, a, &p->from, &p->to);
 		else if(p->from.type != D_FREG) {
 			sprint(str, "%.5lld (%L)	%A	%D", p->pc, p->lineno, a, &p->from);
-			if(p->from3.type != D_NONE)
+			if(p->from3.type != TYPE_NONE)
 				sprint(strchr(str, 0), ",%D", &p->from3);
-			if(p->reg != NREG)
+			if(p->reg != 0)
 				sprint(strchr(str, 0), ",R%d", p->reg);
-			if(p->to3.type != D_NONE)
+			if(p->to3.type != TYPE_NONE)
 				sprint(strchr(str, 0), ",%D,%D", &p->to, &p->to3);
 			else
 				sprint(strchr(str, 0), ",%D", &p->to);
@@ -173,7 +173,7 @@ Dconv(Fmt *fp)
 
 	a = va_arg(fp->args, Addr*);
 	if(fp->flags & FmtLong) {
-		if(a->type == D_CONST)
+		if(a->type == TYPE_CONST)
 			sprint(str, "$%d-%d", (int32)a->offset, (int32)(a->offset>>32));
 		else {
 			// ATEXT dst is not constant
@@ -186,13 +186,13 @@ Dconv(Fmt *fp)
 	default:
 		sprint(str, "GOK-type(%d)", a->type);
 		break;
-	case D_NONE:
+	case TYPE_NONE:
 		str[0] = 0;
-		if(a->name != D_NONE || a->reg != NREG || a->sym != nil)
+		if(a->name != TYPE_NONE || a->reg != 0 || a->sym != nil)
 			sprint(str, "%M(R%d)(NONE)", a, a->reg);
 		break;
-	case D_CONST:
-		if(a->reg == NREG || a->reg == REGZERO && a->offset == 0)
+	case TYPE_CONST:
+		if(a->reg == 0 || a->reg == REGZERO && a->offset == 0)
 			sprint(str, "$%M", a);
 		else
 			sprint(str, "$%M(R%d)", a, a->reg);
@@ -201,28 +201,28 @@ Dconv(Fmt *fp)
 		v = a->offset;
 		op = &"<<>>->@>"[(((((v >> 22)) & 3)) << 1)];
 		sprint(str, "R%ld%c%c%ld", ((v >> 16)) & 0x1F, op[0], op[1], ((v >> 10)) & 0x3F);
-		if(a->reg != NREG)
+		if(a->reg != 0)
 			sprint(str + strlen(str), "(R%d)", a->reg);
 		break;
 	case D_OCONST:
 		sprint(str, "$*$%M", a);
-		if(a->reg != NREG)
+		if(a->reg != 0)
 			sprint(str, "%M(R%d)(CONST)", a, a->reg);
 		break;
-	case D_OREG:
-		if(a->reg != NREG)
+	case TYPE_MEM:
+		if(a->reg != 0)
 			sprint(str, "%M(R%d)", a, a->reg);
 		else
 			sprint(str, "%M", a);
 		break;
 	case D_XPRE:
-		if(a->reg != NREG)
+		if(a->reg != 0)
 			sprint(str, "%M(R%d)!", a, a->reg);
 		else
 			sprint(str, "%M!", a);
 		break;
 	case D_XPOST:
-		if(a->reg != NREG)
+		if(a->reg != 0)
 			sprint(str, "(R%d)%M!", a->reg, a);
 		else
 			sprint(str, "%M!", a);
@@ -241,16 +241,16 @@ Dconv(Fmt *fp)
 		else
 			snprint(str, sizeof ((str)), "(R%d)(R%ld%s)", a->reg, v & 31, extop[((v >> 8)) & 7]);
 		break;
-	case D_REG:
+	case TYPE_REG:
 		sprint(str, "R%d", a->reg);
-		if(a->name != D_NONE || a->sym != nil)
+		if(a->name != TYPE_NONE || a->sym != nil)
 			sprint(str, "%M(R%d)(REG)", a, a->reg);
 		break;
 	case D_PAIR:
 		sprint(str, "(R%d, R%d)", a->reg, a->offset);
 		break;
 	case D_SP:
-		if(a->name != D_NONE || a->sym != nil)
+		if(a->name != TYPE_NONE || a->sym != nil)
 			sprint(str, "%M(R%d)(REG)", a, a->reg);
 		else
 			strcpy(str, "SP");
@@ -260,7 +260,7 @@ Dconv(Fmt *fp)
 		break;
 	case D_FREG:
 		sprint(str, "F%d", a->reg);
-		if(a->name != D_NONE || a->sym != nil)
+		if(a->name != TYPE_NONE || a->sym != nil)
 			sprint(str, "%M(R%d)(REG)", a, a->reg);
 		break;
 	case D_SPR:
@@ -278,10 +278,10 @@ Dconv(Fmt *fp)
 			sprint(str, "SPR(%#llux)", a->offset);
 			break;
 		}
-		if(a->name != D_NONE || a->sym != nil)
+		if(a->name != TYPE_NONE || a->sym != nil)
 			sprint(str, "%M(SPR%lld)(REG)", a, a->offset);
 		break;
-	case D_BRANCH: /* botch */
+	case TYPE_BRANCH: /* botch */
 		if(bigP->pcond != nil) {
 			v = bigP->pcond->pc;
 			if(a->sym != nil)
@@ -294,10 +294,10 @@ Dconv(Fmt *fp)
 			else
 				sprint(str, "%lld(PC)", a->offset);
 		break;
-	case D_FCONST:
+	case TYPE_FCONST:
 		sprint(str, "$%.17g", a->u.dval);
 		break;
-	case D_SCONST:
+	case TYPE_SCONST:
 		sprint(str, "$\"%$\"", a->u.sval);
 		break;
 	}
@@ -317,28 +317,28 @@ Mconv(Fmt *fp)
 	default:
 		sprint(str, "GOK-name(%d)", a->name);
 		break;
-	case D_NONE:
+	case TYPE_NONE:
 		sprint(str, "%lld", a->offset);
 		break;
-	case D_EXTERN:
+	case NAME_EXTERN:
 		if(s == nil)
 			sprint(str, "%lld(SB)", a->offset);
 		else
 			sprint(str, "%s+%lld(SB)", s->name, a->offset);
 		break;
-	case D_STATIC:
+	case NAME_STATIC:
 		if(s == nil)
 			sprint(str, "<>+%lld(SB)", a->offset);
 		else
 			sprint(str, "%s<>+%lld(SB)", s->name, a->offset);
 		break;
-	case D_AUTO:
+	case NAME_AUTO:
 		if(s == nil)
 			sprint(str, "%lld(SP)", a->offset);
 		else
 			sprint(str, "%s-%lld(SP)", s->name, -a->offset);
 		break;
-	case D_PARAM:
+	case NAME_PARAM:
 		if(s == nil)
 			sprint(str, "%lld(FP)", a->offset);
 		else

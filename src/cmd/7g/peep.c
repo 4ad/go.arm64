@@ -62,7 +62,7 @@ regtyp(Adr *a)
 	switch(a->type) {
 	default:
 		return 0;
-	case D_REG:
+	case TYPE_REG:
 		if(a->reg == REGZERO)
 			return 0;
 	case D_FREG:
@@ -77,7 +77,7 @@ sameaddr(Addr *a, Addr *v)
 		return 0;
 	if(regtyp(v) && a->reg == v->reg)
 		return 1;
-	if(v->type == D_AUTO || v->type == D_PARAM)
+	if(v->type == NAME_AUTO || v->type == NAME_PARAM)
 		if(v->offset == a->offset)
 			return 1;
 	return 0;
@@ -86,7 +86,7 @@ sameaddr(Addr *a, Addr *v)
 int
 smallindir(Addr *a, Addr *reg)
 {
-	return reg->type == D_REG && a->type == D_OREG &&
+	return reg->type == TYPE_REG && a->type == TYPE_MEM &&
 		a->reg == reg->reg &&
 		0 <= a->offset && a->offset < 4096;
 }
@@ -94,5 +94,5 @@ smallindir(Addr *a, Addr *reg)
 int
 stackaddr(Addr *a)
 {
-	return a->type == D_REG && a->reg == REGSP;
+	return a->type == TYPE_REG && a->reg == REGSP;
 }

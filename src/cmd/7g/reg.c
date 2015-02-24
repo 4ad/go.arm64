@@ -177,7 +177,7 @@ regopt(Prog *firstp)
 	 * registers, so we have complete register usage information.
 	 */
 	nvar = NREGVAR;
-	memset(var, 0, NREGVAR*sizeof var[0]);
+	memset(var, 0, 0VAR*sizeof var[0]);
 	for(i=0; i<NREGVAR; i++) {
 		if(regnodes[i] == N)
 			regnodes[i] = newname(lookup(regname[i]));
@@ -187,7 +187,7 @@ regopt(Prog *firstp)
 	// Exclude registers with fixed functions
 	regbits = RtoB(REGRT1)|RtoB(REGRT2)|RtoB(REGPR);
 	// Also exclude floating point registers with fixed constants
-	regbits |= FtoB(D_F0+27)|FtoB(D_F0+28)|FtoB(D_F0+29)|FtoB(D_F0+30)|FtoB(D_F0+31);
+	regbits |= RtoB(REG_F27)|RtoB(REG_F28)|RtoB(REG_F29)|RtoB(REG_F30)|RtoB(REG_F31);
 	externs = zbits;
 	params = zbits;
 	consts = zbits;
@@ -217,7 +217,7 @@ regopt(Prog *firstp)
 		proginfo(&info, p);
 
 		// Avoid making variables for direct-called functions.
-		if(p->as == ABL && p->to.name == D_EXTERN)
+		if(p->as == ABL && p->to.name == NAME_EXTERN)
 			continue;
 
 		// from vs to doesn't matter for registers
@@ -234,15 +234,11 @@ regopt(Prog *firstp)
 
 		// Compute used register for reg
 		if(info.flags & RegRead) {
-			if(p->from.type != D_FREG)
-				r->use1.b[0] |= RtoB(p->reg);
-			else
-				r->use1.b[0] |= FtoB(D_F0+p->reg);
-		}
+			r->use1.b[0] |= RtoB(p->reg);
 
 		// Currently we never generate three register forms.
 		// If we do, this will need to change.
-		if(p->from3.type != D_NONE)
+		if(p->from3.type != TYPE_NONE)
 			fatal("regopt not implemented for from3");
 
 		// Compute used register for to
@@ -484,7 +480,7 @@ brk:
 	for(p=firstp; p!=P; p=p->link) {
 		while(p->link != P && p->link->as == ANOP)
 			p->link = p->link->link;
-		if(p->to.type == D_BRANCH)
+		if(p->to.type == TYPE_BRANCH)
 			while(p->to.u.branch != P && p->to.u.branch->as == ANOP)
 				p->to.u.branch = p->to.u.branch->link;
 	}
@@ -556,7 +552,7 @@ addmove(Reg *r, int bn, int rn, int f)
 	// If there's a stack fixup coming (ADD $n,R1 after BL newproc or BL deferproc),
 	// delay the load until after the fixup.
 	p2 = p->link;
-	if(p2 && p2->as == AADD && p2->to.reg == REGSP && p2->to.type == D_REG)
+	if(p2 && p2->as == AADD && p2->to.reg == REGSP && p2->to.type == TYPE_REG)
 		p = p2;
 
 	p1->link = p->link;
@@ -571,9 +567,9 @@ addmove(Reg *r, int bn, int rn, int f)
 	a->sym = linksym(v->node->sym);
 	a->offset = v->offset;
 	a->etype = v->etype;
-	a->type = D_OREG;
+	a->type = TYPE_MEM;
 	if(a->etype == TARRAY || a->sym == nil)
-		a->type = D_CONST;
+		a->type = TYPE_CONST;
 
 	if(v->addr)
 		fatal("addmove: shouldn't be doing this %A\n", a);
@@ -616,21 +612,13 @@ addmove(Reg *r, int bn, int rn, int f)
 		break;
 	}
 
-	p1->from.type = D_REG;
+	p1->from.type = TYPE_REG;
 	p1->from.reg = rn;
-	if(rn >= NREG) {
-		p1->from.type = D_FREG;
-		p1->from.reg = rn-NREG;
-	}
 	if(!f) {
 		p1->from = *a;
 		*a = zprog.from;
-		a->type = D_REG;
+		a->type = TYPE_REG;
 		a->reg = rn;
-		if(rn >= NREG) {
-			a->type = D_FREG;
-			a->reg = rn-NREG;
-		}
 		if(v->etype == TUINT8 || v->etype == TBOOL)
 			p1->as = AMOVBU;
 		if(v->etype == TUINT16)
@@ -673,30 +661,22 @@ mkvar(Reg *r, Adr *a)
 		print("type %d %d %D\n", t, a->name, a);
 		goto none;
 
-	case D_NONE:
+	case TYPE_NONE:
 		goto none;
 
-	case D_BRANCH:
-	case D_CONST:
-	case D_FCONST:
-	case D_SCONST:
+	case TYPE_BRANCH:
+	case TYPE_CONST:
+	case TYPE_FCONST:
+	case TYPE_SCONST:
 	case D_SPR:
-	case D_OREG:
+	case TYPE_MEM:
 	case D_XPRE:
 		break;
 
-	case D_REG:
-		if(a->reg != NREG) {
+	case TYPE_REG:
+		if(a->reg != 0) {
 			bit = zbits;
 			bit.b[0] = RtoB(a->reg);
-			return bit;
-		}
-		break;
-
-	case D_FREG:
-		if(a->reg != NREG) {
-			bit = zbits;
-			bit.b[0] = FtoB(D_F0+a->reg);
 			return bit;
 		}
 		break;
@@ -706,10 +686,10 @@ mkvar(Reg *r, Adr *a)
 	default:
 		goto none;
 
-	case D_EXTERN:
-	case D_STATIC:
-	case D_AUTO:
-	case D_PARAM:
+	case NAME_EXTERN:
+	case NAME_STATIC:
+	case NAME_AUTO:
+	case NAME_PARAM:
 		n = a->name;
 		break;
 	}
@@ -785,10 +765,10 @@ mkvar(Reg *r, Adr *a)
 	node->opt = v;
 
 	bit = blsh(i);
-	if(n == D_EXTERN || n == D_STATIC)
+	if(n == NAME_EXTERN || n == NAME_STATIC)
 		for(z=0; z<BITS; z++)
 			externs.b[z] |= bit.b[z];
-	if(n == D_PARAM)
+	if(n == NAME_PARAM)
 		for(z=0; z<BITS; z++)
 			params.b[z] |= bit.b[z];
 
@@ -1015,7 +995,7 @@ allreg(uint64 b, Rgn *r)
 		i = BtoF(~b);
 		if(i && r->cost > 0) {
 			r->regno = i;
-			return FtoB(i);
+			return RtoB(i);
 		}
 		break;
 	}
@@ -1214,13 +1194,9 @@ addreg(Adr *a, int rn)
 {
 	a->sym = nil;
 	a->node = nil;
-	a->name = D_NONE;
-	a->type = D_REG;
+	a->name = TYPE_NONE;
+	a->type = TYPE_REG;
 	a->reg = rn;
-	if(rn >= NREG) {
-		a->type = D_FREG;
-		a->reg = rn-NREG;
-	}
 
 	ostats.ncvtreg++;
 }
@@ -1240,8 +1216,10 @@ addreg(Adr *a, int rn)
 uint64
 RtoB(int r)
 {
-	if(r > D_R0 && r <= D_R0+31)
-		return 1ULL << (r - D_R0);
+	if(r > REG_R0 && r <= REG_R31)
+		return 1ULL << (r - REG_R0);
+	if(r >= REG_F0 && r <= REG_F31)
+		return 1ULL << (32 + r - REG_F0);
 	return 0;
 }
 
@@ -1251,15 +1229,7 @@ BtoR(uint64 b)
 	b &= 0xffffffffull;
 	if(b == 0)
 		return 0;
-	return bitno(b) + D_R0;
-}
-
-uint64
-FtoB(int r)
-{
-	if(r >= D_F0 && r <= D_F0+31)
-		return 1ULL << (32 + r - D_F0);
-	return 0;
+	return bitno(b) + REG_R0;
 }
 
 int
@@ -1268,7 +1238,7 @@ BtoF(uint64 b)
 	b >>= 32;
 	if(b == 0)
 		return 0;
-	return bitno(b) + D_F0;
+	return bitno(b) + REG_F0;
 }
 
 void

@@ -36,15 +36,7 @@ betypeinit(void)
 	widthint = 8;
 	widthreg = 8;
 
-	zprog.link = P;
 	zprog.as = AGOK;
-	zprog.reg = NREG;
-	zprog.from.name = D_NONE;
-	zprog.from.type = D_NONE;
-	zprog.from.reg = NREG;
-	zprog.to = zprog.from;
-	zprog.from3 = zprog.from;
-	zprog.to3 = zprog.from;
 
 	listinit7();
 }

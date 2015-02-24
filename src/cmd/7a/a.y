@@ -80,7 +80,7 @@ inst:
  */
 	LTYPE0 comma
 	{
-		outcode($1, &nullgen, NREG, &nullgen);
+		outcode($1, &nullgen, 0, &nullgen);
 	}
 /*
  * ADD
@@ -95,65 +95,65 @@ inst:
 	}
 |	LTYPE1 imsr ',' reg
 	{
-		outcode($1, &$2, NREG, &$4);
+		outcode($1, &$2, 0, &$4);
 	}
 /*
  * CLS
  */
 |	LTYPE2 imsr ',' reg
 	{
-		outcode($1, &$2, NREG, &$4);
+		outcode($1, &$2, 0, &$4);
 	}
 /*
  * MOV
  */
 |	LTYPE3 addr ',' addr
 	{
-		outcode($1, &$2, NREG, &$4);
+		outcode($1, &$2, 0, &$4);
 	}
 /*
  * MOVK
  */
 |	LMOVK imm ',' reg
 	{
-		outcode($1, &$2, NREG, &$4);
+		outcode($1, &$2, 0, &$4);
 	}
 |	LMOVK imm '<' '<' con ',' reg
 	{
 		Addr a;
 		a = nullgen;
-		a.type = D_CONST;
+		a.type = TYPE_CONST;
 		a.offset = $5;
-		outgcode($1, &$2, NREG, &a, &$7);
+		outgcode($1, &$2, 0, &a, &$7);
 	}
 /*
  * B/BL
  */
 |	LTYPE4 comma rel
 	{
-		outcode($1, &nullgen, NREG, &$3);
+		outcode($1, &nullgen, 0, &$3);
 	}
 |	LTYPE4 comma nireg
 	{
-		outcode($1, &nullgen, NREG, &$3);
+		outcode($1, &nullgen, 0, &$3);
 	}
 /*
  * BEQ
  */
 |	LTYPE5 comma rel
 	{
-		outcode($1, &nullgen, NREG, &$3);
+		outcode($1, &nullgen, 0, &$3);
 	}
 /*
  * SVC
  */
 |	LTYPE6 comma addr
 	{
-		outcode($1, &nullgen, NREG, &$3);
+		outcode($1, &nullgen, 0, &$3);
 	}
 |	LTYPE6
 	{
-		outcode($1, &nullgen, NREG, &nullgen);
+		outcode($1, &nullgen, 0, &nullgen);
 	}
 /*
  * CMP
@@ -167,14 +167,14 @@ inst:
  */
 |	LTYPE8 reg ',' rel
 	{
-		outcode($1, &$2, NREG, &$4);
+		outcode($1, &$2, 0, &$4);
 	}
 /*
  * CSET
  */
 |	LTYPER cond ',' reg
 	{
-		outcode($1, &$2, NREG, &$4);
+		outcode($1, &$2, 0, &$4);
 	}
 /*
  * CSEL/CINC/CNEG/CINV
@@ -206,11 +206,11 @@ inst:
  */
 |	LTYPEV rel ',' reg
 	{
-		outcode($1, &$2, NREG, &$4);
+		outcode($1, &$2, 0, &$4);
 	}
 |	LTYPEV '$' name ',' reg
 	{
-		outcode($1, &$3, NREG, &$5);
+		outcode($1, &$3, 0, &$5);
 	}
 /*
  * BFM/BFI
@@ -231,34 +231,34 @@ inst:
  */
 |	LTYPEA comma
 	{
-		outcode($1, &nullgen, NREG, &nullgen);
+		outcode($1, &nullgen, 0, &nullgen);
 	}
 |	LTYPEA reg
 	{
-		outcode($1, &nullgen, NREG, &$2);
+		outcode($1, &nullgen, 0, &$2);
 	}
 /*
  * NOP
  */
 |	LTYPEQ comma
 	{
-		outcode($1, &nullgen, NREG, &nullgen);
+		outcode($1, &nullgen, 0, &nullgen);
 	}
 |	LTYPEQ reg comma
 	{
-		outcode($1, &$2, NREG, &nullgen);
+		outcode($1, &$2, 0, &nullgen);
 	}
 |	LTYPEQ freg comma
 	{
-		outcode($1, &$2, NREG, &nullgen);
+		outcode($1, &$2, 0, &nullgen);
 	}
 |	LTYPEQ ',' reg
 	{
-		outcode($1, &nullgen, NREG, &$3);
+		outcode($1, &nullgen, 0, &$3);
 	}
 |	LTYPEQ ',' freg
 	{
-		outcode($1, &nullgen, NREG, &$3);
+		outcode($1, &nullgen, 0, &$3);
 	}
 /*
  * TEXT/GLOBL
@@ -266,7 +266,7 @@ inst:
 |       LTYPEB name ',' imm
 	{
 		settext($2.sym);
-		outcode($1, &$2, NREG, &$4);
+		outcode($1, &$2, 0, &$4);
 	}
 |       LTYPEB name ',' con ',' imm
 	{
@@ -294,48 +294,48 @@ inst:
  */
 |	LTYPED reg ',' reg
 	{
-		outcode($1, &$2, NREG, &$4);
+		outcode($1, &$2, 0, &$4);
 	}
 /*
  * word
  */
 |	LTYPEH comma ximm
 	{
-		outcode($1, &nullgen, NREG, &$3);
+		outcode($1, &nullgen, 0, &$3);
 	}
 /*
  * PCDATA
  */
 |	LPCDAT imm ',' imm
 	{
-		if($2.type != D_CONST || $4.type != D_CONST)
+		if($2.type != TYPE_CONST || $4.type != TYPE_CONST)
 			yyerror("arguments to PCDATA must be integer constants");
-		outcode($1, &$2, NREG, &$4);
+		outcode($1, &$2, 0, &$4);
 	}
 /*
  * FUNCDATA
  */
 |	LFUNCDAT imm ',' addr
 	{
-		if($2.type != D_CONST)
+		if($2.type != TYPE_CONST)
 			yyerror("index for FUNCDATA must be integer constant");
-		if($4.type != D_EXTERN && $4.type != D_STATIC && $4.type != D_OREG)
+		if($4.type != NAME_EXTERN && $4.type != NAME_STATIC && $4.type != TYPE_MEM)
 			yyerror("value for FUNCDATA must be symbol reference");
- 		outcode($1, &$2, NREG, &$4);
+ 		outcode($1, &$2, 0, &$4);
 	}
 /*
  * floating-point
  */
 |	LTYPEI freg ',' freg
 	{
-		outcode($1, &$2, NREG, &$4);
+		outcode($1, &$2, 0, &$4);
 	}
 /*
  * FADDD
  */
 |	LTYPEK frcon ',' freg
 	{
-		outcode($1, &$2, NREG, &$4);
+		outcode($1, &$2, 0, &$4);
 	}
 |	LTYPEK frcon ',' freg ',' freg
 	{
@@ -374,7 +374,7 @@ inst:
  */
 |	LTYPEW vaddr ',' vaddr
 	{
-		outcode($1, &$2, NREG, &$4);
+		outcode($1, &$2, 0, &$4);
 	}
 |	LTYPEW vaddr ',' vaddr ',' vaddr
 	{
@@ -399,7 +399,7 @@ inst:
  */
 |	LTYPEN sysarg
 	{
-		outcode($1, &$2, NREG, &nullgen);
+		outcode($1, &$2, 0, &nullgen);
 	}
 |	LTYPEN reg ',' sysarg
 	{
@@ -407,14 +407,14 @@ inst:
 	}
 |	LTYPEO sysarg ',' reg
 	{
-		outcode($1, &$2, NREG, &$4);
+		outcode($1, &$2, 0, &$4);
 	}
 /*
  * DMB, HINT
  */
 |	LDMB imm
 	{
-		outcode($1, &$2, NREG, &nullgen);
+		outcode($1, &$2, 0, &nullgen);
 	}
 /*
  * STXR
@@ -429,7 +429,7 @@ inst:
  */
 |	LTYPEX regreg ',' addr
 	{
-		outcode($1, &$2, NREG, &$4);
+		outcode($1, &$2, 0, &$4);
 	}
 
 /*
@@ -437,7 +437,7 @@ inst:
  */
 |	LTYPEZ addr ',' regreg
 	{
-		outcode($1, &$2, NREG, &$4);
+		outcode($1, &$2, 0, &$4);
 	}
 
 /*
@@ -445,7 +445,7 @@ inst:
  */
 |	LTYPEE comma
 	{
-		outcode($1, &nullgen, NREG, &nullgen);
+		outcode($1, &nullgen, 0, &nullgen);
 	}
 
 cond:
@@ -463,7 +463,7 @@ sysarg:
 	con ',' con ',' con ',' con
 	{
 		$$ = nullgen;
-		$$.type = D_CONST;
+		$$.type = TYPE_CONST;
 		$$.offset = SYSARG4($1, $3, $5, $7);
 	}
 |	imm
@@ -472,7 +472,7 @@ rel:
 	con '(' LPC ')'
 	{
 		$$ = nullgen;
-		$$.type = D_BRANCH;
+		$$.type = TYPE_BRANCH;
 		$$.offset = $1 + pc;
 	}
 |	LNAME offset
@@ -481,20 +481,20 @@ rel:
 		$$ = nullgen;
 		if(pass == 2 && $1->type != LLAB)
 			yyerror("undefined label: %s", $1->labelname);
-		$$.type = D_BRANCH;
+		$$.type = TYPE_BRANCH;
 		$$.offset = $1->value + $2;
 	}
 
 ximm:	'$' con
 	{
 		$$ = nullgen;
-		$$.type = D_CONST;
+		$$.type = TYPE_CONST;
 		$$.offset = $2;
 	}
 |	'$' oreg
 	{
 		$$ = $2;
-		$$.type = D_CONST;
+		$$.type = TYPE_CONST;
 	}
 |	'$' '*' '$' oreg
 	{
@@ -504,7 +504,7 @@ ximm:	'$' con
 |	'$' LSCONST
 	{
 		$$ = nullgen;
-		$$.type = D_SCONST;
+		$$.type = TYPE_SCONST;
 		memmove($$.u.sval, $2, sizeof($$.u.sval));
 	}
 |	fcon
@@ -513,13 +513,13 @@ fcon:
 	'$' LFCONST
 	{
 		$$ = nullgen;
-		$$.type = D_FCONST;
+		$$.type = TYPE_FCONST;
 		$$.u.dval = $2;
 	}
 |	'$' '-' LFCONST
 	{
 		$$ = nullgen;
-		$$.type = D_FCONST;
+		$$.type = TYPE_FCONST;
 		$$.u.dval = -$3;
 	}
 
@@ -535,7 +535,7 @@ addr:
 |	con
 	{
 		$$ = nullgen;
-		$$.type = D_OREG;
+		$$.type = TYPE_MEM;
 		$$.offset = $1;
 	}
 |	oreg
@@ -547,14 +547,14 @@ nireg:
 	'(' sreg ')'
 	{
 		$$ = nullgen;
-		$$.type = D_OREG;
+		$$.type = TYPE_MEM;
 		$$.reg = $2;
 		$$.offset = 0;
 	}
 |	name
 	{
 		$$ = $1;
-		if($1.name != D_EXTERN && $1.name != D_STATIC) {
+		if($1.name != NAME_EXTERN && $1.name != NAME_STATIC) {
 		}
 	}
 
@@ -563,7 +563,7 @@ oreg:
 |	name '(' sreg ')'
 	{
 		$$ = $1;
-		$$.type = D_OREG;
+		$$.type = TYPE_MEM;
 		$$.reg = $3;
 	}
 |	ioreg
@@ -572,14 +572,14 @@ ioreg:
 	'(' sreg ')'
 	{
 		$$ = nullgen;
-		$$.type = D_OREG;
+		$$.type = TYPE_MEM;
 		$$.reg = $2;
 		$$.offset = 0;
 	}
 |	con '(' sreg ')'
 	{
 		$$ = nullgen;
-		$$.type = D_OREG;
+		$$.type = TYPE_MEM;
 		$$.reg = $3;
 		$$.offset = $1;
 	}
@@ -622,7 +622,7 @@ imsr:
 imm:	'$' con
 	{
 		$$ = nullgen;
-		$$.type = D_CONST;
+		$$.type = TYPE_CONST;
 		$$.offset = $2;
 	}
 
@@ -630,7 +630,7 @@ reg:
 	sreg
 	{
 		$$ = nullgen;
-		$$.type = D_REG;
+		$$.type = TYPE_REG;
 		$$.reg = $1;
 	}
 |	LSP
@@ -679,7 +679,7 @@ extreg:
 	sreg
 	{
 		$$ = nullgen;
-		$$.type = D_REG;
+		$$.type = TYPE_REG;
 		$$.reg = $1;
 	}
 |	sreg LEXT
@@ -721,7 +721,7 @@ sreg:
 	LREG
 |	LR '(' expr ')'
 	{
-		if($3 < 0 || $3 >= NREG)
+		if($3 < 0 || $3 >= 0)
 			print("register value out of range\n");
 		$$ = $3;
 	}
@@ -832,7 +832,7 @@ name:
 	con '(' pointer ')'
 	{
 		$$ = nullgen;
-		$$.type = D_OREG;
+		$$.type = TYPE_MEM;
 		$$.name = $3;
 		$$.sym = nil;
 		$$.offset = $1;
@@ -840,7 +840,7 @@ name:
 |	LNAME offset '(' pointer ')'
 	{
 		$$ = nullgen;
-		$$.type = D_OREG;
+		$$.type = TYPE_MEM;
 		$$.name = $4;
 		$$.sym = linklookup(ctxt, $1->name, 0);
 		$$.offset = $2;
@@ -848,8 +848,8 @@ name:
 |	LNAME '<' '>' offset '(' LSB ')'
 	{
 		$$ = nullgen;
-		$$.type = D_OREG;
-		$$.name = D_STATIC;
+		$$.type = TYPE_MEM;
+		$$.name = NAME_STATIC;
 		$$.sym = linklookup(ctxt, $1->name, 1);
 		$$.offset = $4;
 	}

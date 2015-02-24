@@ -210,7 +210,7 @@ enum
 	RightRead = 1<<15,
 	RightWrite = 1<<16,
 
-	// Instruction updates whichever of from/to is type D_OREG
+	// Instruction updates whichever of from/to is type TYPE_MEM
 	PostInc = 1<<17,
 
 	// Instruction kinds
