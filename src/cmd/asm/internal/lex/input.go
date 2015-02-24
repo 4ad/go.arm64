@@ -25,6 +25,10 @@ type Input struct {
 	beginningOfLine bool
 	ifdefStack      []bool
 	macros          map[string]*Macro
+	text            string // Text of last token returned by Next.
+	peek            bool
+	peekToken       ScanToken
+	peekText        string
 }
 
 // NewInput returns a
@@ -46,7 +50,7 @@ func predefine(defines flags.MultiFlag) map[string]*Macro {
 		if i > 0 {
 			name, value = name[:i], name[i+1:]
 		}
-		tokens := tokenize(name)
+		tokens := Tokenize(name)
 		if len(tokens) != 1 || tokens[0].ScanToken != scanner.Ident {
 			fmt.Fprintf(os.Stderr, "asm: parsing -D: %q is not a valid identifier name\n", tokens[0])
 			flags.Usage()
@@ -54,7 +58,7 @@ func predefine(defines flags.MultiFlag) map[string]*Macro {
 		macros[name] = &Macro{
 			name:   name,
 			args:   nil,
-			tokens: tokenize(value),
+			tokens: Tokenize(value),
 		}
 	}
 	return macros
@@ -67,7 +71,7 @@ func (in *Input) Error(args ...interface{}) {
 
 // expectText is like Error but adds "got XXX" where XXX is a quoted representation of the most recent token.
 func (in *Input) expectText(args ...interface{}) {
-	in.Error(append(args, "; got", strconv.Quote(in.Text()))...)
+	in.Error(append(args, "; got", strconv.Quote(in.Stack.Text()))...)
 }
 
 // enabled reports whether the input is enabled by an ifdef, or is at the top level.
@@ -83,7 +87,15 @@ func (in *Input) expectNewline(directive string) {
 }
 
 func (in *Input) Next() ScanToken {
-	for {
+	if in.peek {
+		in.peek = false
+		tok := in.peekToken
+		in.text = in.peekText
+		return tok
+	}
+	// If we cannot generate a token after 100 tries, we're in trouble.
+	// The usual case is caught by Push, below, but be safe.
+	for i := 0; i < 100; i++ {
 		tok := in.Stack.Next()
 		switch tok {
 		case '#':
@@ -103,12 +115,17 @@ func (in *Input) Next() ScanToken {
 		default:
 			in.beginningOfLine = tok == '\n'
 			if in.enabled() {
+				in.text = in.Stack.Text()
 				return tok
 			}
 		}
 	}
 	in.Error("recursive macro invocation")
 	return 0
+}
+
+func (in *Input) Text() string {
+	return in.text
 }
 
 // hash processes a # preprocessor directive. It returns true iff it completes.
@@ -121,14 +138,14 @@ func (in *Input) hash() bool {
 	if !in.enabled() {
 		// Can only start including again if we are at #else or #endif.
 		// We let #line through because it might affect errors.
-		switch in.Text() {
+		switch in.Stack.Text() {
 		case "else", "endif", "line":
 			// Press on.
 		default:
 			return false
 		}
 	}
-	switch in.Text() {
+	switch in.Stack.Text() {
 	case "define":
 		in.define()
 	case "else":
@@ -146,7 +163,7 @@ func (in *Input) hash() bool {
 	case "undef":
 		in.undef()
 	default:
-		in.Error("unexpected identifier after '#':", in.Text())
+		in.Error("unexpected token after '#':", in.Stack.Text())
 	}
 	return true
 }
@@ -159,7 +176,7 @@ func (in *Input) macroName() string {
 		in.expectText("expected identifier after # directive")
 	}
 	// Name is alphanumeric by definition.
-	return in.Text()
+	return in.Stack.Text()
 }
 
 // #define processing.
@@ -229,12 +246,8 @@ func (in *Input) macroDefinition(name string) ([]string, []Token) {
 			if tok != '\n' && tok != '\\' {
 				in.Error(`can only escape \ or \n in definition for macro:`, name)
 			}
-			if tok == '\n' { // backslash-newline is discarded
-				tok = in.Stack.Next()
-				continue
-			}
 		}
-		tokens = append(tokens, Make(tok, in.Text()))
+		tokens = append(tokens, Make(tok, in.Stack.Text()))
 		tok = in.Stack.Next()
 	}
 	return args, tokens
@@ -253,6 +266,21 @@ func lookup(args []string, arg string) int {
 // parameters substituted for the formals.
 // Invoking a macro does not touch the PC/line history.
 func (in *Input) invokeMacro(macro *Macro) {
+	// If the macro has no arguments, just substitute the text.
+	if macro.args == nil {
+		in.Push(NewSlice(in.File(), in.Line(), macro.tokens))
+		return
+	}
+	tok := in.Stack.Next()
+	if tok != '(' {
+		// If the macro has arguments but is invoked without them, all we push is the macro name.
+		// First, put back the token.
+		in.peekToken = tok
+		in.peekText = in.text
+		in.peek = true
+		in.Push(NewSlice(in.File(), in.Line(), []Token{Make(macroName, macro.name)}))
+		return
+	}
 	actuals := in.argsFor(macro)
 	var tokens []Token
 	for _, tok := range macro.tokens {
@@ -270,43 +298,52 @@ func (in *Input) invokeMacro(macro *Macro) {
 	in.Push(NewSlice(in.File(), in.Line(), tokens))
 }
 
-// argsFor returns a map from formal name to actual value for this macro invocation.
+// argsFor returns a map from formal name to actual value for this argumented macro invocation.
+// The opening parenthesis has been absorbed.
 func (in *Input) argsFor(macro *Macro) map[string][]Token {
-	if macro.args == nil {
-		return nil
-	}
-	tok := in.Stack.Next()
-	if tok != '(' {
-		in.Error("missing arguments for invocation of macro:", macro.name)
-	}
-	var tokens []Token
-	args := make(map[string][]Token)
-	argNum := 0
-	for {
-		tok = in.Stack.Next()
-		switch tok {
-		case scanner.EOF, '\n':
-			in.Error("unterminated arg list invoking macro:", macro.name)
-		case ',', ')':
-			if argNum >= len(macro.args) {
-				in.Error("too many arguments for macro:", macro.name)
-			}
-			if len(macro.args) == 0 && argNum == 0 && len(tokens) == 0 {
-				// Zero-argument macro invoked with no arguments.
-				return args
-			}
-			args[macro.args[argNum]] = tokens
-			tokens = nil
-			argNum++
-			if tok == ')' {
-				if argNum != len(macro.args) {
-					in.Error("too few arguments for macro:", macro.name)
-				}
-				return args
-			}
-		default:
-			tokens = append(tokens, Make(tok, in.Stack.Text()))
+	var args [][]Token
+	// One macro argument per iteration. Collect them all and check counts afterwards.
+	for argNum := 0; ; argNum++ {
+		tokens, tok := in.collectArgument(macro)
+		args = append(args, tokens)
+		if tok == ')' {
+			break
 		}
+	}
+	// Zero-argument macros are tricky.
+	if len(macro.args) == 0 && len(args) == 1 && args[0] == nil {
+		args = nil
+	} else if len(args) != len(macro.args) {
+		in.Error("wrong arg count for macro", macro.name)
+	}
+	argMap := make(map[string][]Token)
+	for i, arg := range args {
+		argMap[macro.args[i]] = arg
+	}
+	return argMap
+}
+
+// collectArgument returns the actual tokens for a single argument of a macro.
+// It also returns the token that terminated the argument, which will always
+// be either ',' or ')'. The starting '(' has been scanned.
+func (in *Input) collectArgument(macro *Macro) ([]Token, ScanToken) {
+	nesting := 0
+	var tokens []Token
+	for {
+		tok := in.Stack.Next()
+		if tok == scanner.EOF || tok == '\n' {
+			in.Error("unterminated arg list invoking macro:", macro.name)
+		}
+		if nesting == 0 && (tok == ')' || tok == ',') {
+			return tokens, tok
+		}
+		if tok == '(' {
+			nesting++
+		}
+		if tok == ')' {
+			nesting--
+		}
+		tokens = append(tokens, Make(tok, in.Stack.Text()))
 	}
 }
 
@@ -345,7 +382,7 @@ func (in *Input) include() {
 	if tok != scanner.String {
 		in.expectText("expected string after #include")
 	}
-	name, err := strconv.Unquote(in.Text())
+	name, err := strconv.Unquote(in.Stack.Text())
 	if err != nil {
 		in.Error("unquoting include file name: ", err)
 	}

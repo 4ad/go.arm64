@@ -7,7 +7,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"go/build"
 	"log"
 	"os"
 
@@ -23,14 +22,14 @@ func main() {
 	log.SetFlags(0)
 	log.SetPrefix("asm: ")
 
-	GOARCH := build.Default.GOARCH
+	GOARCH := obj.Getgoarch()
 
 	architecture := arch.Set(GOARCH)
 	if architecture == nil {
 		log.Fatalf("asm: unrecognized architecture %s", GOARCH)
 	}
 
-	flags.Parse(obj.Getgoroot(), obj.Getgoos(), obj.Getgoarch(), architecture.Thechar)
+	flags.Parse(architecture.Thechar)
 
 	// Create object file, write header.
 	fd, err := os.Create(*flags.OutputFile)
@@ -54,7 +53,7 @@ func main() {
 	var ok bool
 	pList.Firstpc, ok = parser.Parse()
 	if !ok {
-		log.Print("FAIL TODO")
+		log.Fatalf("asm: assembly of %s failed", flag.Arg(0))
 		os.Exit(1)
 	}
 	obj.Writeobjdirect(ctxt, output)
