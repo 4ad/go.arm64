@@ -10,7 +10,9 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"io"
 	"math"
+	"strconv"
 	"strings"
 )
 
@@ -324,14 +326,14 @@ func (z *Rat) SetFrac64(a, b int64) *Rat {
 // SetInt sets z to x (by making a copy of x) and returns z.
 func (z *Rat) SetInt(x *Int) *Rat {
 	z.a.Set(x)
-	z.b.abs = z.b.abs.make(0)
+	z.b.abs = z.b.abs[:0]
 	return z
 }
 
 // SetInt64 sets z to x and returns z.
 func (z *Rat) SetInt64(x int64) *Rat {
 	z.a.SetInt64(x)
-	z.b.abs = z.b.abs.make(0)
+	z.b.abs = z.b.abs[:0]
 	return z
 }
 
@@ -370,7 +372,7 @@ func (z *Rat) Inv(x *Rat) *Rat {
 	}
 	b := z.a.abs
 	if b.cmp(natOne) == 0 {
-		b = b.make(0) // normalize denominator
+		b = b[:0] // normalize denominator
 	}
 	z.a.abs, z.b.abs = a, b // sign doesn't change
 	return z
@@ -415,12 +417,12 @@ func (z *Rat) norm() *Rat {
 	case len(z.a.abs) == 0:
 		// z == 0 - normalize sign and denominator
 		z.a.neg = false
-		z.b.abs = z.b.abs.make(0)
+		z.b.abs = z.b.abs[:0]
 	case len(z.b.abs) == 0:
 		// z is normalized int - nothing to do
 	case z.b.abs.cmp(natOne) == 0:
 		// z is int - normalize denominator
-		z.b.abs = z.b.abs.make(0)
+		z.b.abs = z.b.abs[:0]
 	default:
 		neg := z.a.neg
 		z.a.neg = false
@@ -430,7 +432,7 @@ func (z *Rat) norm() *Rat {
 			z.b.abs, _ = z.b.abs.div(nil, z.b.abs, f.abs)
 			if z.b.abs.cmp(natOne) == 0 {
 				// z is int - normalize denominator
-				z.b.abs = z.b.abs.make(0)
+				z.b.abs = z.b.abs[:0]
 			}
 		}
 		z.a.neg = neg
@@ -540,16 +542,16 @@ func (z *Rat) SetString(s string) (*Rat, bool) {
 	if len(s) == 0 {
 		return nil, false
 	}
+	// len(s) > 0
 
-	// check for a quotient
-	sep := strings.Index(s, "/")
-	if sep >= 0 {
-		if _, ok := z.a.SetString(s[0:sep], 10); !ok {
+	// parse fraction a/b, if any
+	if sep := strings.Index(s, "/"); sep >= 0 {
+		if _, ok := z.a.SetString(s[:sep], 10); !ok {
 			return nil, false
 		}
 		s = s[sep+1:]
 		var err error
-		if z.b.abs, _, err = z.b.abs.scan(strings.NewReader(s), 10); err != nil {
+		if z.b.abs, _, _, err = z.b.abs.scan(strings.NewReader(s), 10); err != nil {
 			return nil, false
 		}
 		if len(z.b.abs) == 0 {
@@ -558,39 +560,117 @@ func (z *Rat) SetString(s string) (*Rat, bool) {
 		return z.norm(), true
 	}
 
-	// check for a decimal point
-	sep = strings.Index(s, ".")
-	// check for an exponent
-	e := strings.IndexAny(s, "eE")
-	var exp Int
-	if e >= 0 {
-		if e < sep {
-			// The E must come after the decimal point.
-			return nil, false
-		}
-		if _, ok := exp.SetString(s[e+1:], 10); !ok {
-			return nil, false
-		}
-		s = s[0:e]
-	}
-	if sep >= 0 {
-		s = s[0:sep] + s[sep+1:]
-		exp.Sub(&exp, NewInt(int64(len(s)-sep)))
-	}
+	// parse floating-point number
+	r := strings.NewReader(s)
 
-	if _, ok := z.a.SetString(s, 10); !ok {
+	// sign
+	neg, err := scanSign(r)
+	if err != nil {
 		return nil, false
 	}
-	powTen := nat(nil).expNN(natTen, exp.abs, nil)
-	if exp.neg {
+
+	// mantissa
+	var ecorr int
+	z.a.abs, _, ecorr, err = z.a.abs.scan(r, 1)
+	if err != nil {
+		return nil, false
+	}
+
+	// exponent
+	var exp int64
+	var ebase int
+	exp, ebase, err = scanExponent(r)
+	if ebase == 2 || err != nil {
+		return nil, false
+	}
+
+	// there should be no unread characters left
+	if _, err = r.ReadByte(); err != io.EOF {
+		return nil, false
+	}
+
+	// correct exponent
+	if ecorr < 0 {
+		exp += int64(ecorr)
+	}
+
+	// compute exponent power
+	expabs := exp
+	if expabs < 0 {
+		expabs = -expabs
+	}
+	powTen := nat(nil).expNN(natTen, nat(nil).setWord(Word(expabs)), nil)
+
+	// complete fraction
+	if exp < 0 {
 		z.b.abs = powTen
 		z.norm()
 	} else {
 		z.a.abs = z.a.abs.mul(z.a.abs, powTen)
-		z.b.abs = z.b.abs.make(0)
+		z.b.abs = z.b.abs[:0]
 	}
 
+	z.a.neg = neg && len(z.a.abs) > 0 // 0 has no sign
+
 	return z, true
+}
+
+func scanExponent(r io.ByteScanner) (exp int64, base int, err error) {
+	base = 10
+
+	var ch byte
+	if ch, err = r.ReadByte(); err != nil {
+		if err == io.EOF {
+			err = nil // no exponent; same as e0
+		}
+		return
+	}
+
+	switch ch {
+	case 'e', 'E':
+		// ok
+	case 'p':
+		base = 2
+	default:
+		r.UnreadByte()
+		return // no exponent; same as e0
+	}
+
+	var neg bool
+	if neg, err = scanSign(r); err != nil {
+		return
+	}
+
+	var digits []byte
+	if neg {
+		digits = append(digits, '-')
+	}
+
+	// no need to use nat.scan for exponent digits
+	// since we only care about int64 values - the
+	// from-scratch scan is easy enough and faster
+	for i := 0; ; i++ {
+		if ch, err = r.ReadByte(); err != nil {
+			if err != io.EOF || i == 0 {
+				return
+			}
+			err = nil
+			break // i > 0
+		}
+		if ch < '0' || '9' < ch {
+			if i == 0 {
+				r.UnreadByte()
+				err = fmt.Errorf("invalid exponent (missing digits)")
+				return
+			}
+			break // i > 0
+		}
+		digits = append(digits, byte(ch))
+	}
+	// i > 0 => we have at least one digit
+
+	exp, err = strconv.ParseInt(string(digits), 10, 64)
+	return
 }
 
 // String returns a string representation of x in the form "a/b" (even if b == 1).
@@ -667,7 +747,7 @@ func (x *Rat) GobEncode() ([]byte, error) {
 	}
 	buf := make([]byte, 1+4+(len(x.a.abs)+len(x.b.abs))*_S) // extra bytes for version and sign bit (1), and numerator length (4)
 	i := x.b.abs.bytes(buf)
-	j := x.a.abs.bytes(buf[0:i])
+	j := x.a.abs.bytes(buf[:i])
 	n := i - j
 	if int(uint32(n)) != n {
 		// this should never happen

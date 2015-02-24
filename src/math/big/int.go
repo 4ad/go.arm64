@@ -461,29 +461,55 @@ func (x *Int) Format(s fmt.State, ch rune) {
 // ``0x'' or ``0X'' selects base 16; the ``0'' prefix selects base 8, and a
 // ``0b'' or ``0B'' prefix selects base 2. Otherwise the selected base is 10.
 //
-func (z *Int) scan(r io.RuneScanner, base int) (*Int, int, error) {
+func (z *Int) scan(r io.ByteScanner, base int) (*Int, int, error) {
 	// determine sign
-	ch, _, err := r.ReadRune()
+	neg, err := scanSign(r)
 	if err != nil {
 		return nil, 0, err
 	}
-	neg := false
-	switch ch {
-	case '-':
-		neg = true
-	case '+': // nothing to do
-	default:
-		r.UnreadRune()
-	}
 
 	// determine mantissa
-	z.abs, base, err = z.abs.scan(r, base)
+	z.abs, base, _, err = z.abs.scan(r, base)
 	if err != nil {
 		return nil, base, err
 	}
 	z.neg = len(z.abs) > 0 && neg // 0 has no sign
 
 	return z, base, nil
+}
+
+func scanSign(r io.ByteScanner) (neg bool, err error) {
+	var ch byte
+	if ch, err = r.ReadByte(); err != nil {
+		return false, err
+	}
+	switch ch {
+	case '-':
+		neg = true
+	case '+':
+		// nothing to do
+	default:
+		r.UnreadByte()
+	}
+	return
+}
+
+// byteReader is a local wrapper around fmt.ScanState;
+// it implements the ByteReader interface.
+type byteReader struct {
+	fmt.ScanState
+}
+
+func (r byteReader) ReadByte() (byte, error) {
+	ch, size, err := r.ReadRune()
+	if size != 1 && err == nil {
+		err = fmt.Errorf("invalid rune %#U", ch)
+	}
+	return byte(ch), err
+}
+
+func (r byteReader) UnreadByte() error {
+	return r.UnreadRune()
 }
 
 // Scan is a support routine for fmt.Scanner; it sets z to the value of
@@ -506,7 +532,7 @@ func (z *Int) Scan(s fmt.ScanState, ch rune) error {
 	default:
 		return errors.New("Int.Scan: invalid verb")
 	}
-	_, _, err := z.scan(s, base)
+	_, _, err := z.scan(byteReader{s}, base)
 	return err
 }
 
@@ -561,7 +587,7 @@ func (z *Int) SetString(s string, base int) (*Int, bool) {
 	if err != nil {
 		return nil, false
 	}
-	_, _, err = r.ReadRune()
+	_, err = r.ReadByte()
 	if err != io.EOF {
 		return nil, false
 	}
@@ -736,7 +762,7 @@ func (z *Int) binaryGCD(a, b *Int) *Int {
 
 // ProbablyPrime performs n Miller-Rabin tests to check whether x is prime.
 // If it returns true, x is prime with probability 1 - 1/4^n.
-// If it returns false, x is not prime. n must be >0.
+// If it returns false, x is not prime. n must be > 0.
 func (x *Int) ProbablyPrime(n int) bool {
 	if n <= 0 {
 		panic("non-positive n for ProbablyPrime")

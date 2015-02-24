@@ -521,27 +521,12 @@ var deptab = []struct {
 		"anames9.c",
 	}},
 	{"cmd/gc", []string{
-		"-cplx.c",
-		"-pgen.c",
-		"-plive.c",
-		"-popt.c",
-		"-y1.tab.c", // makefile dreg
 		"opnames.h",
 	}},
 	{"cmd/5g", []string{
-		"../gc/cplx.c",
-		"../gc/pgen.c",
-		"../gc/plive.c",
-		"../gc/popt.c",
-		"../gc/popt.h",
 		"$GOROOT/pkg/obj/${GOHOSTOS}_$GOHOSTARCH/libgc.a",
 	}},
 	{"cmd/6g", []string{
-		"../gc/cplx.c",
-		"../gc/pgen.c",
-		"../gc/plive.c",
-		"../gc/popt.c",
-		"../gc/popt.h",
 		"$GOROOT/pkg/obj/${GOHOSTOS}_$GOHOSTARCH/libgc.a",
 	}},
 	{"cmd/7g", []string{
@@ -553,19 +538,9 @@ var deptab = []struct {
 		"$GOROOT/pkg/obj/${GOHOSTOS}_$GOHOSTARCH/libgc.a",
 	}},
 	{"cmd/8g", []string{
-		"../gc/cplx.c",
-		"../gc/pgen.c",
-		"../gc/plive.c",
-		"../gc/popt.c",
-		"../gc/popt.h",
 		"$GOROOT/pkg/obj/${GOHOSTOS}_$GOHOSTARCH/libgc.a",
 	}},
 	{"cmd/9g", []string{
-		"../gc/cplx.c",
-		"../gc/pgen.c",
-		"../gc/plive.c",
-		"../gc/popt.c",
-		"../gc/popt.h",
 		"$GOROOT/pkg/obj/${GOHOSTOS}_$GOHOSTARCH/libgc.a",
 	}},
 	{"cmd/5l", []string{
@@ -592,7 +567,6 @@ var deptab = []struct {
 		"$GOROOT/pkg/obj/${GOHOSTOS}_$GOHOSTARCH/lib9.a",
 	}},
 	{"runtime", []string{
-		"zaexperiment.h",
 		"zversion.go",
 	}},
 }
@@ -618,7 +592,6 @@ var gentab = []struct {
 	{"anames9.c", mkanames},
 	{"zdefaultcc.go", mkzdefaultcc},
 	{"zversion.go", mkzversion},
-	{"zaexperiment.h", mkzexperiment},
 
 	// not generated anymore, but delete the file if we see it
 	{"enam.c", nil},
@@ -964,8 +937,8 @@ func install(dir string) {
 				)
 			}
 
-			// gc/lex.c records the GOEXPERIMENT setting used during the build.
-			if name == "lex.c" {
+			// liblink/go.c records the GOEXPERIMENT setting used during the build.
+			if name == "go.c" {
 				compile = append(compile,
 					"-D", fmt.Sprintf("GOEXPERIMENT=%q", os.Getenv("GOEXPERIMENT")))
 			}

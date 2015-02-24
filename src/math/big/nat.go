@@ -5,18 +5,22 @@
 // Package big implements multi-precision arithmetic (big numbers).
 // The following numeric types are supported:
 //
-//	- Int	signed integers
-//	- Rat	rational numbers
+//   Int    signed integers
+//   Rat    rational numbers
+//   Float  floating-point numbers
 //
 // Methods are typically of the form:
 //
-//	func (z *Int) Op(x, y *Int) *Int	(similar for *Rat)
+//   func (z *T) Unary(x *T) *T        // z = op x
+//   func (z *T) Binary(x, y *T) *T    // z = x op y
+//   func (x *T) M() T1                // v = x.M()
 //
-// and implement operations z = x Op y with the result as receiver; if it
-// is one of the operands it may be overwritten (and its memory reused).
+// with T one of Int, Rat, or Float. For unary and binary operations, the
+// result is the receiver (usually named z in that case); if it is one of
+// the operands x or y it may be overwritten (and its memory reused).
 // To enable chaining of operations, the result is also returned. Methods
-// returning a result other than *Int or *Rat take one of the operands as
-// the receiver.
+// returning a result other than *Int, *Rat, or *Float take an operand as
+// the receiver (usually named x in that case).
 //
 package big
 
@@ -68,7 +72,7 @@ func (z nat) norm() nat {
 
 func (z nat) make(n int) nat {
 	if n <= cap(z) {
-		return z[0:n] // reuse z
+		return z[:n] // reuse z
 	}
 	// Choosing a good value for e has significant performance impact
 	// because it increases the chance that a value can be reused.
@@ -78,7 +82,7 @@ func (z nat) make(n int) nat {
 
 func (z nat) setWord(x Word) nat {
 	if x == 0 {
-		return z.make(0)
+		return z[:0]
 	}
 	z = z.make(1)
 	z[0] = x
@@ -122,7 +126,7 @@ func (z nat) add(x, y nat) nat {
 		return z.add(y, x)
 	case m == 0:
 		// n == 0 because m >= n; result is 0
-		return z.make(0)
+		return z[:0]
 	case n == 0:
 		// result is x
 		return z.set(x)
@@ -148,7 +152,7 @@ func (z nat) sub(x, y nat) nat {
 		panic("underflow")
 	case m == 0:
 		// n == 0 because m >= n; result is 0
-		return z.make(0)
+		return z[:0]
 	case n == 0:
 		// result is x
 		return z.set(x)
@@ -384,7 +388,7 @@ func (z nat) mul(x, y nat) nat {
 	case m < n:
 		return z.mul(y, x)
 	case m == 0 || n == 0:
-		return z.make(0)
+		return z[:0]
 	case n == 1:
 		return z.mulAddWW(x, y[0], 0)
 	}
@@ -488,7 +492,7 @@ func (z nat) divW(x nat, y Word) (q nat, r Word) {
 		q = z.set(x) // result is x
 		return
 	case m == 0:
-		q = z.make(0) // result is 0
+		q = z[:0] // result is 0
 		return
 	}
 	// m > 0
@@ -504,7 +508,7 @@ func (z nat) div(z2, u, v nat) (q, r nat) {
 	}
 
 	if u.cmp(v) < 0 {
-		q = z.make(0)
+		q = z[:0]
 		r = z2.set(u)
 		return
 	}
@@ -543,7 +547,7 @@ func (z nat) divLarge(u, uIn, v nat) (q, r nat) {
 		u = nil // u is an alias for uIn or v - cannot reuse
 	}
 	u = u.make(len(uIn) + 1)
-	u.clear()
+	u.clear() // TODO(gri) no need to clear if we allocated a new u
 
 	// D1.
 	shift := leadingZeros(v[n-1])
@@ -607,51 +611,85 @@ func (x nat) bitLen() int {
 }
 
 // MaxBase is the largest number base accepted for string conversions.
-const MaxBase = 'z' - 'a' + 10 + 1 // = hexValue('z') + 1
+const MaxBase = 'z' - 'a' + 10 + 1
 
-func hexValue(ch rune) Word {
-	d := int(MaxBase + 1) // illegal base
-	switch {
-	case '0' <= ch && ch <= '9':
-		d = int(ch - '0')
-	case 'a' <= ch && ch <= 'z':
-		d = int(ch - 'a' + 10)
-	case 'A' <= ch && ch <= 'Z':
-		d = int(ch - 'A' + 10)
+// maxPow returns (b**n, n) such that b**n is the largest power b**n <= _M.
+// For instance maxPow(10) == (1e19, 19) for 19 decimal digits in a 64bit Word.
+// In other words, at most n digits in base b fit into a Word.
+// TODO(gri) replace this with a table, generated at build time.
+func maxPow(b Word) (p Word, n int) {
+	p, n = b, 1 // assuming b <= _M
+	for max := _M / b; p <= max; {
+		// p == b**n && p <= max
+		p *= b
+		n++
 	}
-	return Word(d)
+	// p == b**n && p <= _M
+	return
 }
 
-// scan sets z to the natural number corresponding to the longest possible prefix
-// read from r representing an unsigned integer in a given conversion base.
-// It returns z, the actual conversion base used, and an error, if any. In the
-// error case, the value of z is undefined. The syntax follows the syntax of
-// unsigned integer literals in Go.
+// pow returns x**n for n > 0, and 1 otherwise.
+func pow(x Word, n int) (p Word) {
+	// n == sum of bi * 2**i, for 0 <= i < imax, and bi is 0 or 1
+	// thus x**n == product of x**(2**i) for all i where bi == 1
+	// (Russian Peasant Method for exponentiation)
+	p = 1
+	for n > 0 {
+		if n&1 != 0 {
+			p *= x
+		}
+		x *= x
+		n >>= 1
+	}
+	return
+}
+
+// scan scans the number corresponding to the longest possible prefix
+// from r representing an unsigned number in a given conversion base.
+// It returns the corresponding natural number res, the actual base b,
+// a digit count, and an error err, if any.
 //
-// The base argument must be 0 or a value from 2 through MaxBase. If the base
-// is 0, the string prefix determines the actual conversion base. A prefix of
-// ``0x'' or ``0X'' selects base 16; the ``0'' prefix selects base 8, and a
-// ``0b'' or ``0B'' prefix selects base 2. Otherwise the selected base is 10.
+//	number = [ prefix ] digits | digits "." [ digits ] | "." digits .
+//	prefix = "0" [ "x" | "X" | "b" | "B" ] .
+//	digits = digit { digit } .
+//	digit  = "0" ... "9" | "a" ... "z" | "A" ... "Z" .
 //
-func (z nat) scan(r io.RuneScanner, base int) (nat, int, error) {
+// The base argument must be a value between 0 and MaxBase (inclusive).
+// For base 0, the number prefix determines the actual base: A prefix of
+// ``0x'' or ``0X'' selects base 16; the ``0'' prefix selects base 8, and
+// a ``0b'' or ``0B'' prefix selects base 2. Otherwise the selected base
+// is 10 and no prefix is permitted.
+//
+// Base argument 1 selects actual base 10 but also enables scanning a number
+// with a decimal point.
+//
+// A result digit count > 0 corresponds to the number of (non-prefix) digits
+// parsed. A digit count <= 0 indicates the presence of a decimal point (for
+// base == 1, only), and the number of fractional digits is -count. In this
+// case, the value of the scanned number is res * 10**count.
+//
+func (z nat) scan(r io.ByteScanner, base int) (res nat, b, count int, err error) {
 	// reject illegal bases
-	if base < 0 || base == 1 || MaxBase < base {
-		return z, 0, errors.New("illegal number base")
+	if base < 0 || base > MaxBase {
+		err = errors.New("illegal number base")
+		return
 	}
 
 	// one char look-ahead
-	ch, _, err := r.ReadRune()
+	ch, err := r.ReadByte()
 	if err != nil {
-		return z, 0, err
+		return
 	}
 
-	// determine base if necessary
-	b := Word(base)
-	if base == 0 {
+	// determine actual base
+	switch base {
+	case 0:
+		// actual base is 10 unless there's a base prefix
 		b = 10
 		if ch == '0' {
-			switch ch, _, err = r.ReadRune(); err {
+			switch ch, err = r.ReadByte(); err {
 			case nil:
+				// possibly one of 0x, 0X, 0b, 0B
 				b = 8
 				switch ch {
 				case 'x', 'X':
@@ -660,63 +698,121 @@ func (z nat) scan(r io.RuneScanner, base int) (nat, int, error) {
 					b = 2
 				}
 				if b == 2 || b == 16 {
-					if ch, _, err = r.ReadRune(); err != nil {
-						return z, 0, err
+					if ch, err = r.ReadByte(); err != nil {
+						// io.EOF is also an error in this case
+						return
 					}
 				}
 			case io.EOF:
-				return z.make(0), 10, nil
+				// input is "0"
+				res = z[:0]
+				count = 1
+				err = nil
+				return
 			default:
-				return z, 10, err
+				// read error
+				return
 			}
 		}
+	case 1:
+		// actual base is 10 and decimal point is permitted
+		b = 10
+	default:
+		b = base
 	}
 
 	// convert string
-	// - group as many digits d as possible together into a "super-digit" dd with "super-base" bb
-	// - only when bb does not fit into a word anymore, do a full number mulAddWW using bb and dd
-	z = z.make(0)
-	bb := Word(1)
-	dd := Word(0)
-	for max := _M / b; ; {
-		d := hexValue(ch)
-		if d >= b {
-			r.UnreadRune() // ch does not belong to number anymore
-			break
-		}
-
-		if bb <= max {
-			bb *= b
-			dd = dd*b + d
-		} else {
-			// bb * b would overflow
-			z = z.mulAddWW(z, bb, dd)
-			bb = b
-			dd = d
-		}
-
-		if ch, _, err = r.ReadRune(); err != nil {
-			if err != io.EOF {
-				return z, int(b), err
+	// Algorithm: Collect digits in groups of at most n digits in di
+	// and then use mulAddWW for every such group to add them to the
+	// result.
+	z = z[:0]
+	b1 := Word(b)
+	bn, n := maxPow(b1) // at most n digits in base b1 fit into Word
+	di := Word(0)       // 0 <= di < b1**i < bn
+	i := 0              // 0 <= i < n
+	dp := -1            // position of decimal point
+	for {
+		if base == 1 && ch == '.' {
+			base = 10 // no 2nd decimal point permitted
+			dp = count
+			// advance
+			if ch, err = r.ReadByte(); err != nil {
+				if err == io.EOF {
+					err = nil
+					break
+				}
+				return
 			}
+		}
+
+		// convert rune into digit value d1
+		var d1 Word
+		switch {
+		case '0' <= ch && ch <= '9':
+			d1 = Word(ch - '0')
+		case 'a' <= ch && ch <= 'z':
+			d1 = Word(ch - 'a' + 10)
+		case 'A' <= ch && ch <= 'Z':
+			d1 = Word(ch - 'A' + 10)
+		default:
+			d1 = MaxBase + 1
+		}
+		if d1 >= b1 {
+			r.UnreadByte() // ch does not belong to number anymore
 			break
+		}
+		count++
+
+		// collect d1 in di
+		di = di*b1 + d1
+		i++
+
+		// if di is "full", add it to the result
+		if i == n {
+			z = z.mulAddWW(z, bn, di)
+			di = 0
+			i = 0
+		}
+
+		// advance
+		if ch, err = r.ReadByte(); err != nil {
+			if err == io.EOF {
+				err = nil
+				break
+			}
+			return
 		}
 	}
 
-	switch {
-	case bb > 1:
-		// there was at least one mantissa digit
-		z = z.mulAddWW(z, bb, dd)
-	case base == 0 && b == 8:
-		// there was only the octal prefix 0 (possibly followed by digits > 7);
-		// return base 10, not 8
-		return z, 10, nil
-	case base != 0 || b != 8:
-		// there was neither a mantissa digit nor the octal prefix 0
-		return z, int(b), errors.New("syntax error scanning number")
+	if count == 0 {
+		// no digits found
+		switch {
+		case base == 0 && b == 8:
+			// there was only the octal prefix 0 (possibly followed by digits > 7);
+			// count as one digit and return base 10, not 8
+			count = 1
+			b = 10
+		case base != 0 || b != 8:
+			// there was neither a mantissa digit nor the octal prefix 0
+			err = errors.New("syntax error scanning number")
+		}
+		return
+	}
+	// count > 0
+
+	// add remaining digits to result
+	if i > 0 {
+		z = z.mulAddWW(z, pow(b1, i), di)
+	}
+	res = z.norm()
+
+	// adjust for fraction, if any
+	if dp >= 0 {
+		// 0 <= dp <= count > 0
+		count = dp - count
 	}
 
-	return z.norm(), int(b), nil
+	return
 }
 
 // Character sets for string conversion.
@@ -728,7 +824,13 @@ const (
 // decimalString returns a decimal representation of x.
 // It calls x.string with the charset "0123456789".
 func (x nat) decimalString() string {
-	return x.string(lowercaseDigits[0:10])
+	return x.string(lowercaseDigits[:10])
+}
+
+// hexString returns a hexadecimal representation of x.
+// It calls x.string with the charset "0123456789abcdef".
+func (x nat) hexString() string {
+	return x.string(lowercaseDigits[:16])
 }
 
 // string converts x to a string using digits from a charset; a digit with
@@ -739,8 +841,8 @@ func (x nat) string(charset string) string {
 
 	// special cases
 	switch {
-	case b < 2 || MaxBase > 256:
-		panic("illegal base")
+	case b < 2 || b > 256:
+		panic("invalid character set length")
 	case len(x) == 0:
 		return string(charset[0])
 	}
@@ -793,14 +895,7 @@ func (x nat) string(charset string) string {
 		}
 
 	} else {
-		// determine "big base"; i.e., the largest possible value bb
-		// that is a power of base b and still fits into a Word
-		// (as in 10^19 for 19 decimal digits in a 64bit Word)
-		bb := b      // big base is b**ndigits
-		ndigits := 1 // number of base b digits
-		for max := Word(_M / b); bb <= max; bb *= b {
-			ndigits++ // maximize ndigits where bb = b**ndigits, bb <= _M
-		}
+		bb, ndigits := maxPow(Word(b))
 
 		// construct table of successive squares of bb*leafSize to use in subdivisions
 		// result (table != nil) <=> (len(x) > leafSize > 0)
@@ -1041,7 +1136,7 @@ func (x nat) trailingZeroBits() uint {
 func (z nat) shl(x nat, s uint) nat {
 	m := len(x)
 	if m == 0 {
-		return z.make(0)
+		return z[:0]
 	}
 	// m > 0
 
@@ -1058,7 +1153,7 @@ func (z nat) shr(x nat, s uint) nat {
 	m := len(x)
 	n := m - int(s/_W)
 	if n <= 0 {
-		return z.make(0)
+		return z[:0]
 	}
 	// n > 0
 
@@ -1097,12 +1192,36 @@ func (z nat) setBit(x nat, i uint, b uint) nat {
 	panic("set bit is not 0 or 1")
 }
 
-func (z nat) bit(i uint) uint {
-	j := int(i / _W)
-	if j >= len(z) {
+// bit returns the value of the i'th bit, with lsb == bit 0.
+func (x nat) bit(i uint) uint {
+	j := i / _W
+	if j >= uint(len(x)) {
 		return 0
 	}
-	return uint(z[j] >> (i % _W) & 1)
+	// 0 <= j < len(x)
+	return uint(x[j] >> (i % _W) & 1)
+}
+
+// sticky returns 1 if there's a 1 bit within the
+// i least significant bits, otherwise it returns 0.
+func (x nat) sticky(i uint) uint {
+	j := i / _W
+	if j >= uint(len(x)) {
+		if len(x) == 0 {
+			return 0
+		}
+		return 1
+	}
+	// 0 <= j < len(x)
+	for _, x := range x[:j] {
+		if x != 0 {
+			return 1
+		}
+	}
+	if x[j]<<(_W-i%_W) != 0 {
+		return 1
+	}
+	return 0
 }
 
 func (z nat) and(x, y nat) nat {

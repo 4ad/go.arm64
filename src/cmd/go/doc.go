@@ -112,6 +112,10 @@ and test commands:
 		a list of build tags to consider satisfied during the build.
 		For more information about build tags, see the description of
 		build constraints in the documentation for the go/build package.
+	-toolexec 'cmd args'
+		a program to use to invoke toolchain programs like 5a, 5g, and 5l.
+		For example, instead of running 5g, the go command will run
+		'cmd args /path/to/5g <arguments for 5g>'.
 
 The list flags accept a space-separated list of strings. To embed spaces
 in an element in the list, surround it with either single or double quotes.
@@ -1058,6 +1062,10 @@ control the execution of any test:
 
 	-timeout t
 	    If a test runs longer than t, panic.
+
+	-trace trace.out
+	    Write an execution trace to the specified file before exiting.
+	    Writes test binary as -c would.
 
 	-v
 	    Verbose output: log all tests as they are run. Also print all

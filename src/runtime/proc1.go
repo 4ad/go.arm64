@@ -196,6 +196,10 @@ func mcommoninit(mp *m) {
 
 // Mark gp ready to run.
 func ready(gp *g) {
+	if trace.enabled {
+		traceGoUnpark(gp)
+	}
+
 	status := readgstatus(gp)
 
 	// Mark runnable.
@@ -263,6 +267,7 @@ func helpgc(nproc int32) {
 			throw("gcprocs inconsistency")
 		}
 		mp.helpgc = n
+		mp.p = allp[pos]
 		mp.mcache = allp[pos].mcache
 		pos++
 		notewakeup(&mp.park)
@@ -340,6 +345,9 @@ func casfrom_Gscanstatus(gp *g, oldval, newval uint32) {
 		dumpgstatus(gp)
 		throw("casfrom_Gscanstatus: gp->status is not in scan state")
 	}
+	if newval == _Grunning {
+		gp.gcscanvalid = false
+	}
 }
 
 // This will return false if the gp is not in the expected status and the cas fails.
@@ -353,6 +361,10 @@ func castogscanstatus(gp *g, oldval, newval uint32) bool {
 			return cas(&gp.atomicstatus, oldval, newval)
 		}
 	case _Grunning:
+		if gp.gcscanvalid {
+			print("runtime: castogscanstatus _Grunning and gp.gcscanvalid is true, newval=", hex(newval), "\n")
+			throw("castogscanstatus")
+		}
 		if newval == _Gscanrunning || newval == _Gscanenqueue {
 			return cas(&gp.atomicstatus, oldval, newval)
 		}
@@ -370,7 +382,7 @@ func castogscanstatus(gp *g, oldval, newval uint32) bool {
 func casgstatus(gp *g, oldval, newval uint32) {
 	if (oldval&_Gscan != 0) || (newval&_Gscan != 0) || oldval == newval {
 		systemstack(func() {
-			print("casgstatus: oldval=", hex(oldval), " newval=", hex(newval), "\n")
+			print("runtime: casgstatus: oldval=", hex(oldval), " newval=", hex(newval), "\n")
 			throw("casgstatus: bad incoming values")
 		})
 	}
@@ -390,6 +402,9 @@ func casgstatus(gp *g, oldval, newval uint32) {
 		// 		gcphasework(gp)
 		// 	})
 		// }
+	}
+	if newval == _Grunning {
+		gp.gcscanvalid = false
 	}
 }
 
@@ -604,6 +619,11 @@ func stoptheworld() {
 		p := allp[i]
 		s := p.status
 		if s == _Psyscall && cas(&p.status, s, _Pgcstop) {
+			if trace.enabled {
+				traceGoSysBlock(p)
+				traceProcStop(p)
+			}
+			p.syscalltick++
 			sched.stopwait--
 		}
 	}
@@ -1052,6 +1072,7 @@ retry:
 		gchelper()
 		_g_.m.helpgc = 0
 		_g_.m.mcache = nil
+		_g_.m.p = nil
 		goto retry
 	}
 	acquirep(_g_.m.nextp)
@@ -1234,6 +1255,10 @@ func execute(gp *g) {
 		resetcpuprofiler(hz)
 	}
 
+	if trace.enabled {
+		traceGoStart()
+	}
+
 	gogo(&gp.sched)
 }
 
@@ -1272,6 +1297,9 @@ top:
 	if gp := netpoll(false); gp != nil { // non-blocking
 		injectglist(gp.schedlink)
 		casgstatus(gp, _Gwaiting, _Grunnable)
+		if trace.enabled {
+			traceGoUnpark(gp)
+		}
 		return gp
 	}
 
@@ -1355,6 +1383,9 @@ stop:
 				acquirep(_p_)
 				injectglist(gp.schedlink)
 				casgstatus(gp, _Gwaiting, _Grunnable)
+				if trace.enabled {
+					traceGoUnpark(gp)
+				}
 				return gp
 			}
 			injectglist(gp)
@@ -1391,6 +1422,11 @@ func injectglist(glist *g) {
 	if glist == nil {
 		return
 	}
+	if trace.enabled {
+		for gp := glist; gp != nil; gp = gp.schedlink {
+			traceGoUnpark(gp)
+		}
+	}
 	lock(&sched.lock)
 	var n int
 	for n = 0; glist != nil; n++ {
@@ -1426,18 +1462,25 @@ top:
 	}
 
 	var gp *g
-	// Check the global runnable queue once in a while to ensure fairness.
-	// Otherwise two goroutines can completely occupy the local runqueue
-	// by constantly respawning each other.
-	tick := _g_.m.p.schedtick
-	// This is a fancy way to say tick%61==0,
-	// it uses 2 MUL instructions instead of a single DIV and so is faster on modern processors.
-	if uint64(tick)-((uint64(tick)*0x4325c53f)>>36)*61 == 0 && sched.runqsize > 0 {
-		lock(&sched.lock)
-		gp = globrunqget(_g_.m.p, 1)
-		unlock(&sched.lock)
+	if trace.enabled || trace.shutdown {
+		gp = traceReader()
 		if gp != nil {
+			casgstatus(gp, _Gwaiting, _Grunnable)
+			traceGoUnpark(gp)
 			resetspinning()
+		}
+	}
+	if gp == nil {
+		// Check the global runnable queue once in a while to ensure fairness.
+		// Otherwise two goroutines can completely occupy the local runqueue
+		// by constantly respawning each other.
+		if _g_.m.p.schedtick%61 == 0 && sched.runqsize > 0 {
+			lock(&sched.lock)
+			gp = globrunqget(_g_.m.p, 1)
+			unlock(&sched.lock)
+			if gp != nil {
+				resetspinning()
+			}
 		}
 	}
 	if gp == nil {
@@ -1479,11 +1522,12 @@ func dropg() {
 
 // Puts the current goroutine into a waiting state and calls unlockf.
 // If unlockf returns false, the goroutine is resumed.
-func park(unlockf func(*g, unsafe.Pointer) bool, lock unsafe.Pointer, reason string) {
+func park(unlockf func(*g, unsafe.Pointer) bool, lock unsafe.Pointer, reason string, traceev byte) {
 	_g_ := getg()
 
 	_g_.m.waitlock = lock
 	_g_.m.waitunlockf = *(*unsafe.Pointer)(unsafe.Pointer(&unlockf))
+	_g_.m.waittraceev = traceev
 	_g_.waitreason = reason
 	mcall(park_m)
 }
@@ -1495,13 +1539,17 @@ func parkunlock_c(gp *g, lock unsafe.Pointer) bool {
 
 // Puts the current goroutine into a waiting state and unlocks the lock.
 // The goroutine can be made runnable again by calling ready(gp).
-func parkunlock(lock *mutex, reason string) {
-	park(parkunlock_c, unsafe.Pointer(lock), reason)
+func parkunlock(lock *mutex, reason string, traceev byte) {
+	park(parkunlock_c, unsafe.Pointer(lock), reason, traceev)
 }
 
 // park continuation on g0.
 func park_m(gp *g) {
 	_g_ := getg()
+
+	if trace.enabled {
+		traceGoPark(_g_.m.waittraceev, gp)
+	}
 
 	casgstatus(gp, _Grunning, _Gwaiting)
 	dropg()
@@ -1512,6 +1560,9 @@ func park_m(gp *g) {
 		_g_.m.waitunlockf = nil
 		_g_.m.waitlock = nil
 		if !ok {
+			if trace.enabled {
+				traceGoUnpark(gp)
+			}
 			casgstatus(gp, _Gwaiting, _Grunnable)
 			execute(gp) // Schedule it back, never returns.
 		}
@@ -1519,8 +1570,7 @@ func park_m(gp *g) {
 	schedule()
 }
 
-// Gosched continuation on g0.
-func gosched_m(gp *g) {
+func goschedImpl(gp *g) {
 	status := readgstatus(gp)
 	if status&^_Gscan != _Grunning {
 		dumpgstatus(gp)
@@ -1535,12 +1585,30 @@ func gosched_m(gp *g) {
 	schedule()
 }
 
+// Gosched continuation on g0.
+func gosched_m(gp *g) {
+	if trace.enabled {
+		traceGoSched()
+	}
+	goschedImpl(gp)
+}
+
+func gopreempt_m(gp *g) {
+	if trace.enabled {
+		traceGoPreempt()
+	}
+	goschedImpl(gp)
+}
+
 // Finishes execution of the current goroutine.
 // Must be NOSPLIT because it is called from Go. (TODO - probably not anymore)
 //go:nosplit
 func goexit1() {
 	if raceenabled {
 		racegoend()
+	}
+	if trace.enabled {
+		traceGoEnd()
 	}
 	mcall(goexit0)
 }
@@ -1606,6 +1674,20 @@ func save(pc, sp uintptr) {
 // from a function further up in the call stack than the parent, as g->syscallsp
 // must always point to a valid stack frame. entersyscall below is the normal
 // entry point for syscalls, which obtains the SP and PC from the caller.
+//
+// Syscall tracing:
+// At the start of a syscall we emit traceGoSysCall to capture the stack trace.
+// If the syscall does not block, that is it, we do not emit any other events.
+// If the syscall blocks (that is, P is retaken), retaker emits traceGoSysBlock;
+// when syscall returns we emit traceGoSysExit and when the goroutine starts running
+// (potentially instantly, if exitsyscallfast returns true) we emit traceGoStart.
+// To ensure that traceGoSysExit is emitted strictly after traceGoSysBlock,
+// we remember current value of syscalltick in m (_g_.m.syscalltick = _g_.m.p.syscalltick),
+// whoever emits traceGoSysBlock increments p.syscalltick afterwards;
+// and we wait for the increment before emitting traceGoSysExit.
+// Note that the increment is done even if tracing is not enabled,
+// because tracing can be enabled in the middle of syscall. We don't want the wait to hang.
+//
 //go:nosplit
 func reentersyscall(pc, sp uintptr) {
 	_g_ := getg()
@@ -1613,6 +1695,10 @@ func reentersyscall(pc, sp uintptr) {
 	// Disable preemption because during this function g is in Gsyscall status,
 	// but can have inconsistent g->sched, do not let GC observe it.
 	_g_.m.locks++
+
+	if trace.enabled {
+		systemstack(traceGoSysCall)
+	}
 
 	// Entersyscall must not call any function that might split/grow the stack.
 	// (See details in comment above.)
@@ -1638,6 +1724,7 @@ func reentersyscall(pc, sp uintptr) {
 		save(pc, sp)
 	}
 
+	_g_.m.syscalltick = _g_.m.p.syscalltick
 	_g_.m.mcache = nil
 	_g_.m.p.m = nil
 	atomicstore(&_g_.m.p.status, _Psyscall)
@@ -1670,9 +1757,15 @@ func entersyscall_sysmon() {
 
 func entersyscall_gcwait() {
 	_g_ := getg()
+	_p_ := _g_.m.p
 
 	lock(&sched.lock)
-	if sched.stopwait > 0 && cas(&_g_.m.p.status, _Psyscall, _Pgcstop) {
+	if sched.stopwait > 0 && cas(&_p_.status, _Psyscall, _Pgcstop) {
+		if trace.enabled {
+			traceGoSysBlock(_p_)
+			traceProcStop(_p_)
+		}
+		_p_.syscalltick++
 		if sched.stopwait--; sched.stopwait == 0 {
 			notewakeup(&sched.stopnote)
 		}
@@ -1688,6 +1781,8 @@ func entersyscallblock(dummy int32) {
 	_g_.m.locks++ // see comment in entersyscall
 	_g_.throwsplit = true
 	_g_.stackguard0 = stackPreempt // see comment in entersyscall
+	_g_.m.syscalltick = _g_.m.p.syscalltick
+	_g_.m.p.syscalltick++
 
 	// Leave SP around for GC and traceback.
 	pc := getcallerpc(unsafe.Pointer(&dummy))
@@ -1721,6 +1816,10 @@ func entersyscallblock(dummy int32) {
 }
 
 func entersyscallblock_handoff() {
+	if trace.enabled {
+		traceGoSysCall()
+		traceGoSysBlock(getg().m.p)
+	}
 	handoffp(releasep())
 }
 
@@ -1738,9 +1837,15 @@ func exitsyscall(dummy int32) {
 	}
 
 	_g_.waitsince = 0
+	oldp := _g_.m.p
 	if exitsyscallfast() {
 		if _g_.m.mcache == nil {
 			throw("lost mcache")
+		}
+		if trace.enabled {
+			if oldp != _g_.m.p || _g_.m.syscalltick != _g_.m.p.syscalltick {
+				systemstack(traceGoStart)
+			}
 		}
 		// There's a cpu for us, so we can run.
 		_g_.m.p.syscalltick++
@@ -1760,6 +1865,15 @@ func exitsyscall(dummy int32) {
 		}
 		_g_.throwsplit = false
 		return
+	}
+
+	if trace.enabled {
+		// Wait till traceGoSysBlock event is emited.
+		// This ensures consistency of the trace (the goroutine is started after it is blocked).
+		for oldp != nil && oldp.syscalltick == _g_.m.syscalltick {
+			osyield()
+		}
+		systemstack(traceGoSysExit)
 	}
 
 	_g_.m.locks--
@@ -1798,16 +1912,41 @@ func exitsyscallfast() bool {
 		// There's a cpu for us, so we can run.
 		_g_.m.mcache = _g_.m.p.mcache
 		_g_.m.p.m = _g_.m
+		if _g_.m.syscalltick != _g_.m.p.syscalltick {
+			if trace.enabled {
+				// The p was retaken and then enter into syscall again (since _g_.m.syscalltick has changed).
+				// traceGoSysBlock for this syscall was already emitted,
+				// but here we effectively retake the p from the new syscall running on the same p.
+				systemstack(func() {
+					// Denote blocking of the new syscall.
+					traceGoSysBlock(_g_.m.p)
+					// Denote completion of the current syscall.
+					traceGoSysExit()
+				})
+			}
+			_g_.m.p.syscalltick++
+		}
 		return true
 	}
 
 	// Try to get any other idle P.
+	oldp := _g_.m.p
 	_g_.m.mcache = nil
 	_g_.m.p = nil
 	if sched.pidle != nil {
 		var ok bool
 		systemstack(func() {
 			ok = exitsyscallfast_pidle()
+			if ok && trace.enabled {
+				if oldp != nil {
+					// Wait till traceGoSysBlock event is emited.
+					// This ensures consistency of the trace (the goroutine is started after it is blocked).
+					for oldp.syscalltick == _g_.m.syscalltick {
+						osyield()
+					}
+				}
+				traceGoSysExit()
+			}
 		})
 		if ok {
 			return true
@@ -1994,6 +2133,7 @@ func newproc1(fn *funcval, argp *uint8, narg int32, nret int32, callerpc uintptr
 	newg.sched.g = guintptr(unsafe.Pointer(newg))
 	gostartcallfn(&newg.sched, fn)
 	newg.gopc = callerpc
+	newg.startpc = fn.fn
 	casgstatus(newg, _Gdead, _Grunnable)
 
 	if _p_.goidcache == _p_.goidcacheend {
@@ -2008,6 +2148,9 @@ func newproc1(fn *funcval, argp *uint8, narg int32, nret int32, callerpc uintptr
 	_p_.goidcache++
 	if raceenabled {
 		newg.racectx = racegostart(callerpc)
+	}
+	if trace.enabled {
+		traceGoCreate(newg, newg.startpc)
 	}
 	runqput(_p_, newg)
 
@@ -2390,6 +2533,9 @@ func procresize(new int32) *p {
 	if old < 0 || old > _MaxGomaxprocs || new <= 0 || new > _MaxGomaxprocs {
 		throw("procresize: invalid arg")
 	}
+	if trace.enabled {
+		traceGomaxprocs(new)
+	}
 
 	// initialize new P's
 	for i := int32(0); i < new; i++ {
@@ -2415,6 +2561,14 @@ func procresize(new int32) *p {
 	// free unused P's
 	for i := new; i < old; i++ {
 		p := allp[i]
+		if trace.enabled {
+			if p == getg().m.p {
+				// moving to p[0], pretend that we were descheduled
+				// and then scheduled again to keep the trace sane.
+				traceGoSched()
+				traceProcStop(p)
+			}
+		}
 		// move all runable goroutines to the global queue
 		for p.runqhead != p.runqtail {
 			// pop from tail of local queue
@@ -2431,6 +2585,7 @@ func procresize(new int32) *p {
 		freemcache(p.mcache)
 		p.mcache = nil
 		gfpurge(p)
+		traceProcFree(p)
 		p.status = _Pdead
 		// can't free P itself because it can be referenced by an M in syscall
 	}
@@ -2450,6 +2605,9 @@ func procresize(new int32) *p {
 		p.m = nil
 		p.status = _Pidle
 		acquirep(p)
+		if trace.enabled {
+			traceGoStart()
+		}
 	}
 	var runnablePs *p
 	for i := new - 1; i >= 0; i-- {
@@ -2490,6 +2648,10 @@ func acquirep(_p_ *p) {
 	_g_.m.p = _p_
 	_p_.m = _g_.m
 	_p_.status = _Prunning
+
+	if trace.enabled {
+		traceProcStart()
+	}
 }
 
 // Disassociate p and the current m.
@@ -2503,6 +2665,9 @@ func releasep() *p {
 	if _p_.m != _g_.m || _p_.mcache != _g_.m.mcache || _p_.status != _Prunning {
 		print("releasep: m=", _g_.m, " m->p=", _g_.m.p, " p->m=", _p_.m, " m->mcache=", _g_.m.mcache, " p->mcache=", _p_.mcache, " p->status=", _p_.status, "\n")
 		throw("releasep: invalid p state")
+	}
+	if trace.enabled {
+		traceProcStop(_g_.m.p)
 	}
 	_g_.m.p = nil
 	_g_.m.mcache = nil
@@ -2723,7 +2888,12 @@ func retake(now int64) uint32 {
 			// increment nmidle and report deadlock.
 			incidlelocked(-1)
 			if cas(&_p_.status, s, _Pidle) {
+				if trace.enabled {
+					traceGoSysBlock(_p_)
+					traceProcStop(_p_)
+				}
 				n++
+				_p_.syscalltick++
 				handoffp(_p_)
 			}
 			incidlelocked(1)
@@ -3169,8 +3339,6 @@ func setMaxThreads(in int) (out int) {
 	unlock(&sched.lock)
 	return
 }
-
-var goexperiment string = "GOEXPERIMENT" // TODO: defined in zaexperiment.h
 
 func haveexperiment(name string) bool {
 	x := goexperiment
