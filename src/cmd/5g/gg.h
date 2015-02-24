@@ -9,21 +9,18 @@
 #include "../gc/go.h"
 #include "../5l/5.out.h"
 
-#define TEXTFLAG reg
-
 enum
 {
-	REGALLOC_R0 = 0,
+	REGALLOC_R0 = REG_R0,
 	REGALLOC_RMAX = REGEXT,
-	REGALLOC_F0 = NREG,
-	REGALLOC_FMAX = REGALLOC_F0 + FREGEXT,
+	REGALLOC_F0 = REG_F0,
+	REGALLOC_FMAX = FREGEXT,
 };
 
 EXTERN	int32	dynloc;
 EXTERN	uchar	reg[REGALLOC_FMAX+1];
 EXTERN	int32	pcloc;		// instruction counter
 EXTERN	Strlit	emptystring;
-EXTERN	Prog	zprog;
 extern	long	unmappedzero;
 
 /*

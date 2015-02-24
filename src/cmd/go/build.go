@@ -74,21 +74,19 @@ and test commands:
 	-x
 		print the commands.
 
-	-ccflags 'arg list'
-		arguments to pass on each 5c, 6c, or 8c compiler invocation.
 	-compiler name
 		name of compiler to use, as in runtime.Compiler (gccgo or gc).
 	-gccgoflags 'arg list'
 		arguments to pass on each gccgo compiler/linker invocation.
 	-gcflags 'arg list'
-		arguments to pass on each 5g, 6g, or 8g compiler invocation.
+		arguments to pass on each 5g, 6g, 8g, or 9g compiler invocation.
 	-installsuffix suffix
 		a suffix to use in the name of the package installation directory,
 		in order to keep output separate from default builds.
 		If using the -race flag, the install suffix is automatically set to race
 		or, if set explicitly, has _race appended to it.
 	-ldflags 'flag list'
-		arguments to pass on each 5l, 6l, or 8l linker invocation.
+		arguments to pass on each 5l, 6l, 8l, or 9l linker invocation.
 	-tags 'tag list'
 		a list of build tags to consider satisfied during the build.
 		For more information about build tags, see the description of
@@ -131,7 +129,6 @@ var buildI bool               // -i flag
 var buildO = cmdBuild.Flag.String("o", "", "output file")
 var buildWork bool           // -work flag
 var buildGcflags []string    // -gcflags flag
-var buildCcflags []string    // -ccflags flag
 var buildLdflags []string    // -ldflags flag
 var buildGccgoflags []string // -gccgoflags flag
 var buildRace bool           // -race flag
@@ -183,7 +180,6 @@ func addBuildFlags(cmd *Command) {
 	cmd.Flag.BoolVar(&buildX, "x", false, "")
 	cmd.Flag.BoolVar(&buildWork, "work", false, "")
 	cmd.Flag.Var((*stringsFlag)(&buildGcflags), "gcflags", "")
-	cmd.Flag.Var((*stringsFlag)(&buildCcflags), "ccflags", "")
 	cmd.Flag.Var((*stringsFlag)(&buildLdflags), "ldflags", "")
 	cmd.Flag.Var((*stringsFlag)(&buildGccgoflags), "gccgoflags", "")
 	cmd.Flag.Var((*stringsFlag)(&buildContext.BuildTags), "tags", "")
@@ -1688,7 +1684,7 @@ func (gcToolchain) asm(b *builder, p *Package, obj, ofile, sfile string) error {
 	// Add -I pkg/GOOS_GOARCH so #include "textflag.h" works in .s files.
 	inc := filepath.Join(goroot, "pkg", fmt.Sprintf("%s_%s", goos, goarch))
 	sfile = mkAbs(p.Dir, sfile)
-	args := []interface{}{tool(archChar + "a"), "-o", ofile, "-trimpath", b.work, "-I", obj, "-I", inc, "-D", "GOOS_" + goos, "-D", "GOARCH_" + goarch, sfile}
+	args := []interface{}{buildToolExec, tool(archChar + "a"), "-o", ofile, "-trimpath", b.work, "-I", obj, "-I", inc, "-D", "GOOS_" + goos, "-D", "GOARCH_" + goarch, sfile}
 	if err := b.run(p.Dir, p.ImportPath, nil, args...); err != nil {
 		return err
 	}
@@ -2677,7 +2673,6 @@ func raceInit() {
 	}
 	buildGcflags = append(buildGcflags, "-race")
 	buildLdflags = append(buildLdflags, "-race")
-	buildCcflags = append(buildCcflags, "-D", "RACE")
 	if buildContext.InstallSuffix != "" {
 		buildContext.InstallSuffix += "_"
 	}

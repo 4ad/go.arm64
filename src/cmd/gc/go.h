@@ -467,6 +467,7 @@ enum
 	OARRAYBYTESTRTMP, // string(bytes) ephemeral
 	OARRAYRUNESTR,	// string(runes)
 	OSTRARRAYBYTE,	// []byte(s)
+	OSTRARRAYBYTETMP,	// []byte(s) ephemeral
 	OSTRARRAYRUNE,	// []rune(s)
 	OAS,	// x = y or x := y
 	OAS2,	// x, y, z = xx, yy, zz
@@ -1657,24 +1658,7 @@ struct Arch
 	char *thestring;
 	LinkArch *thelinkarch;
 	Typedef *typedefs;
-	Prog zprog;
-	
-	int ACALL;
-	int ACHECKNIL;
-	int ADATA;
-	int AFUNCDATA;
-	int AGLOBL;
-	int AJMP;
-	int ANAME;
-	int ANOP;
-	int APCDATA;
-	int ARET;
-	int ASIGNAME;
-	int ATEXT;
-	int ATYPE;
-	int AUNDEF;
-	int AVARDEF;
-	int AVARKILL;
+
 	vlong MAXWIDTH;
 
 	void (*afunclit)(Addr*, Node*);

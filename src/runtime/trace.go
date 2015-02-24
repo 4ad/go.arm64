@@ -121,7 +121,7 @@ func StartTrace() error {
 	// of all goroutines at the beginning of the trace.
 	semacquire(&worldsema, false)
 	_g_ := getg()
-	_g_.m.gcing = 1
+	_g_.m.preemptoff = "start tracing"
 	systemstack(stoptheworld)
 
 	// We are in stop-the-world, but syscalls can finish and write to trace concurrently.
@@ -133,7 +133,7 @@ func StartTrace() error {
 
 	if trace.enabled || trace.shutdown {
 		unlock(&trace.bufLock)
-		_g_.m.gcing = 0
+		_g_.m.preemptoff = ""
 		semrelease(&worldsema)
 		systemstack(starttheworld)
 		return errorString("tracing is already enabled")
@@ -162,7 +162,7 @@ func StartTrace() error {
 
 	unlock(&trace.bufLock)
 
-	_g_.m.gcing = 0
+	_g_.m.preemptoff = ""
 	semrelease(&worldsema)
 	systemstack(starttheworld)
 	return nil
@@ -175,7 +175,7 @@ func StopTrace() {
 	// and also to avoid races with traceEvent.
 	semacquire(&worldsema, false)
 	_g_ := getg()
-	_g_.m.gcing = 1
+	_g_.m.preemptoff = "stop tracing"
 	systemstack(stoptheworld)
 
 	// See the comment in StartTrace.
@@ -183,7 +183,7 @@ func StopTrace() {
 
 	if !trace.enabled {
 		unlock(&trace.bufLock)
-		_g_.m.gcing = 0
+		_g_.m.preemptoff = ""
 		semrelease(&worldsema)
 		systemstack(starttheworld)
 		return
@@ -208,21 +208,32 @@ func StopTrace() {
 		traceFullQueue(buf)
 	}
 
-	trace.ticksEnd = cputicks()
-	trace.timeEnd = nanotime()
+	for {
+		trace.ticksEnd = cputicks()
+		trace.timeEnd = nanotime()
+		// Windows time can tick only every 15ms, wait for at least one tick.
+		if trace.timeEnd != trace.timeStart {
+			break
+		}
+		osyield()
+	}
+
 	trace.enabled = false
 	trace.shutdown = true
 	trace.stackTab.dump()
 
 	unlock(&trace.bufLock)
 
-	_g_.m.gcing = 0
+	_g_.m.preemptoff = ""
 	semrelease(&worldsema)
 	systemstack(starttheworld)
 
 	// The world is started but we've set trace.shutdown, so new tracing can't start.
 	// Wait for the trace reader to flush pending buffers and stop.
 	semacquire(&trace.shutdownSema, false)
+	if raceenabled {
+		raceacquire(unsafe.Pointer(&trace.shutdownSema))
+	}
 
 	// The lock protects us from races with StartTrace/StopTrace because they do stop-the-world.
 	lock(&trace.lock)
@@ -323,6 +334,12 @@ func ReadTrace() []byte {
 	if trace.shutdown {
 		trace.lockOwner = nil
 		unlock(&trace.lock)
+		if raceenabled {
+			// Model synchronization on trace.shutdownSema, which race
+			// detector does not see. This is required to avoid false
+			// race reports on writer passed to pprof.StartTrace.
+			racerelease(unsafe.Pointer(&trace.shutdownSema))
+		}
 		// trace.enabled is already reset, so can call traceable functions.
 		semrelease(&trace.shutdownSema)
 		return nil

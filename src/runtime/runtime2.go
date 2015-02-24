@@ -125,6 +125,7 @@ type gobuf struct {
 	ctxt unsafe.Pointer // this has to be a pointer so that gc scans it
 	ret  uintreg
 	lr   uintptr
+	bp   uintptr // for GOEXPERIMENT=framepointer
 }
 
 // Known to compiler.
@@ -244,7 +245,7 @@ type m struct {
 	id            int32
 	mallocing     int32
 	throwing      int32
-	gcing         int32
+	preemptoff    string // if != "", keep curg running on this m
 	locks         int32
 	softfloat     int32
 	dying         int32

@@ -188,10 +188,10 @@ writeobjdirect(Link *ctxt, Biobuf *b)
 			plink = p->link;
 			p->link = nil;
 
-			if(p->as == ctxt->arch->AEND)
+			if(p->as == AEND)
 				continue;
 
-			if(p->as == ctxt->arch->ATYPE) {
+			if(p->as == ATYPE) {
 				// Assume each TYPE instruction describes
 				// a different local variable or parameter,
 				// so no dedup.
@@ -215,7 +215,7 @@ writeobjdirect(Link *ctxt, Biobuf *b)
 				continue;
 			}
 
-			if(p->as == ctxt->arch->AGLOBL) {
+			if(p->as == AGLOBL) {
 				s = p->from.sym;
 				if(s->seenglobl++)
 					print("duplicate %P\n", p);
@@ -230,7 +230,7 @@ writeobjdirect(Link *ctxt, Biobuf *b)
 				s->size = p->to.offset;
 				if(s->type == 0 || s->type == SXREF)
 					s->type = SBSS;
-				flag = ctxt->arch->textflag(p);
+				flag = p->from3.offset;
 				if(flag & DUPOK)
 					s->dupok = 1;
 				if(flag & RODATA)
@@ -241,12 +241,12 @@ writeobjdirect(Link *ctxt, Biobuf *b)
 				continue;
 			}
 
-			if(p->as == ctxt->arch->ADATA) {
+			if(p->as == ADATA) {
 				savedata(ctxt, p->from.sym, p, "<input>");
 				continue;
 			}
 
-			if(p->as == ctxt->arch->ATEXT) {
+			if(p->as == ATEXT) {
 				s = p->from.sym;
 				if(s == nil) {
 					// func _() { }
@@ -263,7 +263,7 @@ writeobjdirect(Link *ctxt, Biobuf *b)
 				else
 					etext->next = s;
 				etext = s;
-				flag = ctxt->arch->textflag(p);
+				flag = p->from3.offset;
 				if(flag & DUPOK)
 					s->dupok = 1;
 				if(flag & NOSPLIT)
@@ -276,7 +276,7 @@ writeobjdirect(Link *ctxt, Biobuf *b)
 				continue;
 			}
 			
-			if(p->as == ctxt->arch->AFUNCDATA) {
+			if(p->as == AFUNCDATA) {
 				// Rewrite reference to go_args_stackmap(SB) to the Go-provided declaration information.
 				if(curtext == nil) // func _() {}
 					continue;
@@ -301,14 +301,14 @@ writeobjdirect(Link *ctxt, Biobuf *b)
 			continue;
 		found = 0;
 		for(p = s->text; p != nil; p = p->link) {
-			if(p->as == ctxt->arch->AFUNCDATA && p->from.type == TYPE_CONST && p->from.offset == FUNCDATA_ArgsPointerMaps) {
+			if(p->as == AFUNCDATA && p->from.type == TYPE_CONST && p->from.offset == FUNCDATA_ArgsPointerMaps) {
 				found = 1;
 				break;
 			}
 		}
 		if(!found) {
 			p = appendp(ctxt, s->text);
-			p->as = ctxt->arch->AFUNCDATA;
+			p->as = AFUNCDATA;
 			p->from.type = TYPE_CONST;
 			p->from.offset = FUNCDATA_ArgsPointerMaps;
 			p->to.type = TYPE_MEM;

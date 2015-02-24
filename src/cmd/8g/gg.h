@@ -9,8 +9,6 @@
 #include "../gc/go.h"
 #include "../8l/8.out.h"
 
-#define TEXTFLAG from.scale
-
 // foptoas flags
 enum
 {
@@ -20,10 +18,9 @@ enum
 };
 
 EXTERN	int32	dynloc;
-EXTERN	uchar	reg[D_NONE];
+EXTERN	uchar	reg[MAXREG];
 EXTERN	int32	pcloc;		// instruction counter
 EXTERN	Strlit	emptystring;
-EXTERN	Prog	zprog;
 EXTERN	Node*	panicdiv;
 extern	uint32	unmappedzero;
 

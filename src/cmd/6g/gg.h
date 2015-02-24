@@ -9,13 +9,10 @@
 #include "../gc/go.h"
 #include "../6l/6.out.h"
 
-#define TEXTFLAG from.scale
-
 EXTERN	int32	dynloc;
-EXTERN	uchar	reg[D_NONE];
+EXTERN	uchar	reg[MAXREG];
 EXTERN	int32	pcloc;		// instruction counter
 EXTERN	Strlit	emptystring;
-EXTERN	Prog	zprog;
 EXTERN	Node*	panicdiv;
 extern	vlong	unmappedzero;
 extern	int	addptr;

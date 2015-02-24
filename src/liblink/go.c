@@ -11,6 +11,7 @@
 
 int framepointer_enabled;
 int fieldtrack_enabled;
+Prog zprog;
 
 // Toolchain experiments.
 // These are controlled by the GOEXPERIMENT environment
@@ -21,7 +22,7 @@ static struct {
 	int *val;
 } exper[] = {
 	{"fieldtrack", &fieldtrack_enabled},
-	{"basepointer", &framepointer_enabled}, 
+	{"framepointer", &framepointer_enabled},
 };
 
 static void

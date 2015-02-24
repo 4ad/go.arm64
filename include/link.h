@@ -62,13 +62,11 @@ typedef	struct	Pciter	Pciter;
 //
 //	$<mem>
 //		Effective address of memory reference <mem>, defined above.
-//		NOTE: Today, on arm and ppc64, type = TYPE_CONST instead.
 //		Encoding: same as memory reference, but type = TYPE_ADDR.
 //
 //	$<±integer value>
 //		This is a special case of $<mem>, in which only ±offset is present.
 //		It has a separate type for easy recognition.
-//		NOTE: Today, on arm and ppc64, TYPE_CONST and TYPE_ADDR are merged into just TYPE_CONST.
 //		Encoding:
 //			type = TYPE_CONST
 //			offset = ±integer value
@@ -157,6 +155,7 @@ struct	Addr
 		float64	dval;
 		Prog*	branch;
 		int32	argsize;	// for 5l, 8l
+		uint64	bits; // raw union bits, for testing if anything has been written to any field
 	} u;
 
 	// gotype is the name of the Go type descriptor for sym.
@@ -211,7 +210,7 @@ struct	Reloc
 };
 
 // TODO(rsc): Describe prog.
-// TOOD(rsc): Make ARM scond == 0 mean C_SCOND_NONE.
+// TODO(rsc): Describe TEXT/GLOBL flag in from3, DATA width in from3.
 struct	Prog
 {
 	vlong	pc;
@@ -225,9 +224,9 @@ struct	Prog
 	int16	reg; // arm, arm64, ppc64 only (e.g., ADD from, reg, to);
 		     // starts at 0 for both GPRs and FPRs;
 		     // also used for ADATA width on arm, ppc64
-	Addr	from3; // arm64, ppc64 only (e.g., RLWM/FMADD from, reg, from3, to)
-	Addr	to3;	// arm64 only (e.g. STLXR from, to, to3)
+	Addr	from3; // addl source argument (e.g., RLWM/FMADD from, reg, from3, to)
 	Addr	to;
+	Addr	to3;	// arm64 only (e.g. STLXR from, to, to3)
 	
 	// for 5g, 6g, 8g internal use
 	void*	opt;
@@ -244,11 +243,44 @@ struct	Prog
 	uchar	ft;	// oclass cache
 	uchar	tt;	// oclass cache
 	uchar	isize;	// amd64, 386
+<<<<<<< HEAD
+=======
+	uchar	printed;
+>>>>>>> 8db173b
 
 	char	width;	/* fake for DATA */
 	char	mode;	/* 16, 32, or 64 in 6l, 8l; internal use in 5g, 6g, 8g */
+};
+
+extern Prog zprog; // zeroed Prog
+
+// Prog.as opcodes.
+// These are the portable opcodes, common to all architectures.
+// Each architecture defines many more arch-specific opcodes,
+// with values starting at A_ARCHSPECIFIC.
+enum {
+	AXXX = 0,
+
+	ACALL,
+	ACHECKNIL,
+	ADATA,
+	ADUFFCOPY,
+	ADUFFZERO,
+	AEND,
+	AFUNCDATA,
+	AGLOBL,
+	AJMP,
+	ANOP,
+	APCDATA,
+	ARET,
+	ATEXT,
+	ATYPE,
+	AUNDEF,
+	AUSEFIELD,
+	AVARDEF,
+	AVARKILL,
 	
-	/*c2go uchar TEXTFLAG; */
+	A_ARCHSPECIFIC, // first architecture-specific opcode value
 };
 
 // prevent incompatible type signatures between liblink and 8l on Plan 9
@@ -603,31 +635,12 @@ struct LinkArch
 
 	void	(*preprocess)(Link*, LSym*);
 	void	(*assemble)(Link*, LSym*);
-	int	(*datasize)(Prog*);
 	void	(*follow)(Link*, LSym*);
-	int	(*iscall)(Prog*);
-	int	(*isdata)(Prog*);
-	Prog*	(*prg)(void);
 	void	(*progedit)(Link*, Prog*);
-	void	(*settextflag)(Prog*, int);
-	int	(*textflag)(Prog*);
 
 	int	minlc;
 	int	ptrsize;
 	int	regsize;
-	
-	int	ACALL;
-	int	ADATA;
-	int	AEND;
-	int	AFUNCDATA;
-	int	AGLOBL;
-	int	AJMP;
-	int	ANOP;
-	int	APCDATA;
-	int	ARET;
-	int	ATEXT;
-	int	ATYPE;
-	int	AUSEFIELD;
 };
 
 /* executable header types */
