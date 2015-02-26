@@ -151,11 +151,11 @@ func Rconv(r int) string {
 	switch {
 	case r == 0:
 		return "NONE"
-	case REGSP:
+	case r == REGSP:
 		return "RSP"
 	case REG_R0 <= r && r <= REG_R30:
 		return fmt.Sprintf("R%d", r-REG_R0)
-	case REG_R31:
+	case r == REG_R31:
 		return "ZR"
 	case REG_F0 <= r && r <= REG_F31:
 		return fmt.Sprintf("F%d", r-REG_F0)
