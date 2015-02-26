@@ -1041,7 +1041,7 @@ func buildop(ctxt *obj.Link) {
 			}
 		}
 	}
-	for n = 0; optab[n].as != AXXX; n++ {
+	for n = 0; optab[n].as != obj.AXXX; n++ {
 
 	}
 	sort.Sort(ocmp(optab[:n]))
@@ -1058,9 +1058,6 @@ func buildop(ctxt *obj.Link) {
 		default:
 			ctxt.Diag("unknown op in build: %v", Aconv(r))
 			log.Fatalf("bad code")
-
-		case AXXX:
-			break
 
 		case AADD:
 			oprange[AADDS] = t
