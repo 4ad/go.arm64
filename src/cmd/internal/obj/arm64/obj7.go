@@ -39,31 +39,6 @@ import (
 	"math"
 )
 
-var zprg = obj.Prog{
-	As:  AGOK,
-	Reg: NREG,
-	From: obj.Addr{
-		Name: D_NONE,
-		Type: D_NONE,
-		Reg:  NREG,
-	},
-	From3: obj.Addr{
-		Name: D_NONE,
-		Type: D_NONE,
-		Reg:  NREG,
-	},
-	To: obj.Addr{
-		Name: D_NONE,
-		Type: D_NONE,
-		Reg:  NREG,
-	},
-	To3: obj.Addr{
-		Name: D_NONE,
-		Type: D_NONE,
-		Reg:  NREG,
-	},
-}
-
 func symtype(a *obj.Addr) int {
 	return int(a.Name)
 }
@@ -715,11 +690,6 @@ func nocache(p *obj.Prog) {
 	p.To.Class = 0
 }
 
-func prg() *obj.Prog {
-	p := zprg
-	return &p
-}
-
 var Linkarm64 = obj.LinkArch{
 	ByteOrder:     binary.LittleEndian,
 	Pconv:         Pconv,
@@ -732,7 +702,6 @@ var Linkarm64 = obj.LinkArch{
 	Follow:        follow,
 	Iscall:        iscall,
 	Isdata:        isdata,
-	Prg:           prg,
 	Progedit:      progedit,
 	Settextflag:   settextflag,
 	Symtype:       symtype,
