@@ -38,14 +38,6 @@ import (
 	"math"
 )
 
-func isdata(p *obj.Prog) bool {
-	return p.As == ADATA || p.As == AGLOBL
-}
-
-func iscall(p *obj.Prog) bool {
-	return p.As == ABL
-}
-
 var complements = []int16{
 	AADD:  ASUB,
 	AADDW: ASUBW,
@@ -658,7 +650,6 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 				if p.As == AADD {
 					p.Spadj = int32(-p.From.Offset)
 				} else {
-
 					p.Spadj = int32(+p.From.Offset)
 				}
 			}
