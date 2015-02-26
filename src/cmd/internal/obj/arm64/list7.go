@@ -79,7 +79,10 @@ func Pconv(p *obj.Prog) string {
 }
 
 func Aconv(a int) string {
-	return "Aconv not done"
+	if a >= obj.AXXX && a < ALAST {
+		return Anames[a]
+	}
+	return "???"
 }
 
 func Rconv(r int) string {
@@ -127,5 +130,8 @@ func Rconv(r int) string {
 }
 
 func DRconv(a int) string {
-	return "DRconv not done"
+	if a >= C_NONE && a <= C_NCLASS {
+		return cnames7[a]
+	}
+	return "C_??"
 }
