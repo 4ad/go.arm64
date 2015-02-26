@@ -84,46 +84,46 @@ func Pconv(p *obj.Prog) string {
 	switch a {
 	default:
 		if p.Reg == NREG && p.From3.Type == obj.TYPE_NONE && p.To3.Type == obj.TYPE_NONE {
-			str = fmt.Sprintf("%.5d (%v)\t%v\t%v,%v", p.Pc, p.Line(), Aconv(a), Dconv(p, 0, &p.From), Dconv(p, 0, &p.To))
+			str = fmt.Sprintf("%.5d (%v)\t%v\t%v,%v", p.Pc, p.Line(), Aconv(a), obj.Dconv(p, Rconv, &p.From), obj.Dconv(p, Rconv, &p.To))
 		} else if p.From.Type != D_FREG {
-			str = fmt.Sprintf("%.5d (%v)\t%v\t%v", p.Pc, p.Line(), Aconv(a), Dconv(p, 0, &p.From))
+			str = fmt.Sprintf("%.5d (%v)\t%v\t%v", p.Pc, p.Line(), Aconv(a), obj.Dconv(p, Rconv, &p.From))
 			if p.From3.Type != obj.TYPE_NONE {
-				str += fmt.Sprintf(",%v", Dconv(p, 0, &p.From3))
+				str += fmt.Sprintf(",%v", obj.Dconv(p, Rconv, &p.From3))
 			}
 			if p.Reg != NREG {
 				str += fmt.Sprintf(",R%d", p.Reg)
 			}
 			if p.To3.Type != obj.TYPE_NONE {
-				str += fmt.Sprintf(",%v,%v", Dconv(p, 0, &p.To), Dconv(p, 0, &p.To3))
+				str += fmt.Sprintf(",%v,%v", obj.Dconv(p, Rconv, &p.To), obj.Dconv(p, Rconv, &p.To3))
 			} else {
 
-				str += fmt.Sprintf(",%v", Dconv(p, 0, &p.To))
+				str += fmt.Sprintf(",%v", obj.Dconv(p, Rconv, &p.To))
 			}
 		} else {
 
-			str = fmt.Sprintf("%.5d (%v)\t%v\t%v,F%d,%v", p.Pc, p.Line(), Aconv(a), Dconv(p, 0, &p.From), p.Reg, Dconv(p, 0, &p.To))
+			str = fmt.Sprintf("%.5d (%v)\t%v\t%v,F%d,%v", p.Pc, p.Line(), Aconv(a), obj.Dconv(p, Rconv, &p.From), p.Reg, obj.Dconv(p, Rconv, &p.To))
 		}
 
 	case ATEXT:
 		if p.Reg != 0 {
-			str = fmt.Sprintf("%.5d (%v)\t%v\t%v,%d,%v", p.Pc, p.Line(), Aconv(a), Dconv(p, 0, &p.From), p.Reg, Dconv(p, fmtLong, &p.To))
+			str = fmt.Sprintf("%.5d (%v)\t%v\t%v,%d,%v", p.Pc, p.Line(), Aconv(a), obj.Dconv(p, Rconv, &p.From), p.Reg, obj.Dconv(p, Rconv, &p.To))
 		} else {
 
-			str = fmt.Sprintf("%.5d (%v)\t%v\t%v,%v", p.Pc, p.Line(), Aconv(a), Dconv(p, 0, &p.From), Dconv(p, fmtLong, &p.To))
+			str = fmt.Sprintf("%.5d (%v)\t%v\t%v,%v", p.Pc, p.Line(), Aconv(a), obj.Dconv(p, Rconv, &p.From), obj.Dconv(p, Rconv, &p.To))
 		}
 
 	case AGLOBL:
 		if p.Reg != 0 {
-			str = fmt.Sprintf("%.5d (%v)\t%v\t%v,%d,%v", p.Pc, p.Line(), Aconv(a), Dconv(p, 0, &p.From), p.Reg, Dconv(p, 0, &p.To))
+			str = fmt.Sprintf("%.5d (%v)\t%v\t%v,%d,%v", p.Pc, p.Line(), Aconv(a), obj.Dconv(p, Rconv, &p.From), p.Reg, obj.Dconv(p, Rconv, &p.To))
 		} else {
 
-			str = fmt.Sprintf("%.5d (%v)\t%v\t%v,%v", p.Pc, p.Line(), Aconv(a), Dconv(p, 0, &p.From), Dconv(p, 0, &p.To))
+			str = fmt.Sprintf("%.5d (%v)\t%v\t%v,%v", p.Pc, p.Line(), Aconv(a), obj.Dconv(p, Rconv, &p.From), obj.Dconv(p, Rconv, &p.To))
 		}
 
 	case ADATA,
 		AINIT,
 		ADYNT:
-		str = fmt.Sprintf("%.5d (%v)\t%v\t%v/%d,%v", p.Pc, p.Line(), Aconv(a), Dconv(p, 0, &p.From), p.Reg, Dconv(p, 0, &p.To))
+		str = fmt.Sprintf("%.5d (%v)\t%v\t%v/%d,%v", p.Pc, p.Line(), Aconv(a), obj.Dconv(p, Rconv, &p.From), p.Reg, obj.Dconv(p, Rconv, &p.To))
 		break
 	}
 
