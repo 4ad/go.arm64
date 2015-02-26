@@ -292,14 +292,14 @@ func span7(ctxt *obj.Link, cursym *obj.LSym) {
 					q->link = p->link;
 					p->link = q;
 					q->as = AB;
-					q->to.type = D_BRANCH;
+					q->to.type = obj.TYPE_BRANCH;
 					q->cond = p->cond;
 					p->cond = q;
 					q = ctxt->arch->prg();
 					q->link = p->link;
 					p->link = q;
 					q->as = AB;
-					q->to.type = D_BRANCH;
+					q->to.type = obj.TYPE_BRANCH;
 					q->cond = q->link->link;
 					bflag = 1;
 				}
@@ -383,7 +383,7 @@ func flushpool(ctxt *obj.Link, p *obj.Prog, skip int) {
 			}
 			q = ctxt.NewProg()
 			q.As = AB
-			q.To.Type = D_BRANCH
+			q.To.Type = obj.TYPE_BRANCH
 			q.Pcond = p.Link
 			q.Link = ctxt.Blitrl
 			q.Lineno = p.Lineno

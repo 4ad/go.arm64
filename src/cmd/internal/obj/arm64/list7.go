@@ -287,7 +287,7 @@ func Dconv(p *obj.Prog, flag int, a *obj.Addr) string {
 			str = fmt.Sprintf("%v(SPR%d)(REG)", Mconv(a), a.Offset)
 		}
 
-	case D_BRANCH: /* botch */
+	case obj.TYPE_BRANCH: /* botch */
 		if p.Pcond != nil {
 
 			v = int32(p.Pcond.Pc)

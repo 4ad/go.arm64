@@ -65,7 +65,7 @@ func progedit(ctxt *obj.Link, p *obj.Prog) {
 	p.From.Class = 0
 	p.To.Class = 0
 
-	// Rewrite BR/BL to symbol as D_BRANCH.
+	// Rewrite BR/BL to symbol as TYPE_BRANCH.
 	switch p.As {
 
 	case AB,
@@ -74,7 +74,7 @@ func progedit(ctxt *obj.Link, p *obj.Prog) {
 		ADUFFZERO,
 		ADUFFCOPY:
 		if p.To.Sym != nil {
-			p.To.Type = D_BRANCH
+			p.To.Type = obj.TYPE_BRANCH
 		}
 		break
 	}
@@ -274,7 +274,7 @@ loop:
 		q = ctxt.NewProg()
 		q.As = int16(a)
 		q.Lineno = p.Lineno
-		q.To.Type = D_BRANCH
+		q.To.Type = obj.TYPE_BRANCH
 		q.To.Offset = p.Pc
 		q.Pcond = p
 		p = q
@@ -533,7 +533,7 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 
 				q = obj.Appendp(ctxt, q)
 				q.As = ABEQ
-				q.To.Type = D_BRANCH
+				q.To.Type = obj.TYPE_BRANCH
 				q1 = q
 
 				q = obj.Appendp(ctxt, q)
@@ -560,7 +560,7 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 
 				q = obj.Appendp(ctxt, q)
 				q.As = ABNE
-				q.To.Type = D_BRANCH
+				q.To.Type = obj.TYPE_BRANCH
 				q2 = q
 
 				q = obj.Appendp(ctxt, q)
@@ -595,7 +595,7 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 
 			if p.To.Sym != nil { // retjmp
 				p.As = AB
-				p.To.Type = D_BRANCH
+				p.To.Type = obj.TYPE_BRANCH
 				break
 			}
 
