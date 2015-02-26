@@ -431,7 +431,7 @@ func addpool(ctxt *obj.Link, p *obj.Prog, a *obj.Addr) {
 	switch c {
 	// TODO(aram): remove.
 	default:
-		if a.Name != D_EXTERN {
+		if a.Name != obj.NAME_EXTERN {
 
 			fmt.Printf("addpool: %v in %v shouldn't go to default case\n", DRconv(c), p)
 		}
@@ -485,7 +485,7 @@ func addpool(ctxt *obj.Link, p *obj.Prog, a *obj.Addr) {
 		C_LACON,
 		C_LCON,
 		C_VCON:
-		if a.Name == D_EXTERN {
+		if a.Name == obj.NAME_EXTERN {
 
 			fmt.Printf("addpool: %v in %v needs reloc\n", DRconv(c), p)
 		}

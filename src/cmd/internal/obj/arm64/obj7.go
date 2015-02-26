@@ -93,7 +93,7 @@ func progedit(ctxt *obj.Link, p *obj.Prog) {
 			s.Size = 4
 			p.From.Type = D_OREG
 			p.From.Sym = s
-			p.From.Name = D_EXTERN
+			p.From.Name = obj.NAME_EXTERN
 			p.From.Offset = 0
 		}
 
@@ -106,7 +106,7 @@ func progedit(ctxt *obj.Link, p *obj.Prog) {
 			s.Size = 8
 			p.From.Type = D_OREG
 			p.From.Sym = s
-			p.From.Name = D_EXTERN
+			p.From.Name = obj.NAME_EXTERN
 			p.From.Offset = 0
 		}
 

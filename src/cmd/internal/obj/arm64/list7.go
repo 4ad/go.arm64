@@ -331,7 +331,7 @@ func Mconv(a *obj.Addr) string {
 	case D_NONE:
 		str = fmt.Sprintf("%d", a.Offset)
 
-	case D_EXTERN:
+	case obj.NAME_EXTERN:
 		if s == nil {
 			str = fmt.Sprintf("%d(SB)", a.Offset)
 		} else {
