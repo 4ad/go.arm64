@@ -227,12 +227,6 @@ func span7(ctxt *obj.Link, cursym *obj.LSym) {
 			c += 4
 		}
 		p.Pc = int64(c)
-		if p.From.Type == D_CONST && p.From.Reg == NREG && p.From.Offset == 0 {
-			p.From.Reg = REGZERO
-		}
-		if p.To.Type == D_CONST && p.To.Reg == NREG && p.To.Offset == 0 {
-			p.To.Reg = REGZERO
-		}
 		o = oplook(ctxt, p)
 		m = int(o.size)
 		if m == 0 {
