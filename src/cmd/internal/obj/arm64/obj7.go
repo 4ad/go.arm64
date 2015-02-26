@@ -39,28 +39,12 @@ import (
 	"math"
 )
 
-func symtype(a *obj.Addr) int {
-	return int(a.Name)
-}
-
 func isdata(p *obj.Prog) bool {
 	return p.As == ADATA || p.As == AGLOBL
 }
 
 func iscall(p *obj.Prog) bool {
 	return p.As == ABL
-}
-
-func datasize(p *obj.Prog) int {
-	return int(p.Reg)
-}
-
-func textflag(p *obj.Prog) int {
-	return int(p.Reg)
-}
-
-func settextflag(p *obj.Prog, f int) {
-	p.Reg = uint8(f)
 }
 
 var complements = []int16{
