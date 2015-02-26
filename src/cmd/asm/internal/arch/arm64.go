@@ -10,6 +10,32 @@ package arch
 
 import "cmd/internal/obj/arm64"
 
+var arm64Jump = map[string]bool{
+	"B":    true,
+	"BL":   true,
+	"BEQ":  true,
+	"BNE":  true,
+	"BCS":  true,
+	"BHS":  true,
+	"BCC":  true,
+	"BLO":  true,
+	"BMI":  true,
+	"BPL":  true,
+	"BVS":  true,
+	"BVC":  true,
+	"BHI":  true,
+	"BLS":  true,
+	"BGE":  true,
+	"BLT":  true,
+	"BGT":  true,
+	"BLE":  true,
+	"CALL": true,
+}
+
+func jumpArm64(word string) bool {
+	return arm64Jump[word]
+}
+
 func arm64RegisterNumber(name string, n int16) (int16, bool) {
 	switch name {
 	case "F":

@@ -7,6 +7,7 @@ package arch
 import (
 	"cmd/internal/obj"
 	"cmd/internal/obj/arm"
+	"cmd/internal/obj/arm64"
 	"cmd/internal/obj/i386" // == 386
 	"cmd/internal/obj/ppc64"
 	"cmd/internal/obj/x86" // == amd64
@@ -359,6 +360,76 @@ func archArm() *Arch {
 		IsJump:           jumpArm,
 		Aconv:            arm.Aconv,
 	}
+}
+
+func archArm64() *Arch {
+	register := make(map[string]int16)
+	// Create maps for easy lookup of instruction names etc.
+	// TODO: Should this be done in obj for us?
+	// Note that there is no list of names as there is for 386 and amd64.
+	register[arm64.Rconv(arm64.REGSP)] = int16(arm64.REGSP)
+	for i := arm64.REG_R0; i <= arm64.REG_R31; i++ {
+		register[arm64.Rconv(i)] = int16(i)
+	}
+	for i := arm64.REG_F0; i <= arm64.REG_F31; i++ {
+		register[arm64.Rconv(i)] = int16(i)
+	}
+	for i := arm64.REG_V0; i <= arm64.REG_V31; i++ {
+		register[arm64.Rconv(i)] = int16(i)
+	}
+	register["DAIF"] = arm64.REG_DAIF
+	register["NZCV"] = arm64.REG_NZCV
+	register["FPSR"] = arm64.REG_FPSR
+	register["FPCR"] = arm64.REG_FPCR
+	register["SPSR_EL1"] = arm64.REG_SPSR_EL1
+	register["ELR_EL1"] = arm64.REG_ELR_EL1
+	register["SPSR_EL2"] = arm64.REG_SPSR_EL2
+	register["ELR_EL2"] = arm64.REG_ELR_EL2
+	register["CurrentEL"] = arm64.REG_CurrentEL
+	register["SP_EL0"] = arm64.REG_SP_EL0
+	register["SPSel"] = arm64.REG_SPSel
+	register["DAIFSet"] = arm64.REG_DAIFSet
+	register["DAIFClr"] = arm64.REG_DAIFClr
+	// Pseudo-registers.
+	register["SB"] = RSB
+	register["FP"] = RFP
+	register["PC"] = RPC
+	// Avoid unintentionally clobbering g using R28.
+	delete(register, "R28")
+	register["g"] = arm64.REG_R28
+	registerPrefix := map[string]bool{
+		"F":   true,
+		"R":   true,
+		"V":   true,
+	}
+
+	instructions := make(map[string]int)
+	for i, s := range arm64.Anames {
+		instructions[s] = i
+	}
+	// Annoying aliases.
+	instructions["B"] = arm64.AB
+	instructions["BL"] = arm64.ABL
+	instructions["RETURN"] = arm64.ARETURN
+
+	unaryDestination := make(map[int]bool) // Instruction takes one operand and result is a destination.
+	// These instructions write to prog.To.
+	// TODO: These are silly. Fix once C assembler is gone.
+	unaryDestination[arm.AWORD] = true
+	unaryDestination[arm.ADWORD] = true
+
+	return &Arch{
+		LinkArch:         &arm64.Linkarm64,
+		Instructions:     instructions,
+		Register:         register,
+		RegisterPrefix:   registerPrefix,
+		RegisterNumber:   arm64RegisterNumber,
+		UnaryDestination: nil,
+		IsJump:           jumpArm64,
+		Aconv:            arm64.Aconv,
+		Rconv:            arm64.Rconv,
+	}
+
 }
 
 func archPPC64() *Arch {
