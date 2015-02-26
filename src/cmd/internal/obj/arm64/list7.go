@@ -83,17 +83,17 @@ func Pconv(p *obj.Prog) string {
 	a = int(p.As)
 	switch a {
 	default:
-		if p.Reg == NREG && p.From3.Type == D_NONE && p.To3.Type == D_NONE {
+		if p.Reg == NREG && p.From3.Type == obj.TYPE_NONE && p.To3.Type == obj.TYPE_NONE {
 			str = fmt.Sprintf("%.5d (%v)\t%v\t%v,%v", p.Pc, p.Line(), Aconv(a), Dconv(p, 0, &p.From), Dconv(p, 0, &p.To))
 		} else if p.From.Type != D_FREG {
 			str = fmt.Sprintf("%.5d (%v)\t%v\t%v", p.Pc, p.Line(), Aconv(a), Dconv(p, 0, &p.From))
-			if p.From3.Type != D_NONE {
+			if p.From3.Type != obj.TYPE_NONE {
 				str += fmt.Sprintf(",%v", Dconv(p, 0, &p.From3))
 			}
 			if p.Reg != NREG {
 				str += fmt.Sprintf(",R%d", p.Reg)
 			}
-			if p.To3.Type != D_NONE {
+			if p.To3.Type != obj.TYPE_NONE {
 				str += fmt.Sprintf(",%v,%v", Dconv(p, 0, &p.To), Dconv(p, 0, &p.To3))
 			} else {
 
@@ -171,9 +171,9 @@ func Dconv(p *obj.Prog, flag int, a *obj.Addr) string {
 	default:
 		str = fmt.Sprintf("GOK-type(%d)", a.Type)
 
-	case D_NONE:
+	case obj.TYPE_NONE:
 		str = ""
-		if a.Name != D_NONE || a.Reg != NREG || a.Sym != nil {
+		if a.Name != obj.NAME_NONE || a.Reg != NREG || a.Sym != nil {
 			str = fmt.Sprintf("%v(R%d)(NONE)", Mconv(a), a.Reg)
 		}
 
@@ -243,7 +243,7 @@ func Dconv(p *obj.Prog, flag int, a *obj.Addr) string {
 
 	case D_REG:
 		str = fmt.Sprintf("R%d", a.Reg)
-		if a.Name != D_NONE || a.Sym != nil {
+		if a.Name != obj.NAME_NONE || a.Sym != nil {
 			str = fmt.Sprintf("%v(R%d)(REG)", Mconv(a), a.Reg)
 		}
 
@@ -251,7 +251,7 @@ func Dconv(p *obj.Prog, flag int, a *obj.Addr) string {
 		str = fmt.Sprintf("(R%d, R%d)", a.Reg, a.Offset)
 
 	case D_SP:
-		if a.Name != D_NONE || a.Sym != nil {
+		if a.Name != obj.NAME_NONE || a.Sym != nil {
 			str = fmt.Sprintf("%v(R%d)(REG)", Mconv(a), a.Reg)
 		} else {
 
@@ -263,7 +263,7 @@ func Dconv(p *obj.Prog, flag int, a *obj.Addr) string {
 
 	case D_FREG:
 		str = fmt.Sprintf("F%d", a.Reg)
-		if a.Name != D_NONE || a.Sym != nil {
+		if a.Name != obj.NAME_NONE || a.Sym != nil {
 			str = fmt.Sprintf("%v(R%d)(REG)", Mconv(a), a.Reg)
 		}
 
@@ -283,7 +283,7 @@ func Dconv(p *obj.Prog, flag int, a *obj.Addr) string {
 			break
 		}
 
-		if a.Name != D_NONE || a.Sym != nil {
+		if a.Name != obj.NAME_NONE || a.Sym != nil {
 			str = fmt.Sprintf("%v(SPR%d)(REG)", Mconv(a), a.Offset)
 		}
 
@@ -328,7 +328,7 @@ func Mconv(a *obj.Addr) string {
 	default:
 		str = fmt.Sprintf("GOK-name(%d)", a.Name)
 
-	case D_NONE:
+	case obj.NAME_NONE:
 		str = fmt.Sprintf("%d", a.Offset)
 
 	case obj.NAME_EXTERN:
