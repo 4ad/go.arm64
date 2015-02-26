@@ -32,7 +32,6 @@ package arm64
 
 import (
 	"cmd/internal/obj"
-	"cmd/internal/obj/arm"
 	"encoding/binary"
 	"fmt"
 	"log"
@@ -183,7 +182,7 @@ func relinv(a int) int {
 		return ABGT
 	}
 
-	log.Fatalf("unknown relation: %s", arm.Anames5[a])
+	log.Fatalf("unknown relation: %s", Anames7[a])
 	return 0
 }
 
