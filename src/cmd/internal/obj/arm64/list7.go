@@ -96,8 +96,32 @@ func Rconv(r int) string {
 		return fmt.Sprintf("F%d", r-REG_F0)
 	case REG_V0 <= r && r <= REG_V31:
 		return fmt.Sprintf("V%d", r-REG_F0)
-	case r >= REG_SPECIAL:
-		return "REG_SPECIAL" // TODO(aram)
+	case r == REG_DAIF:
+		return "DAIF"
+	case r == REG_NZCV:
+		return "NZCV"
+	case r == REG_FPSR:
+		return "FPSR"
+	case r == REG_FPCR:
+		return "FPCR"
+	case r == REG_SPSR_EL1:
+		return "SPSR_EL1"
+	case r == REG_ELR_EL1:
+		return "ELR_EL1"
+	case r == REG_SPSR_EL2:
+		return "SPSR_EL2"
+	case r == REG_ELR_EL2:
+		return "ELR_EL2"
+	case r == REG_CurrentEL:
+		return "CurrentEL"
+	case r == REG_SP_EL0:
+		return "SP_EL0"
+	case r == REG_SPSel:
+		return "SPSel"
+	case r == REG_DAIFSet:
+		return "DAIFSet"
+	case r == REG_DAIFClr:
+		return "DAIFClr"
 	}
 	return fmt.Sprintf("badreg(%d)", r)
 }
