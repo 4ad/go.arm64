@@ -75,7 +75,37 @@ var strcond = [16]string{
 var bigP *obj.Prog
 
 func Pconv(p *obj.Prog) string {
-	return "Pconv not done"
+	var s string
+	a := int(p.As)
+	switch a {
+	case obj.ATEXT, obj.AGLOBL:
+		s = fmt.Sprintf("%.5d (%v)\t%v\t%v,%d,%v", p.Pc, p.Line(), Aconv(a), obj.Dconv(p, Rconv, &p.From), p.From3.Offset, obj.Dconv(p, Rconv, &p.To))
+
+	case obj.ADATA:
+		s = fmt.Sprintf("%.5d (%v)\t%v\t%v/%d,%v", p.Pc, p.Line(), Aconv(a), obj.Dconv(p, Rconv, &p.From), p.From3.Offset, obj.Dconv(p, Rconv, &p.To))
+	}
+
+	if p.Reg == 0 && p.From3.Type == obj.TYPE_NONE && p.To3.Type == obj.TYPE_NONE {
+		s = fmt.Sprintf("%.5d (%v)\t%v\t%v,%v", p.Pc, p.Line(), Aconv(a), obj.Dconv(p, Rconv, &p.From), obj.Dconv(p, Rconv, &p.To))
+	} else {
+		s = fmt.Sprintf("%.5d (%v)\t%v\t%v", p.Pc, p.Line(), Aconv(a), obj.Dconv(p, Rconv, &p.From))
+		if p.From3.Type != obj.TYPE_NONE {
+			s += fmt.Sprintf(",%v", obj.Dconv(p, Rconv, &p.From3))
+		}
+		if p.Reg != 0 {
+			s += fmt.Sprintf(",%R", p.Reg)
+		}
+		if p.To3.Type != obj.TYPE_NONE {
+			s += fmt.Sprintf(",%v,%v", obj.Dconv(p, Rconv, &p.To), obj.Dconv(p, Rconv, &p.To3))
+		} else {
+			s += fmt.Sprintf(",%v", obj.Dconv(p, Rconv, &p.To))
+		}
+	}
+
+	if p.Spadj != 0 {
+		return fmt.Sprintf("%s # spadj=%d", s, p.Spadj)
+	}
+	return s
 }
 
 func Aconv(a int) string {
