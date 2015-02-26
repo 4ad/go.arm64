@@ -490,7 +490,7 @@ func addpool(ctxt *obj.Link, p *obj.Prog, a *obj.Addr) {
 			fmt.Printf("addpool: %v in %v needs reloc\n", DRconv(c), p)
 		}
 
-		t.To.Type = D_CONST
+		t.To.Type = obj.TYPE_CONST
 		t.To.Offset = ctxt.Instoffset
 		break
 	}
