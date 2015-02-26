@@ -34,52 +34,122 @@ import (
 	"cmd/internal/obj"
 )
 
+/*
+ * internal class codes for different constant classes:
+ * they partition the constant/offset range into disjoint ranges that
+ * are somehow treated specially by one or more load/store instructions.
+ */
+var autoclass = []int{C_PSAUTO, C_NSAUTO, C_NPAUTO, C_PSAUTO, C_PPAUTO, C_UAUTO4K, C_UAUTO8K, C_UAUTO16K, C_UAUTO32K, C_UAUTO64K, C_LAUTO}
+
+var oregclass = []int{C_ZOREG, C_NSOREG, C_NPOREG, C_PSOREG, C_PPOREG, C_UOREG4K, C_UOREG8K, C_UOREG16K, C_UOREG32K, C_UOREG64K, C_LOREG}
+
+func isaddcon(v int64) int {
+	/* uimm12 or uimm24? */
+	if v < 0 {
+
+		return 0
+	}
+	if (v & 0xFFF) == 0 {
+		v >>= 12
+	}
+	return bool2int(v <= 0xFFF)
+}
+
+func isbitcon(v uint64) int {
+	/*  fancy bimm32 or bimm64? */
+	return bool2int(findmask(v) != nil || (v>>32) == 0 && findmask(v|(v<<32)) != nil)
+}
+
+/*
+ * return appropriate index into tables above
+ */
+func constclass(l int64) int {
+
+	if l == 0 {
+		return 0
+	}
+	if l < 0 {
+		if l >= -256 {
+			return 1
+		}
+		if l >= -512 && (l&7) == 0 {
+			return 2
+		}
+		return 10
+	}
+
+	if l <= 255 {
+		return 3
+	}
+	if l <= 504 && (l&7) == 0 {
+		return 4
+	}
+	if l <= 4095 {
+		return 5
+	}
+	if l <= 8190 && (l&1) == 0 {
+		return 6
+	}
+	if l <= 16380 && (l&3) == 0 {
+		return 7
+	}
+	if l <= 32760 && (l&7) == 0 {
+		return 8
+	}
+	if l <= 65520 && (l&0xF) == 0 {
+		return 9
+	}
+	return 10
+}
+
+/*
+ * if v contains a single 16-bit value aligned
+ * on a 16-bit field, and thus suitable for movk/movn,
+ * return the field index 0 to 3; otherwise return -1
+ */
+func movcon(v int64) int {
+
+	var s int
+	for s = 0; s < 64; s += 16 {
+		if (uint64(v) &^ (uint64(0xFFFF) << uint(s))) == 0 {
+			return s / 16
+		}
+	}
+	return -1
+}
+
 func aclass(ctxt *obj.Link, a *obj.Addr) int {
-	var v int64
-	var s *obj.LSym
-	var t int
-	ctxt.Instoffset = 0
 	switch a.Type {
-	case D_NONE:
+	case obj.TYPE_NONE:
 		return C_NONE
 
-	case D_REG:
-		return C_REG
+	case obj.TYPE_REG:
+		switch {
+		case a.Reg == REGSP:
+			return C_RSP
+		case REG_R0 <= a.Reg && a.Reg <= REG_R31:
+			return C_REG
+		case REG_F0 <= a.Reg && a.Reg <= REG_F31:
+			return C_FREG
+		case REG_V0 <= a.Reg && a.Reg <= REG_V31:
+			return C_VREG
+		case a.Reg&REG_EXT != 0:
+			return C_EXTREG
+		case a.Reg >= REG_SPECIAL:
+			return C_SPR
+		}
+		return C_GOK
 
-	case D_PAIR:
+	case obj.TYPE_REGREG:
 		return C_PAIR
 
-	case D_VREG:
-		return C_VREG
-
-	case D_SP:
-		return C_RSP
-
-	case D_COND:
-		return C_COND
-
-	case D_SHIFT:
+	case obj.TYPE_SHIFT:
 		return C_SHIFT
 
-	case D_EXTREG:
-		return C_EXTREG
-
-	case D_ROFF:
-		return C_ROFF
-
-	case D_XPOST:
-		return C_XPOST
-
-	case D_XPRE:
-		return C_XPRE
-
-	case D_FREG:
-		return C_FREG
-
-	case D_OREG:
+	case obj.TYPE_MEM:
 		switch a.Name {
-		case D_EXTERN,
-			D_STATIC:
+		case obj.NAME_EXTERN,
+			obj.NAME_STATIC:
 			if a.Sym == nil {
 				break
 			}
@@ -89,54 +159,35 @@ func aclass(ctxt *obj.Link, a *obj.Addr) int {
 			}
 			return C_LEXT
 
-		case D_AUTO:
+		case obj.NAME_AUTO:
 			ctxt.Instoffset = int64(ctxt.Autosize) + a.Offset
 			return autoclass[constclass(ctxt.Instoffset)]
 
-		case D_PARAM:
+		case obj.NAME_PARAM:
 			ctxt.Instoffset = int64(ctxt.Autosize) + a.Offset + 8
 			return autoclass[constclass(ctxt.Instoffset)]
 
-		case D_NONE:
+		case obj.TYPE_NONE:
 			ctxt.Instoffset = a.Offset
 			return oregclass[constclass(ctxt.Instoffset)]
 		}
-
 		return C_GOK
 
-	case D_SPR:
-		return C_SPR
-
-	case D_OCONST:
-		switch a.Name {
-		case D_EXTERN,
-			D_STATIC:
-			if a.Sym == nil {
-				break
-			}
-			ctxt.Instoffset = a.Offset
-			if a.Sym != nil { // use relocation
-				return C_ADDR
-			}
-			return C_VCON
-		}
-
-		return C_GOK
-
-	case D_FCONST:
+	case obj.TYPE_FCONST:
 		return C_FCON
 
-	case D_CONST:
+	case obj.TYPE_TEXTSIZE:
+		return C_TEXTSIZE
+
+	case obj.TYPE_CONST,
+		obj.TYPE_ADDR:
 		switch a.Name {
-		case D_NONE:
+		case obj.TYPE_NONE:
 			ctxt.Instoffset = a.Offset
-			if a.Reg != NREG && a.Reg != REGZERO {
+			if a.Reg == REGSP {
 				goto aconsize
 			}
-			if a.Reg == REGSP && ctxt.Instoffset != 0 {
-				goto aconsize
-			}
-			v = ctxt.Instoffset
+			v := ctxt.Instoffset
 			if v == 0 {
 				return C_ZCON
 			}
@@ -150,7 +201,7 @@ func aclass(ctxt *obj.Link, a *obj.Addr) int {
 				return C_ADDCON
 			}
 
-			t = movcon(v)
+			t := movcon(v)
 			if t >= 0 {
 				if isbitcon(uint64(v)) != 0 {
 					return C_MBCON
@@ -171,24 +222,23 @@ func aclass(ctxt *obj.Link, a *obj.Addr) int {
 			}
 			return C_VCON
 
-		case D_EXTERN,
-			D_STATIC:
-			s = a.Sym
+		case obj.NAME_EXTERN,
+			obj.NAME_STATIC:
+			s := a.Sym
 			if s == nil {
 				break
 			}
 			ctxt.Instoffset = a.Offset
 			return C_VCONADDR
 
-		case D_AUTO:
+		case obj.NAME_AUTO:
 			ctxt.Instoffset = int64(ctxt.Autosize) + a.Offset
 			goto aconsize
 
-		case D_PARAM:
+		case obj.NAME_PARAM:
 			ctxt.Instoffset = int64(ctxt.Autosize) + a.Offset + 8
 			goto aconsize
 		}
-
 		return C_GOK
 
 	aconsize:
@@ -197,10 +247,9 @@ func aclass(ctxt *obj.Link, a *obj.Addr) int {
 		}
 		return C_LACON
 
-	case D_BRANCH:
+	case obj.TYPE_BRANCH:
 		return C_SBRA
 	}
 
 	return C_GOK
-
 }

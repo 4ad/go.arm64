@@ -148,9 +148,9 @@ const (
 
 // not registers, but masks to indicate extended register mode
 const (
-	REG_SUFFIX = 1 << 11
+	REG_EXT = 1 << 11
 
-	REG_UXTB = REG_SUFFIX + iota<<8
+	REG_UXTB = REG_EXT + iota<<8
 	REG_UXTH
 	REG_UXTW
 	REG_UXTX
@@ -162,7 +162,7 @@ const (
 
 // special registers
 const (
-	REG_SPECIAL = REG_SUFFIX << 1
+	REG_SPECIAL = REG_EXT << 1
 
 	REG_DAIF = REG_SPECIAL + iota
 	REG_NZCV
@@ -199,8 +199,8 @@ const (
 	REGG    = REG_R28 // G
 	REGFP   = REG_R29 // frame pointer, unused in the Go toolchain
 	REGLINK = REG_R30
-	REGSP   = REG_R31
 	REGZERO = REG_R31
+	REGSP   = 31 // not REG_R31, to differentiate it in liblink
 
 	FREGRET  = REG_F0
 	FREGMIN  = REG_F7  // first register variable
@@ -298,6 +298,7 @@ const (
 	C_XPRE  // TODO(aram): remove
 
 	C_GOK
+	C_TEXTSIZE
 	C_NCLASS // must be last
 )
 
