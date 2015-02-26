@@ -140,243 +140,31 @@ func Aconv(a int) string {
 	var fp string
 
 	s = "???"
-	if a >= AXXX && a < ALAST && Anames[a] != "" {
+	if a >= obj.AXXX && a < ALAST && Anames[a] != "" {
 		s = Anames[a]
 	}
 	fp += s
 	return fp
 }
 
-func Dconv(p *obj.Prog, flag int, a *obj.Addr) string {
-	var str string
-	var op string
-	var fp string
-
-	var v int32
-	var extop = []string{".UB", ".UH", ".UW", ".UX", ".SB", ".SH", ".SW", ".SX"}
-
-	if flag&fmtLong != 0 /*untyped*/ {
-		if a.Type == D_CONST {
-			str = fmt.Sprintf("$%d-%d", int32(a.Offset), int32(a.Offset>>32))
-		} else {
-
-			// ATEXT dst is not constant
-			str = fmt.Sprintf("!!%v", Dconv(p, 0, a))
-		}
-
-		goto ret
-	}
-
-	switch a.Type {
-	default:
-		str = fmt.Sprintf("GOK-type(%d)", a.Type)
-
-	case obj.TYPE_NONE:
-		str = ""
-		if a.Name != obj.NAME_NONE || a.Reg != NREG || a.Sym != nil {
-			str = fmt.Sprintf("%v(R%d)(NONE)", Mconv(a), a.Reg)
-		}
-
-	case D_CONST:
-		if a.Reg == NREG || a.Reg == REGZERO && a.Offset == 0 {
-			str = fmt.Sprintf("$%v", Mconv(a))
-		} else {
-
-			str = fmt.Sprintf("$%v(R%d)", Mconv(a), a.Reg)
-		}
-
-	case D_SHIFT:
-		v = int32(a.Offset)
-		op = string("<<>>->@>"[((v>>22)&3)<<1])
-		str = fmt.Sprintf("R%d%c%c%d", (v>>16)&0x1F, op[0], op[1], (v>>10)&0x3F)
-		if a.Reg != NREG {
-			str += fmt.Sprintf("(R%d)", a.Reg)
-		}
-
-	case D_OCONST:
-		str = fmt.Sprintf("$*$%v", Mconv(a))
-		if a.Reg != NREG {
-			str = fmt.Sprintf("%v(R%d)(CONST)", Mconv(a), a.Reg)
-		}
-
-	case D_OREG:
-		if a.Reg != NREG {
-			str = fmt.Sprintf("%v(R%d)", Mconv(a), a.Reg)
-		} else {
-
-			str = fmt.Sprintf("%v", Mconv(a))
-		}
-
-	case D_XPRE:
-		if a.Reg != NREG {
-			str = fmt.Sprintf("%v(R%d)!", Mconv(a), a.Reg)
-		} else {
-
-			str = fmt.Sprintf("%v!", Mconv(a))
-		}
-
-	case D_XPOST:
-		if a.Reg != NREG {
-			str = fmt.Sprintf("(R%d)%v!", a.Reg, Mconv(a))
-		} else {
-
-			str = fmt.Sprintf("%v!", Mconv(a))
-		}
-
-	case D_EXTREG:
-		v = int32(a.Offset)
-		if v&(7<<10) != 0 {
-			str = fmt.Sprintf("R%d%s<<%d", (v>>16)&31, extop[(v>>13)&7], (v>>10)&7)
-		} else {
-
-			str = fmt.Sprintf("R%d%s", (v>>16)&31, extop[(v>>13)&7])
-		}
-
-	case D_ROFF:
-		v = int32(a.Offset)
-		if v&(1<<16) != 0 {
-			str = fmt.Sprintf("(R%d)[R%d%s]", a.Reg, v&31, extop[(v>>8)&7])
-		} else {
-
-			str = fmt.Sprintf("(R%d)(R%d%s)", a.Reg, v&31, extop[(v>>8)&7])
-		}
-
-	case D_REG:
-		str = fmt.Sprintf("R%d", a.Reg)
-		if a.Name != obj.NAME_NONE || a.Sym != nil {
-			str = fmt.Sprintf("%v(R%d)(REG)", Mconv(a), a.Reg)
-		}
-
-	case D_PAIR:
-		str = fmt.Sprintf("(R%d, R%d)", a.Reg, a.Offset)
-
-	case D_SP:
-		if a.Name != obj.NAME_NONE || a.Sym != nil {
-			str = fmt.Sprintf("%v(R%d)(REG)", Mconv(a), a.Reg)
-		} else {
-
-			str = "SP"
-		}
-
-	case D_COND:
-		str = strcond[a.Reg&0xF]
-
-	case D_FREG:
-		str = fmt.Sprintf("F%d", a.Reg)
-		if a.Name != obj.NAME_NONE || a.Sym != nil {
-			str = fmt.Sprintf("%v(R%d)(REG)", Mconv(a), a.Reg)
-		}
-
-	case D_SPR:
-		switch a.Offset {
-		case D_FPSR:
-			str = fmt.Sprintf("FPSR")
-
-		case D_FPCR:
-			str = fmt.Sprintf("FPCR")
-
-		case D_NZCV:
-			str = fmt.Sprintf("NZCV")
-
-		default:
-			str = fmt.Sprintf("SPR(%#x)", uint64(a.Offset))
-			break
-		}
-
-		if a.Name != obj.NAME_NONE || a.Sym != nil {
-			str = fmt.Sprintf("%v(SPR%d)(REG)", Mconv(a), a.Offset)
-		}
-
-	case obj.TYPE_BRANCH: /* botch */
-		if p.Pcond != nil {
-
-			v = int32(p.Pcond.Pc)
-			if a.Sym != nil {
-				str = fmt.Sprintf("%s+%#.5x(BRANCH)", a.Sym.Name, uint32(v))
-			} else {
-
-				str = fmt.Sprintf("%.5x(BRANCH)", uint32(v))
-			}
-		} else if a.Sym != nil {
-			str = fmt.Sprintf("%s+%d(PC)", a.Sym.Name, a.Offset)
-		} else {
-
-			str = fmt.Sprintf("%d(PC)", a.Offset)
-		}
-
-	case D_FCONST:
-		str = fmt.Sprintf("$%.17g", a.U.Dval)
-
-	case D_SCONST:
-		str = fmt.Sprintf("$\"%q\"", a.U.Sval)
-		break
-	}
-
-ret:
-	fp += str
-	return fp
-}
-
-func Mconv(a *obj.Addr) string {
-	var str string
-	var fp string
-
-	var s *obj.LSym
-
-	s = a.Sym
-	switch a.Name {
-	default:
-		str = fmt.Sprintf("GOK-name(%d)", a.Name)
-
-	case obj.NAME_NONE:
-		str = fmt.Sprintf("%d", a.Offset)
-
-	case obj.NAME_EXTERN:
-		if s == nil {
-			str = fmt.Sprintf("%d(SB)", a.Offset)
-		} else {
-
-			str = fmt.Sprintf("%s+%d(SB)", s.Name, a.Offset)
-		}
-
-	case D_STATIC:
-		if s == nil {
-			str = fmt.Sprintf("<>+%d(SB)", a.Offset)
-		} else {
-
-			str = fmt.Sprintf("%s<>+%d(SB)", s.Name, a.Offset)
-		}
-
-	case D_AUTO:
-		if s == nil {
-			str = fmt.Sprintf("%d(SP)", a.Offset)
-		} else {
-
-			str = fmt.Sprintf("%s-%d(SP)", s.Name, -a.Offset)
-		}
-
-	case D_PARAM:
-		if s == nil {
-			str = fmt.Sprintf("%d(FP)", a.Offset)
-		} else {
-
-			str = fmt.Sprintf("%s+%d(FP)", s.Name, a.Offset)
-		}
-		break
-	}
-
-	fp += str
-	return fp
-}
-
 func Rconv(r int) string {
-	var fp string
-
-	var str string
-
-	str = fmt.Sprintf("R%d", r)
-	fp += str
-	return fp
+	switch {
+	case r == 0:
+		return "NONE"
+	case REGSP:
+		return "RSP"
+	case REG_R0 <= r && r <= REG_R30:
+		return fmt.Sprintf("R%d", r-REG_R0)
+	case REG_R31:
+		return "ZR"
+	case REG_F0 <= r && r <= REG_F31:
+		return fmt.Sprintf("F%d", r-REG_F0)
+	case REG_V0 <= r && r <= REG_V31:
+		return fmt.Sprintf("V%d", r-REG_F0)
+	case r >= REG_SPECIAL:
+		return "REG_SPECIAL" // TODO(aram)
+	}
+	return fmt.Sprintf("badreg(%d)", r)
 }
 
 func DRconv(a int) string {
