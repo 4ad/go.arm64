@@ -2798,7 +2798,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 			ctxt.Diag("implausible condition\n%v", p)
 		}
 		rf = int(p.Reg)
-		if p.From3.Type != D_FREG {
+		if p.From3.Reg < REG_F0 || p.From3.Reg > REG_F31 {
 			ctxt.Diag("illegal FCCMP\n%v", p)
 		}
 		rt = int(p.From3.Reg)
