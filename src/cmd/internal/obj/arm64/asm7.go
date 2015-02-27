@@ -1857,6 +1857,16 @@ no:
 	return -1
 }
 
+/* form offset parameter to SYS; special register number */
+func SYSARG5(op0 int, op1 int, Cn int, Cm int, op2 int) int {
+
+	return op0<<19 | op1<<16 | Cn<<12 | Cm<<8 | op2<<5
+}
+
+func SYSARG4(op1 int, Cn int, Cm int, op2 int) int {
+	return SYSARG5(0, op1, Cn, Cm, op2)
+}
+
 func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 	var o1 uint32
 	var o2 uint32
