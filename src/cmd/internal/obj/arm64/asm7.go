@@ -1858,6 +1858,1072 @@ no:
 }
 
 func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
+	var o1 uint32
+	var o2 uint32
+	var o3 uint32
+	var o4 uint32
+	var o5 uint32
+	var v int32
+	var hi int32
+	var u uint32
+	var d int64
+	var r int
+	var s int
+	var rf int
+	var rt int
+	var ra int
+	var nzcv int
+	var cond int
+	var i int
+	var as int
+	var mask *Mask
+	var rel *obj.Reloc
+	var lastcase *obj.Prog
+
+	o1 = 0
+	o2 = 0
+	o3 = 0
+	o4 = 0
+	o5 = 0
+	if false { /*debug['P']*/
+		fmt.Printf("%x: %v\ttype %d\n", uint32(p.Pc), p, o.type_)
+	}
+	switch o.type_ {
+	default:
+		ctxt.Diag("unknown asm %d", o.type_)
+		prasm(p)
+
+	case 0: /* pseudo ops */
+		break
+
+	case 1: /* op Rm,[Rn],Rd; default Rn=Rd -> op Rm<<0,[Rn,]Rd (shifted register) */
+		o1 = oprrr(ctxt, int(p.As))
+
+		rf = int(p.From.Reg)
+		rt = int(p.To.Reg)
+		r = int(p.Reg)
+		if p.To.Type == D_NONE {
+			rt = REGZERO
+		}
+		if r == NREG {
+			r = rt
+		}
+		o1 |= (uint32(rf) << 16) | (uint32(r) << 5) | uint32(rt)
+
+	case 2: /* add/sub $(uimm12|uimm24)[,R],R; cmp $(uimm12|uimm24),R */
+		o1 = opirr(ctxt, int(p.As))
+
+		rt = int(p.To.Reg)
+		if p.To.Type == D_NONE {
+			if (o1 & Sbit) == 0 {
+				ctxt.Diag("ineffective ZR destination\n%v", p)
+			}
+			rt = REGZERO
+		}
+
+		r = int(p.Reg)
+		if r == NREG {
+			r = rt
+		}
+		v = int32(regoff(ctxt, &p.From))
+		o1 = oaddi(int32(o1), v, r, rt)
+
+	case 3: /* op R<<n[,R],R (shifted register) */
+		o1 = oprrr(ctxt, int(p.As))
+
+		o1 |= uint32(p.From.Offset) /* includes reg, op, etc */
+		rt = int(p.To.Reg)
+		if p.To.Type == D_NONE {
+			rt = REGZERO
+		}
+		r = int(p.Reg)
+		if p.As == AMVN || p.As == AMVNW {
+			r = REGZERO
+		} else if r == NREG {
+			r = rt
+		}
+		o1 |= (uint32(r) << 5) | uint32(rt)
+
+	case 4: /* mov $addcon, R; mov $recon, R; mov $racon, R */
+		o1 = opirr(ctxt, int(p.As))
+
+		rt = int(p.To.Reg)
+		r = int(o.param)
+		if r == 0 {
+			r = REGZERO
+		} else if r == REGFROM {
+			r = int(p.From.Reg)
+		}
+		if r == NREG {
+			r = REGSP
+		}
+		v = int32(regoff(ctxt, &p.From))
+		if (v & 0xFFF000) != 0 {
+			v >>= 12
+			o1 |= 1 << 22 /* shift, by 12 */
+		}
+
+		o1 |= ((uint32(v) & 0xFFF) << 10) | (uint32(r) << 5) | uint32(rt)
+
+	case 5: /* b s; bl s */
+		o1 = opbra(ctxt, int(p.As))
+
+		if p.To.Sym == nil {
+			o1 |= uint32(brdist(ctxt, p, 0, 26, 2))
+			break
+		}
+
+		rel = obj.Addrel(ctxt.Cursym)
+		rel.Off = int32(ctxt.Pc)
+		rel.Siz = 4
+		rel.Sym = p.To.Sym
+		rel.Add = int64(o1) | (p.To.Offset>>2)&0x3ffffff
+		rel.Type = obj.R_CALLARM64
+
+	case 6: /* b ,O(R); bl ,O(R) */
+		o1 = opbrr(ctxt, int(p.As))
+
+		o1 |= uint32(p.To.Reg) << 5
+		rel = obj.Addrel(ctxt.Cursym)
+		rel.Off = int32(ctxt.Pc)
+		rel.Siz = 0
+		rel.Type = obj.R_CALLIND
+
+	case 7: /* beq s */
+		o1 = opbra(ctxt, int(p.As))
+
+		o1 |= uint32(brdist(ctxt, p, 0, 19, 2) << 5)
+
+	case 8: /* lsl $c,[R],R -> ubfm $(W-1)-c,$(-c MOD (W-1)),Rn,Rd */
+		rt = int(p.To.Reg)
+
+		rf = int(p.Reg)
+		if rf == NREG {
+			rf = rt
+		}
+		v = int32(p.From.Offset)
+		switch p.As {
+		case AASR:
+			o1 = opbfm(ctxt, ASBFM, int(v), 63, rf, rt)
+
+		case AASRW:
+			o1 = opbfm(ctxt, ASBFMW, int(v), 31, rf, rt)
+
+		case ALSL:
+			o1 = opbfm(ctxt, AUBFM, int((64-v)&63), int(63-v), rf, rt)
+
+		case ALSLW:
+			o1 = opbfm(ctxt, AUBFMW, int((32-v)&31), int(31-v), rf, rt)
+
+		case ALSR:
+			o1 = opbfm(ctxt, AUBFM, int(v), 63, rf, rt)
+
+		case ALSRW:
+			o1 = opbfm(ctxt, AUBFMW, int(v), 31, rf, rt)
+
+		case AROR:
+			o1 = opextr(ctxt, AEXTR, v, rf, rf, rt)
+
+		case ARORW:
+			o1 = opextr(ctxt, AEXTRW, v, rf, rf, rt)
+
+		default:
+			ctxt.Diag("bad shift $con\n%v", ctxt.Curp)
+			break
+		}
+
+	case 9: /* lsl Rm,[Rn],Rd -> lslv Rm, Rn, Rd */
+		o1 = oprrr(ctxt, int(p.As))
+
+		r = int(p.Reg)
+		if r == NREG {
+			r = int(p.To.Reg)
+		}
+		o1 |= (uint32(p.From.Reg) << 16) | (uint32(r) << 5) | uint32(p.To.Reg)
+
+	case 10: /* brk/hvc/.../svc [$con] */
+		o1 = opimm(ctxt, int(p.As))
+
+		if p.To.Type != D_NONE {
+			o1 |= uint32((p.To.Offset & 0xffff) << 5)
+		}
+
+	case 11: /* dword */
+		aclass(ctxt, &p.To)
+
+		o1 = uint32(ctxt.Instoffset)
+		o2 = uint32(ctxt.Instoffset >> 32)
+		if p.To.Sym != nil {
+			rel = obj.Addrel(ctxt.Cursym)
+			rel.Off = int32(ctxt.Pc)
+			rel.Siz = 8
+			rel.Sym = p.To.Sym
+			rel.Add = p.To.Offset
+			rel.Type = obj.R_ADDR
+			o2 = 0
+			o1 = o2
+		}
+
+	case 12: /* movT $vcon, reg */
+		o1 = omovlit(ctxt, int(p.As), p, &p.From, int(p.To.Reg))
+
+	case 13: /* addop $vcon, [R], R (64 bit literal); cmp $lcon,R -> addop $lcon,R, ZR */
+		o1 = omovlit(ctxt, AMOV, p, &p.From, REGTMP)
+
+		if !(o1 != 0) {
+			break
+		}
+		rt = int(p.To.Reg)
+		if p.To.Type == D_NONE {
+			rt = REGZERO
+		}
+		r = int(p.Reg)
+		if r == NREG {
+			r = rt
+		}
+		if p.To.Type != D_NONE && (p.To.Reg == REGSP || r == REGSP) {
+			o2 = opxrrr(ctxt, int(p.As))
+			o2 |= REGTMP << 16
+			o2 |= LSL0_64
+		} else {
+
+			o2 = oprrr(ctxt, int(p.As))
+			o2 |= REGTMP << 16 /* shift is 0 */
+		}
+
+		o2 |= uint32(r) << 5
+		o2 |= uint32(rt)
+
+	case 14: /* word */
+		if aclass(ctxt, &p.To) == C_ADDR {
+
+			ctxt.Diag("address constant needs DWORD\n%v", p)
+		}
+		o1 = uint32(ctxt.Instoffset)
+		if p.To.Sym != nil {
+			// This case happens with words generated
+			// in the PC stream as part of the literal pool.
+			rel = obj.Addrel(ctxt.Cursym)
+
+			rel.Off = int32(ctxt.Pc)
+			rel.Siz = 4
+			rel.Sym = p.To.Sym
+			rel.Add = p.To.Offset
+			rel.Type = obj.R_ADDR
+			o1 = 0
+		}
+
+	case 15: /* mul/mneg/umulh/umull r,[r,]r; madd/msub Rm,Rn,Ra,Rd */
+		o1 = oprrr(ctxt, int(p.As))
+
+		rf = int(p.From.Reg)
+		rt = int(p.To.Reg)
+		if p.From3.Type == D_REG {
+			r = int(p.From3.Reg)
+			ra = int(p.Reg)
+			if ra == NREG {
+				ra = REGZERO
+			}
+		} else {
+
+			r = int(p.Reg)
+			if r == NREG {
+				r = rt
+			}
+			ra = REGZERO
+		}
+
+		o1 |= (uint32(rf) << 16) | (uint32(ra) << 10) | (uint32(r) << 5) | uint32(rt)
+
+	case 16: /* XremY R[,R],R -> XdivY; XmsubY */
+		o1 = oprrr(ctxt, int(p.As))
+
+		rf = int(p.From.Reg)
+		rt = int(p.To.Reg)
+		r = int(p.Reg)
+		if r == NREG {
+			r = rt
+		}
+		o1 |= (uint32(rf) << 16) | (uint32(r) << 5) | REGTMP
+		o2 = oprrr(ctxt, AMSUBW)
+		o2 |= o1 & (1 << 31) /* same size */
+		o2 |= (uint32(rf) << 16) | (uint32(r) << 10) | (REGTMP << 5) | uint32(rt)
+
+	case 17: /* op Rm,[Rn],Rd; default Rn=ZR */
+		o1 = oprrr(ctxt, int(p.As))
+
+		rf = int(p.From.Reg)
+		rt = int(p.To.Reg)
+		r = int(p.Reg)
+		if p.To.Type == D_NONE {
+			rt = REGZERO
+		}
+		if r == NREG {
+			r = REGZERO
+		}
+		o1 |= (uint32(rf) << 16) | (uint32(r) << 5) | uint32(rt)
+
+	case 18: /* csel cond,Rn,Rm,Rd; cinc/cinv/cneg cond,Rn,Rd; cset cond,Rd */
+		o1 = oprrr(ctxt, int(p.As))
+
+		cond = int(p.From.Reg)
+		r = int(p.Reg)
+		if r != NREG {
+			if p.From3.Type == D_NONE {
+				/* CINC/CINV/CNEG */
+				rf = r
+
+				cond ^= 1
+			} else {
+
+				rf = int(p.From3.Reg) /* CSEL */
+			}
+		} else {
+
+			/* CSET */
+			if p.From3.Type != D_NONE {
+
+				ctxt.Diag("invalid combination\n%v", p)
+			}
+			rf = REGZERO
+			r = rf
+			cond ^= 1
+		}
+
+		rt = int(p.To.Reg)
+		o1 |= (uint32(r) << 16) | (uint32(cond) << 12) | (uint32(rf) << 5) | uint32(rt)
+
+	case 19: /* CCMN cond, (Rm|uimm5),Rn, uimm4 -> ccmn Rn,Rm,uimm4,cond */
+		nzcv = int(p.To.Offset)
+
+		cond = int(p.From.Reg)
+		if p.From3.Type == D_REG {
+			o1 = oprrr(ctxt, int(p.As))
+			rf = int(p.From3.Reg) /* Rm */
+		} else {
+
+			o1 = opirr(ctxt, int(p.As))
+			rf = int(p.From3.Offset & 0x1F)
+		}
+
+		o1 |= (uint32(rf) << 16) | (uint32(cond) << 12) | (uint32(p.Reg) << 5) | uint32(nzcv)
+
+	case 20: /* movT R,O(R) -> strT */
+		v = int32(regoff(ctxt, &p.To))
+
+		r = int(p.To.Reg)
+		if r == NREG {
+			r = int(o.param)
+		}
+		if v < 0 { /* unscaled 9-bit signed */
+			o1 = olsr9s(ctxt, int32(opstr9(ctxt, int(p.As))), v, r, int(p.From.Reg))
+		} else {
+
+			v = int32(offsetshift(ctxt, int64(v), int(o.a3)))
+			o1 = olsr12u(ctxt, int32(opstr12(ctxt, int(p.As))), v, r, int(p.From.Reg))
+		}
+
+	case 21: /* movT O(R),R -> ldrT */
+		v = int32(regoff(ctxt, &p.From))
+
+		r = int(p.From.Reg)
+		if r == NREG {
+			r = int(o.param)
+		}
+		if v < 0 { /* unscaled 9-bit signed */
+			o1 = olsr9s(ctxt, int32(opldr9(ctxt, int(p.As))), v, r, int(p.To.Reg))
+		} else {
+
+			v = int32(offsetshift(ctxt, int64(v), int(o.a1)))
+
+			//print("offset=%lld v=%ld a1=%d\n", instoffset, v, o->a1);
+			o1 = olsr12u(ctxt, int32(opldr12(ctxt, int(p.As))), v, r, int(p.To.Reg))
+		}
+
+	case 22: /* movT (R)O!,R; movT O(R)!, R -> ldrT */
+		v = int32(p.From.Offset)
+
+		if v < -256 || v > 255 {
+			ctxt.Diag("offset out of range\n%v", p)
+		}
+		o1 = opldrpp(ctxt, int(p.As))
+		if p.From.Type == D_XPOST {
+			o1 |= 1 << 10
+		} else {
+
+			o1 |= 3 << 10
+		}
+		o1 |= ((uint32(v) & 0x1FF) << 12) | (uint32(p.From.Reg) << 5) | uint32(p.To.Reg)
+
+	case 23: /* movT R,(R)O!; movT O(R)!, R -> strT */
+		v = int32(p.To.Offset)
+
+		if v < -256 || v > 255 {
+			ctxt.Diag("offset out of range\n%v", p)
+		}
+		o1 = LD2STR(opldrpp(ctxt, int(p.As)))
+		if p.To.Type == D_XPOST {
+			o1 |= 1 << 10
+		} else {
+
+			o1 |= 3 << 10
+		}
+		o1 |= ((uint32(v) & 0x1FF) << 12) | (uint32(p.To.Reg) << 5) | uint32(p.From.Reg)
+
+	case 24: /* mov/mvn Rs,Rd -> add $0,Rs,Rd or orr Rs,ZR,Rd */
+		rf = int(p.From.Reg)
+
+		rt = int(p.To.Reg)
+		s = bool2int(rf == REGSP || rt == REGSP)
+		if p.As == AMVN || p.As == AMVNW {
+			if s != 0 {
+				ctxt.Diag("illegal SP reference\n%v", p)
+			}
+			o1 = oprrr(ctxt, int(p.As))
+			o1 |= (uint32(rf) << 16) | (REGZERO << 5) | uint32(rt)
+		} else if s != 0 {
+			o1 = opirr(ctxt, int(p.As))
+			o1 |= (uint32(rf) << 5) | uint32(rt)
+		} else {
+
+			o1 = oprrr(ctxt, int(p.As))
+			o1 |= (uint32(rf) << 16) | (REGZERO << 5) | uint32(rt)
+		}
+
+	case 25: /* negX Rs, Rd -> subX Rs<<0, ZR, Rd */
+		o1 = oprrr(ctxt, int(p.As))
+
+		rf = int(p.From.Reg)
+		rt = int(p.To.Reg)
+		o1 |= (uint32(rf) << 16) | (REGZERO << 5) | uint32(rt)
+
+	case 26: /* negX Rm<<s, Rd -> subX Rm<<s, ZR, Rd */
+		o1 = oprrr(ctxt, int(p.As))
+
+		o1 |= uint32(p.From.Offset) /* includes reg, op, etc */
+		rt = int(p.To.Reg)
+		o1 |= (REGZERO << 5) | uint32(rt)
+
+	case 27: /* op Rm<<n[,Rn],Rd (extended register) */
+		o1 = opxrrr(ctxt, int(p.As))
+
+		if p.From.Type == D_EXTREG {
+			o1 |= uint32(p.From.Offset) /* includes reg, op, etc */
+		} else {
+
+			o1 |= uint32(p.From.Reg) << 16
+		}
+		rt = int(p.To.Reg)
+		if p.To.Type == D_NONE {
+			rt = REGZERO
+		}
+		r = int(p.Reg)
+		if r == NREG {
+			r = rt
+		}
+		o1 |= (uint32(r) << 5) | uint32(rt)
+
+	case 28: /* logop $vcon, [R], R (64 bit literal) */
+		o1 = omovlit(ctxt, AMOV, p, &p.From, REGTMP)
+
+		if !(o1 != 0) {
+			break
+		}
+		r = int(p.Reg)
+		if r == NREG {
+			r = int(p.To.Reg)
+		}
+		o2 = oprrr(ctxt, int(p.As))
+		o2 |= REGTMP << 16 /* shift is 0 */
+		o2 |= uint32(r) << 5
+		o2 |= uint32(p.To.Reg)
+
+	case 29: /* op Rn, Rd */
+		o1 = oprrr(ctxt, int(p.As))
+
+		o1 |= uint32(p.From.Reg)<<5 | uint32(p.To.Reg)
+
+	case 30: /* movT R,L(R) -> strT */
+		s = movesize(int(o.as))
+
+		if s < 0 {
+			ctxt.Diag("unexpected long move, op %v tab %v\n%v", Aconv(int(p.As)), Aconv(int(o.as)), p)
+		}
+		v = int32(regoff(ctxt, &p.To))
+		if v < 0 {
+			ctxt.Diag("negative large offset\n%v", p)
+		}
+		if (v & ((1 << uint(s)) - 1)) != 0 {
+			ctxt.Diag("misaligned offset\n%v", p)
+		}
+		hi = v - (v & (0xFFF << uint(s)))
+		if (hi & 0xFFF) != 0 {
+			ctxt.Diag("internal: miscalculated offset %d [%d]\n%v", v, s, p)
+		}
+
+		//fprint(2, "v=%ld (%#lux) s=%d hi=%ld (%#lux) v'=%ld (%#lux)\n", v, v, s, hi, hi, ((v-hi)>>s)&0xFFF, ((v-hi)>>s)&0xFFF);
+		r = int(p.To.Reg)
+
+		if r == NREG {
+			r = int(o.param)
+		}
+		o1 = oaddi(int32(opirr(ctxt, AADD)), hi, r, REGTMP)
+		o2 = olsr12u(ctxt, int32(opstr12(ctxt, int(p.As))), ((v-hi)>>uint(s))&0xFFF, REGTMP, int(p.From.Reg))
+
+	case 31: /* movT L(R), R -> ldrT */
+		s = movesize(int(o.as))
+
+		if s < 0 {
+			ctxt.Diag("unexpected long move, op %v tab %v\n%v", Aconv(int(p.As)), Aconv(int(o.as)), p)
+		}
+		v = int32(regoff(ctxt, &p.From))
+		if v < 0 {
+			ctxt.Diag("negative large offset\n%v", p)
+		}
+		if (v & ((1 << uint(s)) - 1)) != 0 {
+			ctxt.Diag("misaligned offset\n%v", p)
+		}
+		hi = v - (v & (0xFFF << uint(s)))
+		if (hi & 0xFFF) != 0 {
+			ctxt.Diag("internal: miscalculated offset %d [%d]\n%v", v, s, p)
+		}
+
+		//fprint(2, "v=%ld (%#lux) s=%d hi=%ld (%#lux) v'=%ld (%#lux)\n", v, v, s, hi, hi, ((v-hi)>>s)&0xFFF, ((v-hi)>>s)&0xFFF);
+		r = int(p.From.Reg)
+
+		if r == NREG {
+			r = int(o.param)
+		}
+		o1 = oaddi(int32(opirr(ctxt, AADD)), hi, r, REGTMP)
+		o2 = olsr12u(ctxt, int32(opldr12(ctxt, int(p.As))), ((v-hi)>>uint(s))&0xFFF, REGTMP, int(p.To.Reg))
+
+	case 32: /* mov $con, R -> movz/movn */
+		r = 32
+
+		if p.As == AMOV {
+			r = 64
+		}
+		d = p.From.Offset
+		s = movcon(d)
+		if s < 0 || s >= r {
+			d = ^d
+			s = movcon(d)
+			if s < 0 || s >= r {
+				ctxt.Diag("impossible move wide: %#x\n%v", uint64(p.From.Offset), p)
+			}
+			if p.As == AMOV {
+				o1 = opirr(ctxt, AMOVN)
+			} else {
+
+				o1 = opirr(ctxt, AMOVNW)
+			}
+		} else {
+
+			if p.As == AMOV {
+				o1 = opirr(ctxt, AMOVZ)
+			} else {
+
+				o1 = opirr(ctxt, AMOVZW)
+			}
+		}
+
+		rt = int(p.To.Reg)
+		o1 |= uint32((((d >> uint(s*16)) & 0xFFFF) << 5) | int64((uint32(s)&3)<<21) | int64(rt))
+
+	case 33: /* movk $uimm16 << pos */
+		o1 = opirr(ctxt, int(p.As))
+
+		d = p.From.Offset
+		if (d >> 16) != 0 {
+			ctxt.Diag("requires uimm16\n%v", p)
+		}
+		s = 0
+		if p.From3.Type != D_NONE {
+			if p.From3.Type != D_CONST {
+				ctxt.Diag("missing bit position\n%v", p)
+			}
+			s = int(p.From3.Offset / 16)
+			if (s*16&0xF) != 0 || s >= 4 || (o1&S64) == 0 && s >= 2 {
+				ctxt.Diag("illegal bit position\n%v", p)
+			}
+		}
+
+		rt = int(p.To.Reg)
+		o1 |= uint32(((d & 0xFFFF) << 5) | int64((uint32(s)&3)<<21) | int64(rt))
+
+	case 34: /* mov $lacon,R */
+		o1 = omovlit(ctxt, AMOV, p, &p.From, REGTMP)
+
+		if !(o1 != 0) {
+			break
+		}
+		o2 = opxrrr(ctxt, AADD)
+		o2 |= REGTMP << 16
+		o2 |= LSL0_64
+		r = int(p.From.Reg)
+		if r == NREG {
+			r = int(o.param)
+		}
+		o2 |= uint32(r) << 5
+		o2 |= uint32(p.To.Reg)
+
+	case 35: /* mov SPR,R -> mrs */
+		o1 = oprrr(ctxt, AMRS)
+
+		v = int32(p.From.Offset)
+		if (o1 & uint32(v&^(3<<19))) != 0 {
+			ctxt.Diag("MRS register value overlap\n%v", p)
+		}
+		o1 |= uint32(v)
+		o1 |= uint32(p.To.Reg)
+
+	case 36: /* mov R,SPR */
+		o1 = oprrr(ctxt, AMSR)
+
+		v = int32(p.To.Offset)
+		if (o1 & uint32(v&^(3<<19))) != 0 {
+			ctxt.Diag("MSR register value overlap\n%v", p)
+		}
+		o1 |= uint32(v)
+		o1 |= uint32(p.From.Reg)
+
+	case 37: /* mov $con,PSTATEfield -> MSR [immediate] */
+		if (uint64(p.From.Offset) &^ uint64(0xF)) != 0 {
+
+			ctxt.Diag("illegal immediate for PSTATE field\n%v", p)
+		}
+		o1 = opirr(ctxt, AMSR)
+		o1 |= uint32((p.From.Offset & 0xF) << 8) /* Crm */
+		v = 0
+		for i = 0; i < len(pstatefield); i++ {
+			if int64(pstatefield[i].a) == p.To.Offset {
+				v = int32(pstatefield[i].b)
+				break
+			}
+		}
+
+		if v == 0 {
+			ctxt.Diag("illegal PSTATE field for immediate move\n%v", p)
+		}
+		o1 |= uint32(v)
+
+	case 38: /* clrex [$imm] */
+		o1 = opimm(ctxt, int(p.As))
+
+		if p.To.Type == D_NONE {
+			o1 |= 0xF << 8
+		} else {
+
+			o1 |= uint32((p.To.Offset & 0xF) << 8)
+		}
+
+	case 39: /* cbz R, rel */
+		o1 = opirr(ctxt, int(p.As))
+
+		o1 |= uint32(p.From.Reg)
+		o1 |= uint32(brdist(ctxt, p, 0, 19, 2) << 5)
+
+	case 40: /* tbz */
+		o1 = opirr(ctxt, int(p.As))
+
+		v = int32(p.From.Offset)
+		if v < 0 || v > 63 {
+			ctxt.Diag("illegal bit number\n%v", p)
+		}
+		o1 |= ((uint32(v) & 0x20) << (31 - 5)) | ((uint32(v) & 0x1F) << 19)
+		o1 |= uint32(brdist(ctxt, p, 0, 14, 2) << 5)
+		o1 |= uint32(p.Reg)
+
+	case 41: /* eret, nop, others with no operands */
+		o1 = op0(ctxt, int(p.As))
+
+	case 42: /* bfm R,r,s,R */
+		o1 = opbfm(ctxt, int(p.As), int(p.From.Offset), int(p.From3.Offset), int(p.Reg), int(p.To.Reg))
+
+	case 43: /* bfm aliases */
+		r = int(p.From.Offset)
+
+		s = int(p.From3.Offset)
+		rf = int(p.Reg)
+		rt = int(p.To.Reg)
+		if rf == NREG {
+			rf = rt
+		}
+		switch p.As {
+		case ABFI:
+			o1 = opbfm(ctxt, ABFM, 64-r, s-1, rf, rt)
+
+		case ABFIW:
+			o1 = opbfm(ctxt, ABFMW, 32-r, s-1, rf, rt)
+
+		case ABFXIL:
+			o1 = opbfm(ctxt, ABFM, r, r+s-1, rf, rt)
+
+		case ABFXILW:
+			o1 = opbfm(ctxt, ABFMW, r, r+s-1, rf, rt)
+
+		case ASBFIZ:
+			o1 = opbfm(ctxt, ASBFM, 64-r, s-1, rf, rt)
+
+		case ASBFIZW:
+			o1 = opbfm(ctxt, ASBFMW, 32-r, s-1, rf, rt)
+
+		case ASBFX:
+			o1 = opbfm(ctxt, ASBFM, r, r+s-1, rf, rt)
+
+		case ASBFXW:
+			o1 = opbfm(ctxt, ASBFMW, r, r+s-1, rf, rt)
+
+		case AUBFIZ:
+			o1 = opbfm(ctxt, AUBFM, 64-r, s-1, rf, rt)
+
+		case AUBFIZW:
+			o1 = opbfm(ctxt, AUBFMW, 32-r, s-1, rf, rt)
+
+		case AUBFX:
+			o1 = opbfm(ctxt, AUBFM, r, r+s-1, rf, rt)
+
+		case AUBFXW:
+			o1 = opbfm(ctxt, AUBFMW, r, r+s-1, rf, rt)
+
+		default:
+			ctxt.Diag("bad bfm alias\n%v", ctxt.Curp)
+			break
+		}
+
+	case 44: /* extr $b, Rn, Rm, Rd */
+		o1 = opextr(ctxt, int(p.As), int32(p.From.Offset), int(p.From3.Reg), int(p.Reg), int(p.To.Reg))
+
+	case 45: /* sxt/uxt[bhw] R,R; movT R,R -> sxtT R,R */
+		rf = int(p.From.Reg)
+
+		rt = int(p.To.Reg)
+		as = int(p.As)
+		if rf == REGZERO {
+			as = AMOVWU /* clearer in disassembly */
+		}
+		switch as {
+		case AMOVB,
+			ASXTB:
+			o1 = opbfm(ctxt, ASBFM, 0, 7, rf, rt)
+
+		case AMOVH,
+			ASXTH:
+			o1 = opbfm(ctxt, ASBFM, 0, 15, rf, rt)
+
+		case AMOVW,
+			ASXTW:
+			o1 = opbfm(ctxt, ASBFM, 0, 31, rf, rt)
+
+		case AMOVBU,
+			AUXTB:
+			o1 = opbfm(ctxt, AUBFM, 0, 7, rf, rt)
+
+		case AMOVHU,
+			AUXTH:
+			o1 = opbfm(ctxt, AUBFM, 0, 15, rf, rt)
+
+		case AMOVWU:
+			o1 = oprrr(ctxt, as) | (uint32(rf) << 16) | (REGZERO << 5) | uint32(rt)
+
+		case AUXTW:
+			o1 = opbfm(ctxt, AUBFM, 0, 31, rf, rt)
+
+		case ASXTBW:
+			o1 = opbfm(ctxt, ASBFMW, 0, 7, rf, rt)
+
+		case ASXTHW:
+			o1 = opbfm(ctxt, ASBFMW, 0, 15, rf, rt)
+
+		case AUXTBW:
+			o1 = opbfm(ctxt, AUBFMW, 0, 7, rf, rt)
+
+		case AUXTHW:
+			o1 = opbfm(ctxt, AUBFMW, 0, 15, rf, rt)
+
+		default:
+			ctxt.Diag("bad sxt %v", Aconv(as))
+			break
+		}
+
+	case 46: /* cls */
+		o1 = opbit(ctxt, int(p.As))
+
+		o1 |= uint32(p.From.Reg) << 5
+		o1 |= uint32(p.To.Reg)
+
+	case 47: /* movT R,V(R) -> strT (huge offset) */
+		o1 = omovlit(ctxt, AMOVW, p, &p.To, REGTMP)
+
+		if !(o1 != 0) {
+			break
+		}
+		r = int(p.To.Reg)
+		if r == NREG {
+			r = int(o.param)
+		}
+		o2 = olsxrr(ctxt, int(p.As), REGTMP, r, int(p.From.Reg))
+
+	case 48: /* movT V(R), R -> ldrT (huge offset) */
+		o1 = omovlit(ctxt, AMOVW, p, &p.From, REGTMP)
+
+		if !(o1 != 0) {
+			break
+		}
+		r = int(p.From.Reg)
+		if r == NREG {
+			r = int(o.param)
+		}
+		o2 = olsxrr(ctxt, int(p.As), REGTMP, r, int(p.To.Reg))
+
+	case 50: /* sys/sysl */
+		o1 = opirr(ctxt, int(p.As))
+
+		if (p.From.Offset &^ int64(SYSARG4(0x7, 0xF, 0xF, 0x7))) != 0 {
+			ctxt.Diag("illegal SYS argument\n%v", p)
+		}
+		o1 |= uint32(p.From.Offset)
+		if p.To.Type == D_REG {
+			o1 |= uint32(p.To.Reg)
+		} else if p.Reg != NREG {
+			o1 |= uint32(p.Reg)
+		} else {
+
+			o1 |= 0x1F
+		}
+
+	case 51: /* dmb */
+		o1 = opirr(ctxt, int(p.As))
+
+		if p.From.Type == D_CONST {
+			o1 |= uint32((p.From.Offset & 0xF) << 8)
+		}
+
+	case 52: /* hint */
+		o1 = opirr(ctxt, int(p.As))
+
+		o1 |= uint32((p.From.Offset & 0x7F) << 5)
+
+	case 53: /* and/or/eor/bic/... $bimmN, Rn, Rd -> op (N,r,s), Rn, Rd */
+		as = int(p.As)
+
+		rt = int(p.To.Reg)
+		r = int(p.Reg)
+		if r == NREG {
+			r = rt
+		}
+		if as == AMOV {
+			as = AORR
+			r = REGZERO
+		} else if as == AMOVW {
+			as = AORRW
+			r = REGZERO
+		}
+
+		o1 = opirr(ctxt, as)
+		if o1&S64 != 0 {
+			s = 64
+		} else {
+
+			s = 32
+		}
+		mask = findmask(uint64(p.From.Offset))
+		if mask == nil {
+			mask = findmask(uint64(p.From.Offset) | (uint64(p.From.Offset) << 32))
+		}
+		if mask != nil {
+			o1 |= ((uint32(mask.r) & (uint32(s) - 1)) << 16) | (((uint32(mask.s) - 1) & (uint32(s) - 1)) << 10)
+			if s == 64 {
+				if mask.e == 64 && (uint64(p.From.Offset)>>32) != 0 {
+					o1 |= 1 << 22
+				}
+			} else {
+
+				u = uint32(uint64(p.From.Offset) >> 32)
+				if u != 0 && u != 0xFFFFFFFF {
+					ctxt.Diag("mask needs 64 bits %#x\n%v", uint64(p.From.Offset), p)
+				}
+			}
+		} else {
+
+			ctxt.Diag("invalid mask %#x\n%v", uint64(p.From.Offset), p) /* probably shouldn't happen */
+		}
+		o1 |= (uint32(r) << 5) | uint32(rt)
+
+	case 54: /* floating point arith */
+		o1 = oprrr(ctxt, int(p.As))
+
+		if p.From.Type == D_FCONST {
+			rf = chipfloat7(ctxt, p.From.U.Dval)
+			if rf < 0 || true {
+				ctxt.Diag("invalid floating-point immediate\n%v", p)
+				rf = 0
+			}
+
+			rf |= (1 << 3)
+		} else {
+
+			rf = int(p.From.Reg)
+		}
+		rt = int(p.To.Reg)
+		r = int(p.Reg)
+		if (o1&(0x1F<<24)) == (0x1E<<24) && (o1&(1<<11)) == 0 { /* monadic */
+			r = rf
+			rf = 0
+		} else if r == NREG {
+			r = rt
+		}
+		o1 |= (uint32(rf) << 16) | (uint32(r) << 5) | uint32(rt)
+
+	case 56: /* floating point compare */
+		o1 = oprrr(ctxt, int(p.As))
+
+		if p.From.Type == D_FCONST {
+			o1 |= 8 /* zero */
+			rf = 0
+		} else {
+
+			rf = int(p.From.Reg)
+		}
+		rt = int(p.Reg)
+		o1 |= uint32(rf)<<16 | uint32(rt)<<5
+
+	case 57: /* floating point conditional compare */
+		o1 = oprrr(ctxt, int(p.As))
+
+		cond = int(p.From.Reg)
+		nzcv = int(p.To.Offset)
+		if nzcv&^0xF != 0 {
+			ctxt.Diag("implausible condition\n%v", p)
+		}
+		rf = int(p.Reg)
+		if p.From3.Type != D_FREG {
+			ctxt.Diag("illegal FCCMP\n%v", p)
+		}
+		rt = int(p.From3.Reg)
+		o1 |= uint32(rf)<<16 | uint32(cond)<<12 | uint32(rt)<<5 | uint32(nzcv)
+
+	case 58: /* ldar/ldxr/ldaxr */
+		o1 = opload(ctxt, int(p.As))
+
+		o1 |= 0x1F << 16
+		o1 |= uint32(p.From.Reg) << 5
+		if p.Reg != NREG {
+			o1 |= uint32(p.Reg) << 10
+		} else {
+
+			o1 |= 0x1F << 10
+		}
+		o1 |= uint32(p.To.Reg)
+
+	case 59: /* stxr/stlxr */
+		o1 = opstore(ctxt, int(p.As))
+
+		if p.To3.Type != D_NONE {
+			o1 |= uint32(p.To3.Reg) << 16
+		} else {
+
+			o1 |= 0x1F << 16
+		}
+
+		// TODO(aram): add support for STXP
+		o1 |= uint32(p.To.Reg) << 5
+
+		o1 |= uint32(p.From.Reg)
+
+	case 60: /* adrp label,r */
+		d = brdist(ctxt, p, 12, 21, 0)
+
+		o1 = ADR(1, uint32(d), uint32(p.To.Reg))
+
+	case 61: /* adr label, r */
+		d = brdist(ctxt, p, 0, 21, 0)
+
+		o1 = ADR(0, uint32(d), uint32(p.To.Reg))
+
+	case 62: /* case Rv, Rt -> adr tab, Rt; movw Rt[R<<2], Rl; add Rt, Rl; br (Rl) */
+		o1 = ADR(0, 4*4, uint32(p.To.Reg))                                                                                                                     /* adr 4(pc), Rt */
+		o2 = (2 << 30) | (7 << 27) | (2 << 22) | (1 << 21) | (3 << 13) | (1 << 12) | (2 << 10) | (uint32(p.From.Reg) << 16) | (uint32(p.To.Reg) << 5) | REGTMP /* movw Rt[Rv<<2], REGTMP */
+		o3 = oprrr(ctxt, AADD) | (uint32(p.To.Reg) << 16) | (REGTMP << 5) | REGTMP                                                                             /* add Rt, REGTMP */
+		o4 = (0x6b << 25) | (0x1F << 16) | (REGTMP << 5)                                                                                                       /* br (REGTMP) */
+		lastcase = p
+
+	case 63: /* bcase */
+		if lastcase == nil {
+
+			ctxt.Diag("missing CASE\n%v", p)
+			break
+		}
+
+		if p.Pcond != nil {
+			o1 = uint32(p.Pcond.Pc - (lastcase.Pc + 4*4))
+			ctxt.Diag("FIXME: some relocation needed in bcase\n%v", p)
+		}
+
+		/* reloc ops */
+	case 64: /* movT R,addr */
+		o1 = omovlit(ctxt, AMOV, p, &p.To, REGTMP)
+
+		if !(o1 != 0) {
+			break
+		}
+		o2 = olsr12u(ctxt, int32(opstr12(ctxt, int(p.As))), 0, REGTMP, int(p.From.Reg))
+
+	case 65: /* movT addr,R */
+		o1 = omovlit(ctxt, AMOV, p, &p.From, REGTMP)
+
+		if !(o1 != 0) {
+			break
+		}
+		o2 = olsr12u(ctxt, int32(opldr12(ctxt, int(p.As))), 0, REGTMP, int(p.To.Reg))
+
+	case 66: /* ldp O(R)!, (r1, r2); ldp (R)O!, (r1, r2) */
+		v = int32(p.From.Offset)
+
+		if v < -512 || v > 504 {
+			ctxt.Diag("offset out of range\n%v", p)
+		}
+		if p.To.Type == D_XPOST {
+			o1 |= 1 << 23
+		} else {
+
+			o1 |= 3 << 23
+		}
+		o1 |= 1 << 22
+		o1 |= uint32(int64(2<<30|5<<27|((uint32(v)/8)&0x7f)<<15) | p.To.Offset<<10 | int64(uint32(p.From.Reg)<<5) | int64(p.To.Reg))
+
+	case 67: /* stp (r1, r2), O(R)!; stp (r1, r2), (R)O! */
+		v = int32(p.To.Offset)
+
+		if v < -512 || v > 504 {
+			ctxt.Diag("offset out of range\n%v", p)
+		}
+		if p.To.Type == D_XPOST {
+			o1 |= 1 << 23
+		} else {
+
+			o1 |= 3 << 23
+		}
+		o1 |= uint32(int64(2<<30|5<<27|((uint32(v)/8)&0x7f)<<15) | p.From.Offset<<10 | int64(uint32(p.To.Reg)<<5) | int64(p.From.Reg))
+
+		// This is supposed to be something that stops execution.
+	// It's not supposed to be reached, ever, but if it is, we'd
+	// like to be able to tell how we got there.  Assemble as
+	// 0xbea71700 which is guaranteed to raise undefined instruction
+	// exception.
+	case 90:
+		o1 = 0xbea71700
+
+		break
+	}
+
+	out[0] = o1
+	out[1] = o2
+	out[2] = o3
+	out[3] = o4
+	out[4] = o5
+	return
+
 }
 
 /*
