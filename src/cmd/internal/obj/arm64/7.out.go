@@ -152,7 +152,7 @@ const (
 // When checking, you should subtract obj.RBaseARM64 first,
 // so RBaseARM64 should only be modulo 32, not modulo 4k.
 const (
-	REG_EXT = obj.RBaseARM64 + 1 << 11
+	REG_EXT = obj.RBaseARM64 + 1<<11
 
 	REG_UXTB = REG_EXT + iota<<8
 	REG_UXTH
@@ -166,7 +166,7 @@ const (
 
 // special registers
 const (
-	REG_SPECIAL = obj.RBaseARM64 + 1 << 12
+	REG_SPECIAL = obj.RBaseARM64 + 1<<12
 
 	REG_DAIF = REG_SPECIAL + iota
 	REG_NZCV

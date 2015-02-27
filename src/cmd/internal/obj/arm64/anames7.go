@@ -470,5 +470,5 @@ var cnames7 = []string{
 	"XPRE",
 	"GOK",
 	"TEXTSIZE",
-	"NCLASS
+	"NCLASS",
 }

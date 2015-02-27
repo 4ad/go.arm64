@@ -116,7 +116,7 @@ func Aconv(a int) string {
 }
 
 func init() {
-	obj.RegisterRegister(obj.RBaseARM64, REG_SPECIAL + 1024, Rconv)
+	obj.RegisterRegister(obj.RBaseARM64, REG_SPECIAL+1024, Rconv)
 }
 
 func Rconv(r int) string {

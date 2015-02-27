@@ -398,9 +398,9 @@ func archArm64() *Arch {
 	delete(register, "R28")
 	register["g"] = arm64.REG_R28
 	registerPrefix := map[string]bool{
-		"F":   true,
-		"R":   true,
-		"V":   true,
+		"F": true,
+		"R": true,
+		"V": true,
 	}
 
 	instructions := make(map[string]int)
