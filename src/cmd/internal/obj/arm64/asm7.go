@@ -2305,24 +2305,23 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		rt = int(p.To.Reg)
 		o1 |= (REGZERO << 5) | uint32(rt)
 
-	case 27: /* op Rm<<n[,Rn],Rd (extended register) */
-		o1 = opxrrr(ctxt, int(p.As))
-
-		if p.From.Type == D_EXTREG {
-			o1 |= uint32(p.From.Offset) /* includes reg, op, etc */
-		} else {
-
-			o1 |= uint32(p.From.Reg) << 16
-		}
-		rt = int(p.To.Reg)
-		if p.To.Type == obj.TYPE_NONE {
-			rt = REGZERO
-		}
-		r = int(p.Reg)
-		if r == NREG {
-			r = rt
-		}
-		o1 |= (uint32(r) << 5) | uint32(rt)
+//	case 27: /* op Rm<<n[,Rn],Rd (extended register) */
+//		o1 = opxrrr(ctxt, int(p.As))
+//
+//		if p.From.Type == D_EXTREG {
+//			o1 |= uint32(p.From.Offset) /* includes reg, op, etc */
+//		} else {
+//			o1 |= uint32(p.From.Reg) << 16
+//		}
+//		rt = int(p.To.Reg)
+//		if p.To.Type == obj.TYPE_NONE {
+//			rt = REGZERO
+//		}
+//		r = int(p.Reg)
+//		if r == NREG {
+//			r = rt
+//		}
+//		o1 |= (uint32(r) << 5) | uint32(rt)
 
 	case 28: /* logop $vcon, [R], R (64 bit literal) */
 		o1 = omovlit(ctxt, AMOV, p, &p.From, REGTMP)
