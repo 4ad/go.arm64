@@ -438,6 +438,8 @@ const (
 	RBaseARM   = 3 * 1024
 	RBasePPC64 = 4 * 1024
 	// The next free base is 8*1024 (PPC64 has many registers).
+	RBaseARM64 = 8 * 1024
+	// The next free base is 12*1024.
 )
 
 // RegisterRegister binds a pretty-printer (Rconv) for register

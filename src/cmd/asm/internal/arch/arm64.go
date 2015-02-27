@@ -43,7 +43,7 @@ func arm64RegisterNumber(name string, n int16) (int16, bool) {
 			return arm64.REG_F0 + n, true
 		}
 	case "R":
-		if 0 <= n && n <= 30 {
+		if 0 <= n && n <= 30 { // not 31
 			return arm64.REG_R0 + n, true
 		}
 	case "V":

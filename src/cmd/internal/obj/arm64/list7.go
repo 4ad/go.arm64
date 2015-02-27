@@ -84,26 +84,26 @@ func Pconv(p *obj.Prog) (s string) {
 	a := int(p.As)
 	switch a {
 	case obj.ATEXT, obj.AGLOBL:
-		return fmt.Sprintf("%.5d (%v)\t%v\t%v,%d,%v", p.Pc, p.Line(), Aconv(a), obj.Dconv(p, Rconv, &p.From), p.From3.Offset, obj.Dconv(p, Rconv, &p.To))
+		return fmt.Sprintf("%.5d (%v)\t%v\t%v,%d,%v", p.Pc, p.Line(), Aconv(a), obj.Dconv(p, &p.From), p.From3.Offset, obj.Dconv(p, &p.To))
 
 	case obj.ADATA:
-		return fmt.Sprintf("%.5d (%v)\t%v\t%v/%d,%v", p.Pc, p.Line(), Aconv(a), obj.Dconv(p, Rconv, &p.From), p.From3.Offset, obj.Dconv(p, Rconv, &p.To))
+		return fmt.Sprintf("%.5d (%v)\t%v\t%v/%d,%v", p.Pc, p.Line(), Aconv(a), obj.Dconv(p, &p.From), p.From3.Offset, obj.Dconv(p, &p.To))
 	}
 
 	if p.Reg == 0 && p.From3.Type == obj.TYPE_NONE && p.To3.Type == obj.TYPE_NONE {
-		return fmt.Sprintf("%.5d (%v)\t%v\t%v,%v", p.Pc, p.Line(), Aconv(a), obj.Dconv(p, Rconv, &p.From), obj.Dconv(p, Rconv, &p.To))
+		return fmt.Sprintf("%.5d (%v)\t%v\t%v,%v", p.Pc, p.Line(), Aconv(a), obj.Dconv(p, &p.From), obj.Dconv(p, &p.To))
 	}
-	s = fmt.Sprintf("%.5d (%v)\t%v\t%v", p.Pc, p.Line(), Aconv(a), obj.Dconv(p, Rconv, &p.From))
+	s = fmt.Sprintf("%.5d (%v)\t%v\t%v", p.Pc, p.Line(), Aconv(a), obj.Dconv(p, &p.From))
 	if p.From3.Type != obj.TYPE_NONE {
-		s += fmt.Sprintf(",%v", obj.Dconv(p, Rconv, &p.From3))
+		s += fmt.Sprintf(",%v", obj.Dconv(p, &p.From3))
 	}
 	if p.Reg != 0 {
 		s += fmt.Sprintf(",%R", p.Reg)
 	}
 	if p.To3.Type != obj.TYPE_NONE {
-		s += fmt.Sprintf(",%v,%v", obj.Dconv(p, Rconv, &p.To), obj.Dconv(p, Rconv, &p.To3))
+		s += fmt.Sprintf(",%v,%v", obj.Dconv(p, &p.To), obj.Dconv(p, &p.To3))
 	} else {
-		s += fmt.Sprintf(",%v", obj.Dconv(p, Rconv, &p.To))
+		s += fmt.Sprintf(",%v", obj.Dconv(p, &p.To))
 	}
 	return s
 }
@@ -115,12 +115,12 @@ func Aconv(a int) string {
 	return "???"
 }
 
+func init() {
+	obj.RegisterRegister(obj.RBaseARM64, REG_SPECIAL + 1024, Rconv)
+}
+
 func Rconv(r int) string {
 	switch {
-	case r == 0:
-		return "NONE"
-	case r == REGSP:
-		return "RSP"
 	case REG_R0 <= r && r <= REG_R30:
 		return fmt.Sprintf("R%d", r-REG_R0)
 	case r == REG_R31:
@@ -129,6 +129,8 @@ func Rconv(r int) string {
 		return fmt.Sprintf("F%d", r-REG_F0)
 	case REG_V0 <= r && r <= REG_V31:
 		return fmt.Sprintf("V%d", r-REG_F0)
+	case r == REGSP:
+		return "RSP"
 	case r == REG_DAIF:
 		return "DAIF"
 	case r == REG_NZCV:

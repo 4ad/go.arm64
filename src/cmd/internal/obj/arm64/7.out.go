@@ -44,7 +44,7 @@ const (
 // general purpose registers.
 const (
 	// integer
-	REG_R0 = 32 + iota
+	REG_R0 = obj.RBaseARM64 + iota
 	REG_R1
 	REG_R2
 	REG_R3
@@ -144,11 +144,15 @@ const (
 	REG_V29
 	REG_V30
 	REG_V31
+
+	REG_RSP = REG_V31 + 32 // to differentiate ZR/SP, REG_RSP&0x1f = 31
 )
 
-// not registers, but masks to indicate extended register mode
+// Not registers, but masks to indicate extended register conversion.
+// When checking, you should subtract obj.RBaseARM64 first,
+// so RBaseARM64 should only be modulo 32, not modulo 4k.
 const (
-	REG_EXT = 1 << 11
+	REG_EXT = obj.RBaseARM64 + 1 << 11
 
 	REG_UXTB = REG_EXT + iota<<8
 	REG_UXTH
@@ -162,7 +166,7 @@ const (
 
 // special registers
 const (
-	REG_SPECIAL = REG_EXT << 1
+	REG_SPECIAL = obj.RBaseARM64 + 1 << 12
 
 	REG_DAIF = REG_SPECIAL + iota
 	REG_NZCV
@@ -200,7 +204,7 @@ const (
 	REGFP   = REG_R29 // frame pointer, unused in the Go toolchain
 	REGLINK = REG_R30
 	REGZERO = REG_R31
-	REGSP   = 31 // not REG_R31, to differentiate it in liblink
+	REGSP   = REG_RSP // not REG_R31, to differentiate it in liblink
 
 	FREGRET  = REG_F0
 	FREGMIN  = REG_F7  // first register variable

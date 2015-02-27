@@ -53,7 +53,7 @@ type Optab struct {
 	a3    uint8
 	type_ int8
 	size  int8
-	param int8
+	param int16
 	flag  int8
 }
 
