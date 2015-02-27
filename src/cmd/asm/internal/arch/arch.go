@@ -426,7 +426,7 @@ func archArm64() *Arch {
 		Register:         register,
 		RegisterPrefix:   registerPrefix,
 		RegisterNumber:   arm64RegisterNumber,
-		UnaryDestination: nil,
+		UnaryDestination: unaryDestination,
 		IsJump:           jumpArm64,
 		Aconv:            arm64.Aconv,
 	}
