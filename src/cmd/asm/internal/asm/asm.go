@@ -454,6 +454,11 @@ func (p *Parser) asmInstruction(op int, cond string, a []obj.Addr) {
 				p.errorf("unrecognized addressing for %s", p.arch.Aconv(op))
 			}
 		}
+		if p.arch.Thechar == '7' && arch.IsARM64CMP(op) {
+			prog.From = a[0]
+			prog.Reg = p.getRegister(prog, op, &a[1])
+			break
+		}
 		prog.From = a[0]
 		prog.To = a[1]
 		switch p.arch.Thechar {
