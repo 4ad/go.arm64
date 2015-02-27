@@ -36,6 +36,16 @@ func jumpArm64(word string) bool {
 	return arm64Jump[word]
 }
 
+// IsARM64CMP reports whether the op (as defined by an arm.A* constant) is
+// one of the comparison instructions that require special handling.
+func IsARM64CMP(op int) bool {
+	switch op {
+	case arm64.ACMN, arm64.ACMP, arm64.ATST:
+		return true
+	}
+	return false
+}
+
 func arm64RegisterNumber(name string, n int16) (int16, bool) {
 	switch name {
 	case "F":
