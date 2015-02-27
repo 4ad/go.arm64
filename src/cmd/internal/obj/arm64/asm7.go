@@ -157,7 +157,7 @@ const (
 
 var optab = []Optab{
 	/* struct Optab:
-	OPCODE,       from, prog->reg, to,             type,size,param,flag */
+	OPCODE, from, prog->reg, to, type,size,param,flag */
 	Optab{ATEXT, C_LEXT, C_NONE, C_VCON, 0, 0, 0, 0},
 	Optab{ATEXT, C_LEXT, C_REG, C_VCON, 0, 0, 0, 0},
 	Optab{ATEXT, C_ADDR, C_NONE, C_VCON, 0, 0, 0, 0},
@@ -223,6 +223,7 @@ var optab = []Optab{
 	Optab{AMOVW, C_MOVCON, C_NONE, C_REG, 32, 4, 0, 0},
 	Optab{AMOV, C_MOVCON, C_NONE, C_REG, 32, 4, 0, 0},
 
+	// TODO: these don't work properly.
 	//	{ AMOVW,		C_ADDCON,	C_NONE,	C_REG,		2, 4, 0 },
 	//	{ AMOV,		C_ADDCON,	C_NONE,	C_REG,		2, 4, 0 },
 	//	{ AMOVW,		C_BITCON,	C_NONE,	C_REG,		53, 4, 0 },
@@ -376,43 +377,43 @@ var optab = []Optab{
 	Optab{AMOV, C_LACON, C_NONE, C_REG, 34, 8, REGSP, LFROM}, //
 
 	/* pre/post-indexed load (unscaled, signed 9-bit offset) */
-	Optab{AMOV, C_XPOST, C_NONE, C_REG, 22, 4, 0, 0},
-	Optab{AMOVW, C_XPOST, C_NONE, C_REG, 22, 4, 0, 0},
-	Optab{AMOVH, C_XPOST, C_NONE, C_REG, 22, 4, 0, 0},
-	Optab{AMOVB, C_XPOST, C_NONE, C_REG, 22, 4, 0, 0},
-	Optab{AMOVBU, C_XPOST, C_NONE, C_REG, 22, 4, 0, 0},
-	Optab{AFMOVS, C_XPOST, C_NONE, C_FREG, 22, 4, 0, 0},
-	Optab{AFMOVD, C_XPOST, C_NONE, C_FREG, 22, 4, 0, 0},
-	Optab{AMOV, C_XPRE, C_NONE, C_REG, 22, 4, 0, 0},
-	Optab{AMOVW, C_XPRE, C_NONE, C_REG, 22, 4, 0, 0},
-	Optab{AMOVH, C_XPRE, C_NONE, C_REG, 22, 4, 0, 0},
-	Optab{AMOVB, C_XPRE, C_NONE, C_REG, 22, 4, 0, 0},
-	Optab{AMOVBU, C_XPRE, C_NONE, C_REG, 22, 4, 0, 0},
-	Optab{AFMOVS, C_XPRE, C_NONE, C_FREG, 22, 4, 0, 0},
-	Optab{AFMOVD, C_XPRE, C_NONE, C_FREG, 22, 4, 0, 0},
+	// Optab{AMOV, C_XPOST, C_NONE, C_REG, 22, 4, 0, 0},
+	// Optab{AMOVW, C_XPOST, C_NONE, C_REG, 22, 4, 0, 0},
+	// Optab{AMOVH, C_XPOST, C_NONE, C_REG, 22, 4, 0, 0},
+	// Optab{AMOVB, C_XPOST, C_NONE, C_REG, 22, 4, 0, 0},
+	// Optab{AMOVBU, C_XPOST, C_NONE, C_REG, 22, 4, 0, 0},
+	// Optab{AFMOVS, C_XPOST, C_NONE, C_FREG, 22, 4, 0, 0},
+	// Optab{AFMOVD, C_XPOST, C_NONE, C_FREG, 22, 4, 0, 0},
+	// Optab{AMOV, C_XPRE, C_NONE, C_REG, 22, 4, 0, 0},
+	// Optab{AMOVW, C_XPRE, C_NONE, C_REG, 22, 4, 0, 0},
+	// Optab{AMOVH, C_XPRE, C_NONE, C_REG, 22, 4, 0, 0},
+	// Optab{AMOVB, C_XPRE, C_NONE, C_REG, 22, 4, 0, 0},
+	// Optab{AMOVBU, C_XPRE, C_NONE, C_REG, 22, 4, 0, 0},
+	// Optab{AFMOVS, C_XPRE, C_NONE, C_FREG, 22, 4, 0, 0},
+	// Optab{AFMOVD, C_XPRE, C_NONE, C_FREG, 22, 4, 0, 0},
 
 	/* pre/post-indexed store (unscaled, signed 9-bit offset) */
-	Optab{AMOV, C_REG, C_NONE, C_XPOST, 23, 4, 0, 0},
-	Optab{AMOVW, C_REG, C_NONE, C_XPOST, 23, 4, 0, 0},
-	Optab{AMOVH, C_REG, C_NONE, C_XPOST, 23, 4, 0, 0},
-	Optab{AMOVB, C_REG, C_NONE, C_XPOST, 23, 4, 0, 0},
-	Optab{AMOVBU, C_REG, C_NONE, C_XPOST, 23, 4, 0, 0},
-	Optab{AFMOVS, C_FREG, C_NONE, C_XPOST, 23, 4, 0, 0},
-	Optab{AFMOVD, C_FREG, C_NONE, C_XPOST, 23, 4, 0, 0},
-	Optab{AMOV, C_REG, C_NONE, C_XPRE, 23, 4, 0, 0},
-	Optab{AMOVW, C_REG, C_NONE, C_XPRE, 23, 4, 0, 0},
-	Optab{AMOVH, C_REG, C_NONE, C_XPRE, 23, 4, 0, 0},
-	Optab{AMOVB, C_REG, C_NONE, C_XPRE, 23, 4, 0, 0},
-	Optab{AMOVBU, C_REG, C_NONE, C_XPRE, 23, 4, 0, 0},
-	Optab{AFMOVS, C_FREG, C_NONE, C_XPRE, 23, 4, 0, 0},
-	Optab{AFMOVD, C_FREG, C_NONE, C_XPRE, 23, 4, 0, 0},
+	// Optab{AMOV, C_REG, C_NONE, C_XPOST, 23, 4, 0, 0},
+	// Optab{AMOVW, C_REG, C_NONE, C_XPOST, 23, 4, 0, 0},
+	// Optab{AMOVH, C_REG, C_NONE, C_XPOST, 23, 4, 0, 0},
+	// Optab{AMOVB, C_REG, C_NONE, C_XPOST, 23, 4, 0, 0},
+	// Optab{AMOVBU, C_REG, C_NONE, C_XPOST, 23, 4, 0, 0},
+	// Optab{AFMOVS, C_FREG, C_NONE, C_XPOST, 23, 4, 0, 0},
+	// Optab{AFMOVD, C_FREG, C_NONE, C_XPOST, 23, 4, 0, 0},
+	// Optab{AMOV, C_REG, C_NONE, C_XPRE, 23, 4, 0, 0},
+	// Optab{AMOVW, C_REG, C_NONE, C_XPRE, 23, 4, 0, 0},
+	// Optab{AMOVH, C_REG, C_NONE, C_XPRE, 23, 4, 0, 0},
+	// Optab{AMOVB, C_REG, C_NONE, C_XPRE, 23, 4, 0, 0},
+	// Optab{AMOVBU, C_REG, C_NONE, C_XPRE, 23, 4, 0, 0},
+	// Optab{AFMOVS, C_FREG, C_NONE, C_XPRE, 23, 4, 0, 0},
+	// Optab{AFMOVD, C_FREG, C_NONE, C_XPRE, 23, 4, 0, 0},
 
 	/* pre/post-indexed load/store register pair
 	   (unscaled, signed 10-bit quad-aligned offset) */
-	Optab{ALDP, C_XPRE, C_NONE, C_PAIR, 66, 4, 0, 0},
-	Optab{ALDP, C_XPOST, C_NONE, C_PAIR, 66, 4, 0, 0},
-	Optab{ASTP, C_PAIR, C_NONE, C_XPRE, 67, 4, 0, 0},
-	Optab{ASTP, C_PAIR, C_NONE, C_XPOST, 67, 4, 0, 0},
+	// Optab{ALDP, C_XPRE, C_NONE, C_PAIR, 66, 4, 0, 0},
+	// Optab{ALDP, C_XPOST, C_NONE, C_PAIR, 66, 4, 0, 0},
+	// Optab{ASTP, C_PAIR, C_NONE, C_XPRE, 67, 4, 0, 0},
+	// Optab{ASTP, C_PAIR, C_NONE, C_XPOST, 67, 4, 0, 0},
 
 	/* special */
 	Optab{AMOV, C_SPR, C_NONE, C_REG, 35, 4, 0, 0},
@@ -484,7 +485,7 @@ var optab = []Optab{
 	Optab{ASTXR, C_REG, C_NONE, C_ZOREG, 59, 4, 0, 0},  // to3=C_REG
 	Optab{ASTLXR, C_REG, C_NONE, C_ZOREG, 59, 4, 0, 0}, // to3=C_REG
 
-	//	{ ASTXP,		C_REG, C_NONE,	C_ZOREG,		59, 4, 0 }, // TODO(aram: use register pair and add <<10 bits in asmout.
+	//	{ ASTXP,		C_REG, C_NONE,	C_ZOREG,		59, 4, 0 }, // TODO(aram:
 
 	Optab{AAESD, C_VREG, C_NONE, C_VREG, 29, 4, 0, 0},
 	Optab{ASHA1C, C_VREG, C_REG, C_VREG, 1, 4, 0, 0},
