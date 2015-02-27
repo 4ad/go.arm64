@@ -2439,7 +2439,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		}
 		s = 0
 		if p.From3.Type != obj.TYPE_NONE {
-			if p.From3.Type != D_CONST {
+			if p.From3.Type != obj.TYPE_CONST {
 				ctxt.Diag("missing bit position\n%v", p)
 			}
 			s = int(p.From3.Offset / 16)
@@ -2695,7 +2695,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 	case 51: /* dmb */
 		o1 = opirr(ctxt, int(p.As))
 
-		if p.From.Type == D_CONST {
+		if p.From.Type == obj.TYPE_CONST {
 			o1 |= uint32((p.From.Offset & 0xF) << 8)
 		}
 
@@ -2753,7 +2753,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 	case 54: /* floating point arith */
 		o1 = oprrr(ctxt, int(p.As))
 
-		if p.From.Type == D_FCONST {
+		if p.From.Type == obj.TYPE_CONST {
 			rf = chipfloat7(ctxt, p.From.U.Dval)
 			if rf < 0 || true {
 				ctxt.Diag("invalid floating-point immediate\n%v", p)
@@ -2778,7 +2778,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 	case 56: /* floating point compare */
 		o1 = oprrr(ctxt, int(p.As))
 
-		if p.From.Type == D_FCONST {
+		if p.From.Type == obj.TYPE_CONST {
 			o1 |= 8 /* zero */
 			rf = 0
 		} else {
