@@ -2118,7 +2118,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 
 		rf = int(p.From.Reg)
 		rt = int(p.To.Reg)
-		if p.From3.Type == D_REG {
+		if p.From3.Type == obj.TYPE_REG {
 			r = int(p.From3.Reg)
 			ra = int(p.Reg)
 			if ra == NREG {
@@ -2197,7 +2197,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		nzcv = int(p.To.Offset)
 
 		cond = int(p.From.Reg)
-		if p.From3.Type == D_REG {
+		if p.From3.Type == obj.TYPE_REG {
 			o1 = oprrr(ctxt, int(p.As))
 			rf = int(p.From3.Reg) /* Rm */
 		} else {
@@ -2683,7 +2683,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 			ctxt.Diag("illegal SYS argument\n%v", p)
 		}
 		o1 |= uint32(p.From.Offset)
-		if p.To.Type == D_REG {
+		if p.To.Type == obj.TYPE_REG {
 			o1 |= uint32(p.To.Reg)
 		} else if p.Reg != NREG {
 			o1 |= uint32(p.Reg)
