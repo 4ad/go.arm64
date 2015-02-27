@@ -417,8 +417,9 @@ func archArm64() *Arch {
 	unaryDestination := make(map[int]bool) // Instruction takes one operand and result is a destination.
 	// These instructions write to prog.To.
 	// TODO: These are silly. Fix once C assembler is gone.
-	unaryDestination[arm.AWORD] = true
-	unaryDestination[arm.ADWORD] = true
+	unaryDestination[arm64.AWORD] = true
+	unaryDestination[arm64.ADWORD] = true
+	unaryDestination[arm64.ABL] = true
 
 	return &Arch{
 		LinkArch:         &arm64.Linkarm64,
