@@ -1902,7 +1902,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		rf = int(p.From.Reg)
 		rt = int(p.To.Reg)
 		r = int(p.Reg)
-		if p.To.Type == D_NONE {
+		if p.To.Type == obj.TYPE_NONE {
 			rt = REGZERO
 		}
 		if r == NREG {
@@ -1914,7 +1914,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		o1 = opirr(ctxt, int(p.As))
 
 		rt = int(p.To.Reg)
-		if p.To.Type == D_NONE {
+		if p.To.Type == obj.TYPE_NONE {
 			if (o1 & Sbit) == 0 {
 				ctxt.Diag("ineffective ZR destination\n%v", p)
 			}
@@ -1933,7 +1933,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 
 		o1 |= uint32(p.From.Offset) /* includes reg, op, etc */
 		rt = int(p.To.Reg)
-		if p.To.Type == D_NONE {
+		if p.To.Type == obj.TYPE_NONE {
 			rt = REGZERO
 		}
 		r = int(p.Reg)
@@ -2044,7 +2044,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 	case 10: /* brk/hvc/.../svc [$con] */
 		o1 = opimm(ctxt, int(p.As))
 
-		if p.To.Type != D_NONE {
+		if p.To.Type != obj.TYPE_NONE {
 			o1 |= uint32((p.To.Offset & 0xffff) << 5)
 		}
 
@@ -2074,14 +2074,14 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 			break
 		}
 		rt = int(p.To.Reg)
-		if p.To.Type == D_NONE {
+		if p.To.Type == obj.TYPE_NONE {
 			rt = REGZERO
 		}
 		r = int(p.Reg)
 		if r == NREG {
 			r = rt
 		}
-		if p.To.Type != D_NONE && (p.To.Reg == REGSP || r == REGSP) {
+		if p.To.Type != obj.TYPE_NONE && (p.To.Reg == REGSP || r == REGSP) {
 			o2 = opxrrr(ctxt, int(p.As))
 			o2 |= REGTMP << 16
 			o2 |= LSL0_64
@@ -2155,7 +2155,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		rf = int(p.From.Reg)
 		rt = int(p.To.Reg)
 		r = int(p.Reg)
-		if p.To.Type == D_NONE {
+		if p.To.Type == obj.TYPE_NONE {
 			rt = REGZERO
 		}
 		if r == NREG {
@@ -2169,7 +2169,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		cond = int(p.From.Reg)
 		r = int(p.Reg)
 		if r != NREG {
-			if p.From3.Type == D_NONE {
+			if p.From3.Type == obj.TYPE_NONE {
 				/* CINC/CINV/CNEG */
 				rf = r
 
@@ -2181,7 +2181,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		} else {
 
 			/* CSET */
-			if p.From3.Type != D_NONE {
+			if p.From3.Type != obj.TYPE_NONE {
 
 				ctxt.Diag("invalid combination\n%v", p)
 			}
@@ -2314,7 +2314,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 			o1 |= uint32(p.From.Reg) << 16
 		}
 		rt = int(p.To.Reg)
-		if p.To.Type == D_NONE {
+		if p.To.Type == obj.TYPE_NONE {
 			rt = REGZERO
 		}
 		r = int(p.Reg)
@@ -2438,7 +2438,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 			ctxt.Diag("requires uimm16\n%v", p)
 		}
 		s = 0
-		if p.From3.Type != D_NONE {
+		if p.From3.Type != obj.TYPE_NONE {
 			if p.From3.Type != D_CONST {
 				ctxt.Diag("missing bit position\n%v", p)
 			}
@@ -2510,7 +2510,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 	case 38: /* clrex [$imm] */
 		o1 = opimm(ctxt, int(p.As))
 
-		if p.To.Type == D_NONE {
+		if p.To.Type == obj.TYPE_NONE {
 			o1 |= 0xF << 8
 		} else {
 
@@ -2819,7 +2819,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 	case 59: /* stxr/stlxr */
 		o1 = opstore(ctxt, int(p.As))
 
-		if p.To3.Type != D_NONE {
+		if p.To3.Type != obj.TYPE_NONE {
 			o1 |= uint32(p.To3.Reg) << 16
 		} else {
 
