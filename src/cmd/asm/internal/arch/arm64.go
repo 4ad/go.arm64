@@ -16,8 +16,8 @@ import (
 )
 
 var arm64LS = map[string]uint8{
-	"P":  arm64.C_XPRE,
-	"W":  arm64.C_XPOST,
+	"P":  arm64.C_XPOST,
+	"W":  arm64.C_XPRE,
 }
 
 var arm64Jump = map[string]bool{

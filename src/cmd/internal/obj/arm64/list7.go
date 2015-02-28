@@ -83,9 +83,9 @@ func Pconv(p *obj.Prog) (s string) {
 
 	suffix := ""
 	switch p.Scond {
-	case C_XPRE:
-		suffix = ".P"
 	case C_XPOST:
+		suffix = ".P"
+	case C_XPRE:
 		suffix = ".W"
 	}
 	a := int(p.As)
