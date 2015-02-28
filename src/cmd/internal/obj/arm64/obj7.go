@@ -514,13 +514,13 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 				q.From.Reg = REGG
 				q.From.Offset = 4 * int64(ctxt.Arch.Ptrsize) // G.panic
 				q.To.Type = obj.TYPE_REG
-				q.To.Reg = 1
+				q.To.Reg = REG_R1
 
 				q = obj.Appendp(ctxt, q)
 				q.As = ACMP
 				q.From.Type = obj.TYPE_CONST
 				q.From.Offset = 0
-				q.Reg = 1
+				q.Reg = REG_R1
 
 				q = obj.Appendp(ctxt, q)
 				q.As = ABEQ
@@ -530,10 +530,10 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 				q = obj.Appendp(ctxt, q)
 				q.As = AMOV
 				q.From.Type = obj.TYPE_MEM
-				q.From.Reg = 1
+				q.From.Reg = REG_R1
 				q.From.Offset = 0 // Panic.argp
 				q.To.Type = obj.TYPE_REG
-				q.To.Reg = 2
+				q.To.Reg = REG_R2
 
 				q = obj.Appendp(ctxt, q)
 				q.As = AADD
@@ -541,13 +541,13 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 				q.From.Offset = int64(ctxt.Autosize) + 8
 				q.Reg = REGSP
 				q.To.Type = obj.TYPE_REG
-				q.To.Reg = 3
+				q.To.Reg = REG_R3
 
 				q = obj.Appendp(ctxt, q)
 				q.As = ACMP
 				q.From.Type = obj.TYPE_REG
 				q.From.Reg = 2
-				q.Reg = 3
+				q.Reg = REG_R3
 
 				q = obj.Appendp(ctxt, q)
 				q.As = ABNE
@@ -560,14 +560,14 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 				q.From.Offset = 8
 				q.Reg = REGSP
 				q.To.Type = obj.TYPE_REG
-				q.To.Reg = 4
+				q.To.Reg = REG_R4
 
 				q = obj.Appendp(ctxt, q)
 				q.As = AMOV
 				q.From.Type = obj.TYPE_REG
 				q.From.Reg = 4
 				q.To.Type = obj.TYPE_MEM
-				q.To.Reg = 1
+				q.To.Reg = REG_R1
 				q.To.Offset = 0 // Panic.argp
 
 				q = obj.Appendp(ctxt, q)
