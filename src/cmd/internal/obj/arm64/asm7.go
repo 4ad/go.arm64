@@ -284,60 +284,60 @@ var optab = []Optab{
 	Optab{ACCMN, C_COND, C_REG, C_VCON, 19, 4, 0, 0, 0}, /* from3 either C_REG or C_VCON */
 
 	/* scaled 12-bit unsigned displacement store */
-	Optab{AMOVB, C_REG, C_NONE, C_UAUTO4K, 20, 4, REGSP, 0, 0},  //
-	Optab{AMOVB, C_REG, C_NONE, C_UOREG4K, 20, 4, 0, 0, 0},      //
-	Optab{AMOVBU, C_REG, C_NONE, C_UAUTO4K, 20, 4, REGSP, 0, 0}, //
-	Optab{AMOVBU, C_REG, C_NONE, C_UOREG4K, 20, 4, 0, 0, 0},     //
+	Optab{AMOVB, C_REG, C_NONE, C_UAUTO4K, 20, 4, REGSP, 0, 0},
+	Optab{AMOVB, C_REG, C_NONE, C_UOREG4K, 20, 4, 0, 0, 0},
+	Optab{AMOVBU, C_REG, C_NONE, C_UAUTO4K, 20, 4, REGSP, 0, 0},
+	Optab{AMOVBU, C_REG, C_NONE, C_UOREG4K, 20, 4, 0, 0, 0},
 
-	Optab{AMOVH, C_REG, C_NONE, C_UAUTO8K, 20, 4, REGSP, 0, 0}, //
-	Optab{AMOVH, C_REG, C_NONE, C_ZOREG, 20, 4, 0, 0, 0},       //
-	Optab{AMOVH, C_REG, C_NONE, C_UOREG8K, 20, 4, 0, 0, 0},     //
+	Optab{AMOVH, C_REG, C_NONE, C_UAUTO8K, 20, 4, REGSP, 0, 0},
+	Optab{AMOVH, C_REG, C_NONE, C_ZOREG, 20, 4, 0, 0, 0},
+	Optab{AMOVH, C_REG, C_NONE, C_UOREG8K, 20, 4, 0, 0, 0},
 
-	Optab{AMOVW, C_REG, C_NONE, C_UAUTO16K, 20, 4, REGSP, 0, 0}, //
-	Optab{AMOVW, C_REG, C_NONE, C_ZOREG, 20, 4, 0, 0, 0},        //
-	Optab{AMOVW, C_REG, C_NONE, C_UOREG16K, 20, 4, 0, 0, 0},     //
+	Optab{AMOVW, C_REG, C_NONE, C_UAUTO16K, 20, 4, REGSP, 0, 0},
+	Optab{AMOVW, C_REG, C_NONE, C_ZOREG, 20, 4, 0, 0, 0},
+	Optab{AMOVW, C_REG, C_NONE, C_UOREG16K, 20, 4, 0, 0, 0},
 
 	/* unscaled 9-bit signed displacement store */
-	Optab{AMOVB, C_REG, C_NONE, C_NSAUTO, 20, 4, REGSP, 0, 0},  //
-	Optab{AMOVB, C_REG, C_NONE, C_NSOREG, 20, 4, 0, 0, 0},      //
-	Optab{AMOVBU, C_REG, C_NONE, C_NSAUTO, 20, 4, REGSP, 0, 0}, //
-	Optab{AMOVBU, C_REG, C_NONE, C_NSOREG, 20, 4, 0, 0, 0},     //
+	Optab{AMOVB, C_REG, C_NONE, C_NSAUTO, 20, 4, REGSP, 0, 0},
+	Optab{AMOVB, C_REG, C_NONE, C_NSOREG, 20, 4, 0, 0, 0},
+	Optab{AMOVBU, C_REG, C_NONE, C_NSAUTO, 20, 4, REGSP, 0, 0},
+	Optab{AMOVBU, C_REG, C_NONE, C_NSOREG, 20, 4, 0, 0, 0},
 
-	Optab{AMOVH, C_REG, C_NONE, C_NSAUTO, 20, 4, REGSP, 0, 0}, //
-	Optab{AMOVH, C_REG, C_NONE, C_NSOREG, 20, 4, 0, 0, 0},     //
-	Optab{AMOVW, C_REG, C_NONE, C_NSAUTO, 20, 4, REGSP, 0, 0}, //
-	Optab{AMOVW, C_REG, C_NONE, C_NSOREG, 20, 4, 0, 0, 0},     //
+	Optab{AMOVH, C_REG, C_NONE, C_NSAUTO, 20, 4, REGSP, 0, 0},
+	Optab{AMOVH, C_REG, C_NONE, C_NSOREG, 20, 4, 0, 0, 0},
+	Optab{AMOVW, C_REG, C_NONE, C_NSAUTO, 20, 4, REGSP, 0, 0},
+	Optab{AMOVW, C_REG, C_NONE, C_NSOREG, 20, 4, 0, 0, 0},
 
 	Optab{AMOV, C_REG, C_NONE, C_UAUTO32K, 20, 4, REGSP, 0, 0},
 	Optab{AMOV, C_REG, C_NONE, C_ZOREG, 20, 4, 0, 0, 0},
 	Optab{AMOV, C_REG, C_NONE, C_UOREG32K, 20, 4, 0, 0, 0},
-	Optab{AMOV, C_REG, C_NONE, C_NSOREG, 20, 4, 0, 0, 0},     //
-	Optab{AMOV, C_REG, C_NONE, C_NSAUTO, 20, 4, REGSP, 0, 0}, //
+	Optab{AMOV, C_REG, C_NONE, C_NSOREG, 20, 4, 0, 0, 0},
+	Optab{AMOV, C_REG, C_NONE, C_NSAUTO, 20, 4, REGSP, 0, 0},
 
 	/* short displacement load */
-	Optab{AMOVB, C_UAUTO4K, C_NONE, C_REG, 21, 4, REGSP, 0, 0}, //
-	Optab{AMOVB, C_NSAUTO, C_NONE, C_REG, 21, 4, REGSP, 0, 0},  //
-	Optab{AMOVB, C_ZOREG, C_NONE, C_REG, 21, 4, 0, 0, 0},       //
-	Optab{AMOVB, C_UOREG4K, C_NONE, C_REG, 21, 4, REGSP, 0, 0}, //
-	Optab{AMOVB, C_NSOREG, C_NONE, C_REG, 21, 4, REGSP, 0, 0},  //
+	Optab{AMOVB, C_UAUTO4K, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
+	Optab{AMOVB, C_NSAUTO, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
+	Optab{AMOVB, C_ZOREG, C_NONE, C_REG, 21, 4, 0, 0, 0},
+	Optab{AMOVB, C_UOREG4K, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
+	Optab{AMOVB, C_NSOREG, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
 
-	Optab{AMOVBU, C_UAUTO4K, C_NONE, C_REG, 21, 4, REGSP, 0, 0}, //
-	Optab{AMOVBU, C_NSAUTO, C_NONE, C_REG, 21, 4, REGSP, 0, 0},  //
-	Optab{AMOVBU, C_ZOREG, C_NONE, C_REG, 21, 4, 0, 0, 0},       //
-	Optab{AMOVBU, C_UOREG4K, C_NONE, C_REG, 21, 4, REGSP, 0, 0}, //
-	Optab{AMOVBU, C_NSOREG, C_NONE, C_REG, 21, 4, REGSP, 0, 0},  //
+	Optab{AMOVBU, C_UAUTO4K, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
+	Optab{AMOVBU, C_NSAUTO, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
+	Optab{AMOVBU, C_ZOREG, C_NONE, C_REG, 21, 4, 0, 0, 0},
+	Optab{AMOVBU, C_UOREG4K, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
+	Optab{AMOVBU, C_NSOREG, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
 
-	Optab{AMOVH, C_UAUTO8K, C_NONE, C_REG, 21, 4, REGSP, 0, 0}, //
-	Optab{AMOVH, C_NSAUTO, C_NONE, C_REG, 21, 4, REGSP, 0, 0},  //
-	Optab{AMOVH, C_ZOREG, C_NONE, C_REG, 21, 4, 0, 0, 0},       //
-	Optab{AMOVH, C_UOREG8K, C_NONE, C_REG, 21, 4, REGSP, 0, 0}, //
-	Optab{AMOVH, C_NSOREG, C_NONE, C_REG, 21, 4, REGSP, 0, 0},  //
+	Optab{AMOVH, C_UAUTO8K, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
+	Optab{AMOVH, C_NSAUTO, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
+	Optab{AMOVH, C_ZOREG, C_NONE, C_REG, 21, 4, 0, 0, 0},
+	Optab{AMOVH, C_UOREG8K, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
+	Optab{AMOVH, C_NSOREG, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
 
-	Optab{AMOVW, C_UAUTO16K, C_NONE, C_REG, 21, 4, REGSP, 0, 0}, //
-	Optab{AMOVW, C_NSAUTO, C_NONE, C_REG, 21, 4, REGSP, 0, 0},   //
-	Optab{AMOVW, C_ZOREG, C_NONE, C_REG, 21, 4, 0, 0, 0},        //
-	Optab{AMOVW, C_UOREG16K, C_NONE, C_REG, 21, 4, REGSP, 0, 0}, //
-	Optab{AMOVW, C_NSOREG, C_NONE, C_REG, 21, 4, REGSP, 0, 0},   //
+	Optab{AMOVW, C_UAUTO16K, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
+	Optab{AMOVW, C_NSAUTO, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
+	Optab{AMOVW, C_ZOREG, C_NONE, C_REG, 21, 4, 0, 0, 0},
+	Optab{AMOVW, C_UOREG16K, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
+	Optab{AMOVW, C_NSOREG, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
 
 	Optab{AMOV, C_UAUTO32K, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
 	Optab{AMOV, C_NSAUTO, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
@@ -346,36 +346,36 @@ var optab = []Optab{
 	Optab{AMOV, C_NSOREG, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
 
 	/* long displacement store */
-	Optab{AMOVB, C_REG, C_NONE, C_LAUTO, 30, 8, REGSP, 0, 0},  //
-	Optab{AMOVB, C_REG, C_NONE, C_LOREG, 30, 8, 0, 0, 0},      //
-	Optab{AMOVBU, C_REG, C_NONE, C_LAUTO, 30, 8, REGSP, 0, 0}, //
-	Optab{AMOVBU, C_REG, C_NONE, C_LOREG, 30, 8, 0, 0, 0},     //
-	Optab{AMOVH, C_REG, C_NONE, C_LAUTO, 30, 8, REGSP, 0, 0},  //
-	Optab{AMOVH, C_REG, C_NONE, C_LOREG, 30, 8, 0, 0, 0},      //
-	Optab{AMOVW, C_REG, C_NONE, C_LAUTO, 30, 8, REGSP, 0, 0},  //
-	Optab{AMOVW, C_REG, C_NONE, C_LOREG, 30, 8, 0, 0, 0},      //
-	Optab{AMOV, C_REG, C_NONE, C_LAUTO, 30, 8, REGSP, 0, 0},   //
-	Optab{AMOV, C_REG, C_NONE, C_LOREG, 30, 8, 0, 0, 0},       //
+	Optab{AMOVB, C_REG, C_NONE, C_LAUTO, 30, 8, REGSP, 0, 0},
+	Optab{AMOVB, C_REG, C_NONE, C_LOREG, 30, 8, 0, 0, 0},
+	Optab{AMOVBU, C_REG, C_NONE, C_LAUTO, 30, 8, REGSP, 0, 0},
+	Optab{AMOVBU, C_REG, C_NONE, C_LOREG, 30, 8, 0, 0, 0},
+	Optab{AMOVH, C_REG, C_NONE, C_LAUTO, 30, 8, REGSP, 0, 0},
+	Optab{AMOVH, C_REG, C_NONE, C_LOREG, 30, 8, 0, 0, 0},
+	Optab{AMOVW, C_REG, C_NONE, C_LAUTO, 30, 8, REGSP, 0, 0},
+	Optab{AMOVW, C_REG, C_NONE, C_LOREG, 30, 8, 0, 0, 0},
+	Optab{AMOV, C_REG, C_NONE, C_LAUTO, 30, 8, REGSP, 0, 0},
+	Optab{AMOV, C_REG, C_NONE, C_LOREG, 30, 8, 0, 0, 0},
 
 	/* long displacement load */
-	Optab{AMOVB, C_LAUTO, C_NONE, C_REG, 31, 8, REGSP, 0, 0},  //
-	Optab{AMOVB, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0, 0},      //
-	Optab{AMOVB, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0, 0},      //
-	Optab{AMOVBU, C_LAUTO, C_NONE, C_REG, 31, 8, REGSP, 0, 0}, //
-	Optab{AMOVBU, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0, 0},     //
-	Optab{AMOVBU, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0, 0},     ///
-	Optab{AMOVH, C_LAUTO, C_NONE, C_REG, 31, 8, REGSP, 0, 0},  //
-	Optab{AMOVH, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0, 0},      //
-	Optab{AMOVH, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0, 0},      //
-	Optab{AMOVW, C_LAUTO, C_NONE, C_REG, 31, 8, REGSP, 0, 0},  //
-	Optab{AMOVW, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0, 0},      //
-	Optab{AMOVW, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0, 0},      //
-	Optab{AMOV, C_LAUTO, C_NONE, C_REG, 31, 8, REGSP, 0, 0},   //
-	Optab{AMOV, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0, 0},       //
-	Optab{AMOV, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0, 0},       //
+	Optab{AMOVB, C_LAUTO, C_NONE, C_REG, 31, 8, REGSP, 0, 0},
+	Optab{AMOVB, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0, 0},
+	Optab{AMOVB, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0, 0},
+	Optab{AMOVBU, C_LAUTO, C_NONE, C_REG, 31, 8, REGSP, 0, 0},
+	Optab{AMOVBU, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0, 0},
+	Optab{AMOVBU, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0, 0},
+	Optab{AMOVH, C_LAUTO, C_NONE, C_REG, 31, 8, REGSP, 0, 0},
+	Optab{AMOVH, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0, 0},
+	Optab{AMOVH, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0, 0},
+	Optab{AMOVW, C_LAUTO, C_NONE, C_REG, 31, 8, REGSP, 0, 0},
+	Optab{AMOVW, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0, 0},
+	Optab{AMOVW, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0, 0},
+	Optab{AMOV, C_LAUTO, C_NONE, C_REG, 31, 8, REGSP, 0, 0},
+	Optab{AMOV, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0, 0},
+	Optab{AMOV, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0, 0},
 
 	/* load long effective stack address (load int32 offset and add) */
-	Optab{AMOV, C_LACON, C_NONE, C_REG, 34, 8, REGSP, LFROM, 0}, //
+	Optab{AMOV, C_LACON, C_NONE, C_REG, 34, 8, REGSP, LFROM, 0},
 
 	/* pre/post-indexed load (unscaled, signed 9-bit offset) */
 	// Optab{AMOV, C_XPOST, C_NONE, C_REG, 22, 4, 0, 0, 0},
