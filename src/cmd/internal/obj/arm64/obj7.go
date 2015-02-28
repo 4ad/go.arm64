@@ -280,7 +280,7 @@ loop:
 	if p.Pcond != nil {
 		if a != ABL && p.Link != nil {
 			q = obj.Brchain(ctxt, p.Link)
-			if a != ATEXT && a != ABCASE {
+			if a != obj.ATEXT && a != ABCASE {
 				if q != nil && (q.Mark&FOLL != 0) {
 					p.As = int16(relinv(a))
 					p.Link = p.Pcond
@@ -364,7 +364,7 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 	q = nil
 	for p = cursym.Text; p != nil; p = p.Link {
 		switch p.As {
-		case ATEXT:
+		case obj.ATEXT:
 			p.Mark |= LEAF
 
 		case ARETURN:
@@ -426,7 +426,7 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 	for p = cursym.Text; p != nil; p = p.Link {
 		o = int(p.As)
 		switch o {
-		case ATEXT:
+		case obj.ATEXT:
 			cursym.Text = p
 			if textstksiz < 0 {
 				ctxt.Autosize = 0
