@@ -1137,7 +1137,7 @@ func oplook(ctxt *obj.Link, p *obj.Prog) *Optab {
 
 	a3--
 	a2 = C_NONE
-	if p.Reg != NREG {
+	if p.Reg != 0 {
 		a2 = C_REG
 	}
 	r = int(p.As)
@@ -1915,7 +1915,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		if p.To.Type == obj.TYPE_NONE {
 			rt = REGZERO
 		}
-		if r == NREG {
+		if r == 0 {
 			r = rt
 		}
 		o1 |= (uint32(rf) << 16) | (uint32(r) << 5) | uint32(rt)
@@ -1932,7 +1932,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		}
 
 		r = int(p.Reg)
-		if r == NREG {
+		if r == 0 {
 			r = rt
 		}
 		v = int32(regoff(ctxt, &p.From))
@@ -1949,7 +1949,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		r = int(p.Reg)
 		if p.As == AMVN || p.As == AMVNW {
 			r = REGZERO
-		} else if r == NREG {
+		} else if r == 0 {
 			r = rt
 		}
 		o1 |= (uint32(r) << 5) | uint32(rt)
@@ -1964,7 +1964,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		} else if r == REGFROM {
 			r = int(p.From.Reg)
 		}
-		if r == NREG {
+		if r == 0 {
 			r = REGSP
 		}
 		v = int32(regoff(ctxt, &p.From))
@@ -2008,7 +2008,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		rt = int(p.To.Reg)
 
 		rf = int(p.Reg)
-		if rf == NREG {
+		if rf == 0 {
 			rf = rt
 		}
 		v = int32(p.From.Offset)
@@ -2046,7 +2046,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		o1 = oprrr(ctxt, int(p.As))
 
 		r = int(p.Reg)
-		if r == NREG {
+		if r == 0 {
 			r = int(p.To.Reg)
 		}
 		o1 |= (uint32(p.From.Reg) << 16) | (uint32(r) << 5) | uint32(p.To.Reg)
@@ -2088,7 +2088,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 			rt = REGZERO
 		}
 		r = int(p.Reg)
-		if r == NREG {
+		if r == 0 {
 			r = rt
 		}
 		if p.To.Type != obj.TYPE_NONE && (p.To.Reg == REGSP || r == REGSP) {
@@ -2131,13 +2131,13 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		if p.From3.Type == obj.TYPE_REG {
 			r = int(p.From3.Reg)
 			ra = int(p.Reg)
-			if ra == NREG {
+			if ra == 0 {
 				ra = REGZERO
 			}
 		} else {
 
 			r = int(p.Reg)
-			if r == NREG {
+			if r == 0 {
 				r = rt
 			}
 			ra = REGZERO
@@ -2151,7 +2151,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		rf = int(p.From.Reg)
 		rt = int(p.To.Reg)
 		r = int(p.Reg)
-		if r == NREG {
+		if r == 0 {
 			r = rt
 		}
 		o1 |= (uint32(rf) << 16) | (uint32(r) << 5) | REGTMP
@@ -2168,7 +2168,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		if p.To.Type == obj.TYPE_NONE {
 			rt = REGZERO
 		}
-		if r == NREG {
+		if r == 0 {
 			r = REGZERO
 		}
 		o1 |= (uint32(rf) << 16) | (uint32(r) << 5) | uint32(rt)
@@ -2178,7 +2178,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 
 		cond = int(p.From.Reg)
 		r = int(p.Reg)
-		if r != NREG {
+		if r != 0 {
 			if p.From3.Type == obj.TYPE_NONE {
 				/* CINC/CINV/CNEG */
 				rf = r
@@ -2222,7 +2222,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		v = int32(regoff(ctxt, &p.To))
 
 		r = int(p.To.Reg)
-		if r == NREG {
+		if r == 0 {
 			r = int(o.param)
 		}
 		if v < 0 { /* unscaled 9-bit signed */
@@ -2237,7 +2237,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		v = int32(regoff(ctxt, &p.From))
 
 		r = int(p.From.Reg)
-		if r == NREG {
+		if r == 0 {
 			r = int(o.param)
 		}
 		if v < 0 { /* unscaled 9-bit signed */
@@ -2340,7 +2340,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 			break
 		}
 		r = int(p.Reg)
-		if r == NREG {
+		if r == 0 {
 			r = int(p.To.Reg)
 		}
 		o2 = oprrr(ctxt, int(p.As))
@@ -2374,7 +2374,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		//fprint(2, "v=%ld (%#lux) s=%d hi=%ld (%#lux) v'=%ld (%#lux)\n", v, v, s, hi, hi, ((v-hi)>>s)&0xFFF, ((v-hi)>>s)&0xFFF);
 		r = int(p.To.Reg)
 
-		if r == NREG {
+		if r == 0 {
 			r = int(o.param)
 		}
 		o1 = oaddi(int32(opirr(ctxt, AADD)), hi, r, REGTMP)
@@ -2401,7 +2401,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		//fprint(2, "v=%ld (%#lux) s=%d hi=%ld (%#lux) v'=%ld (%#lux)\n", v, v, s, hi, hi, ((v-hi)>>s)&0xFFF, ((v-hi)>>s)&0xFFF);
 		r = int(p.From.Reg)
 
-		if r == NREG {
+		if r == 0 {
 			r = int(o.param)
 		}
 		o1 = oaddi(int32(opirr(ctxt, AADD)), hi, r, REGTMP)
@@ -2471,7 +2471,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		o2 |= REGTMP << 16
 		o2 |= LSL0_64
 		r = int(p.From.Reg)
-		if r == NREG {
+		if r == 0 {
 			r = int(o.param)
 		}
 		o2 |= uint32(r) << 5
@@ -2556,7 +2556,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		s = int(p.From3.Offset)
 		rf = int(p.Reg)
 		rt = int(p.To.Reg)
-		if rf == NREG {
+		if rf == 0 {
 			rf = rt
 		}
 		switch p.As {
@@ -2669,7 +2669,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 			break
 		}
 		r = int(p.To.Reg)
-		if r == NREG {
+		if r == 0 {
 			r = int(o.param)
 		}
 		o2 = olsxrr(ctxt, int(p.As), REGTMP, r, int(p.From.Reg))
@@ -2681,7 +2681,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 			break
 		}
 		r = int(p.From.Reg)
-		if r == NREG {
+		if r == 0 {
 			r = int(o.param)
 		}
 		o2 = olsxrr(ctxt, int(p.As), REGTMP, r, int(p.To.Reg))
@@ -2695,7 +2695,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		o1 |= uint32(p.From.Offset)
 		if p.To.Type == obj.TYPE_REG {
 			o1 |= uint32(p.To.Reg)
-		} else if p.Reg != NREG {
+		} else if p.Reg != 0 {
 			o1 |= uint32(p.Reg)
 		} else {
 
@@ -2719,7 +2719,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 
 		rt = int(p.To.Reg)
 		r = int(p.Reg)
-		if r == NREG {
+		if r == 0 {
 			r = rt
 		}
 		if as == AMOV {
@@ -2780,7 +2780,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		if (o1&(0x1F<<24)) == (0x1E<<24) && (o1&(1<<11)) == 0 { /* monadic */
 			r = rf
 			rf = 0
-		} else if r == NREG {
+		} else if r == 0 {
 			r = rt
 		}
 		o1 |= (uint32(rf) << 16) | (uint32(r) << 5) | uint32(rt)
@@ -2818,7 +2818,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 
 		o1 |= 0x1F << 16
 		o1 |= uint32(p.From.Reg) << 5
-		if p.Reg != NREG {
+		if p.Reg != 0 {
 			o1 |= uint32(p.Reg) << 10
 		} else {
 
