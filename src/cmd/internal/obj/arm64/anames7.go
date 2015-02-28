@@ -466,6 +466,8 @@ var cnames7 = []string{
 	"LOREG",
 	"ADDR",
 	"ROFF",
+	"XPRE",
+	"XPOST",
 	"GOK",
 	"TEXTSIZE",
 	"NCLASS",

@@ -299,6 +299,8 @@ const (
 	C_ADDR  // TODO(aram): explain difference from C_VCONADDR
 	C_ROFF  // register offset (including register extended)
 
+	C_XPRE
+	C_XPOST
 	C_GOK
 	C_TEXTSIZE
 	C_NCLASS // must be last
@@ -693,10 +695,4 @@ const (
 	ADUFFCOPY
 	ADUFFZERO
 	ALAST
-)
-
-/* Prog.scond */
-const (
-	C_XPRE  = 1 << iota // Addr in Prog is pre-indexed with writeback
-	C_XPOST             // Addr in Prog is post-indexed with writeback
 )

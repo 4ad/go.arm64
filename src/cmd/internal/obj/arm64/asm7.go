@@ -63,7 +63,7 @@ type Oprang struct {
 	stop  []Optab
 }
 
-type Opcross [32][2][32][4]uint8
+type Opcross [32][2][32]uint8
 
 var oprange [ALAST]Oprang
 
@@ -1113,11 +1113,11 @@ func oplook(ctxt *obj.Link, p *obj.Prog) *Optab {
 	var a1 int
 	var a2 int
 	var a3 int
-	var a4 int
 	var r int
 	var c1 []byte
 	var c2 []byte
 	var c3 []byte
+	var c4 []byte
 	var o []Optab
 	var e []Optab
 	a1 = int(p.Optab)
@@ -1142,11 +1142,10 @@ func oplook(ctxt *obj.Link, p *obj.Prog) *Optab {
 	if p.Reg != 0 {
 		a2 = C_REG
 	}
-	a4 = int(p.Scond)
 	r = int(p.As)
 	o = oprange[r].start
 	if o == nil {
-		a1 = int(opcross[repop[r]][a1][a2][a3][a4])
+		a1 = int(opcross[repop[r]][a1][a2][a3])
 		if a1 != 0 {
 			p.Optab = uint16(a1 + 1)
 			return &optab[a1:][0]
@@ -1156,7 +1155,7 @@ func oplook(ctxt *obj.Link, p *obj.Prog) *Optab {
 	}
 
 	if false {
-		fmt.Printf("oplook %v %d %d %d\n", Aconv(int(p.As)), a1, a2, a3, a4)
+		fmt.Printf("oplook %v %d %d\n", Aconv(int(p.As)), a1, a2, a3)
 		fmt.Printf("\t\t%d %d\n", p.From.Type, p.To.Type)
 	}
 
@@ -1164,12 +1163,15 @@ func oplook(ctxt *obj.Link, p *obj.Prog) *Optab {
 	c1 = xcmp[a1][:]
 	c2 = xcmp[a2][:]
 	c3 = xcmp[a3][:]
+	c4 = xcmp[p.Scond][:]
 	for ; -cap(o) < -cap(e); o = o[1:] {
 		if int(o[0].a2) == a2 || c2[o[0].a2] != 0 {
-			if c1[o[0].a1] != 0 {
-				if c3[o[0].a3] != 0 {
-					p.Optab = uint16((-cap(o) + cap(optab)) + 1)
-					return &o[0]
+			if c4[o[0].scond] != 0 {
+				if c1[o[0].a1] != 0 {
+					if c3[o[0].a3] != 0 {
+						p.Optab = uint16((-cap(o) + cap(optab)) + 1)
+						return &o[0]
+					}
 				}
 			}
 		}
@@ -1362,6 +1364,10 @@ func (x ocmp) Less(i, j int) bool {
 		return n < 0
 	}
 	n = int(p1.a3) - int(p2.a3)
+	if n != 0 {
+		return n < 0
+	}
+	n = int(p1.scond) - int(p2.scond)
 	if n != 0 {
 		return n < 0
 	}
