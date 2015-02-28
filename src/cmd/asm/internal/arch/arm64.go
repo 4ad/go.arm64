@@ -16,8 +16,8 @@ import (
 )
 
 var arm64LS = map[string]uint8{
-	"W":  arm64.C_XPRE,
-	"P":  arm64.C_XPOST,
+	"P":  arm64.C_XPRE,
+	"W":  arm64.C_XPOST,
 }
 
 var arm64Jump = map[string]bool{
@@ -56,14 +56,14 @@ func IsARM64CMP(op int) bool {
 	return false
 }
 
-// ARM64Prefix handles the special prefix for the ARM64.
+// ARM64Suffix handles the special suffix for the ARM64.
 // It returns a boolean to indicate success; failure means
 // cond was unrecognized.
-func ARM64Prefix(prog *obj.Prog, cond string) bool {
+func ARM64Suffix(prog *obj.Prog, cond string) bool {
 	if cond == "" {
 		return true
 	}
-	bits, ok := ParseARM64Prefix(cond)
+	bits, ok := ParseARM64Suffix(cond)
 	if !ok {
 		return false
 	}
@@ -71,10 +71,10 @@ func ARM64Prefix(prog *obj.Prog, cond string) bool {
 	return true
 }
 
-// ParseARM64Prefix parses the prefix attached to an ARM64 instruction.
+// ParseARM64Suffix parses the prefix attached to an ARM64 instruction.
 // The input is a single string consisting of period-separated condition
 // codes, such as ".P.W". An initial period is ignored.
-func ParseARM64Prefix(cond string) (uint8, bool) {
+func ParseARM64Suffix(cond string) (uint8, bool) {
 	if strings.HasPrefix(cond, ".") {
 		cond = cond[1:]
 	}

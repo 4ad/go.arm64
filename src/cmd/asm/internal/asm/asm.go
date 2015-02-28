@@ -30,7 +30,7 @@ func (p *Parser) append(prog *obj.Prog, cond string, doLabel bool) {
 		}
 	}
 	if p.arch.Thechar == '7' {
-		if !arch.ARM64Prefix(prog, cond) {
+		if !arch.ARM64Suffix(prog, cond) {
 			p.errorf("unrecognized prefix .%q", cond)
 		}
 	}
