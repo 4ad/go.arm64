@@ -482,7 +482,8 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 			q1.Lineno = p.Lineno
 			q1.From.Type = obj.TYPE_REG
 			q1.From.Reg = REGLINK
-			// q1.To.Type = D_XPRE // TODO
+			q1.To.Type = obj.TYPE_MEM
+			q1.Scond = C_XPRE
 			q1.To.Offset = int64(-aoffset)
 			q1.To.Reg = REGSP
 			q1.Link = q.Link
@@ -608,7 +609,8 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 					aoffset = 0xF0
 				}
 				p.As = AMOV
-				// p.From.Type = D_XPOST // TODO
+				p.From.Type = obj.TYPE_MEM
+				p.Scond = C_XPOST
 				p.From.Offset = int64(aoffset)
 				p.From.Reg = REGSP
 				p.To.Type = obj.TYPE_REG
