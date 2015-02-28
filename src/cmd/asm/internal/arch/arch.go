@@ -412,7 +412,7 @@ func archArm64() *Arch {
 	// Annoying aliases.
 	instructions["B"] = arm64.AB
 	instructions["BL"] = arm64.ABL
-	instructions["RETURN"] = arm64.ARETURN
+	instructions["RET"] = arm64.ARETURN
 
 	unaryDestination := make(map[int]bool) // Instruction takes one operand and result is a destination.
 	// These instructions write to prog.To.
