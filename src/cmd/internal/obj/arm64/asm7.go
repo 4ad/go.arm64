@@ -55,7 +55,7 @@ type Optab struct {
 	size  int8
 	param int16
 	flag  int8
-	mode  uint8
+	scond  uint8
 }
 
 type Oprang struct {
@@ -158,7 +158,7 @@ const (
 
 var optab = []Optab{
 	/* struct Optab:
-	OPCODE, from, prog->reg, to, type,size,param,flag */
+	OPCODE, from, prog->reg, to, type,size,param,flag,scond */
 	{ATEXT, C_LEXT, C_NONE, C_VCON, 0, 0, 0, 0, 0},
 	{ATEXT, C_LEXT, C_REG, C_VCON, 0, 0, 0, 0, 0},
 	{ATEXT, C_ADDR, C_NONE, C_VCON, 0, 0, 0, 0, 0},
