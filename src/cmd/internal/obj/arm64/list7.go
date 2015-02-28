@@ -98,7 +98,7 @@ func Pconv(p *obj.Prog) (s string) {
 		s += fmt.Sprintf(",%v", obj.Dconv(p, &p.From3))
 	}
 	if p.Reg != 0 {
-		s += fmt.Sprintf(",%R", p.Reg)
+		s += fmt.Sprintf(",%v", Rconv(int(p.Reg)))
 	}
 	if p.To3.Type != obj.TYPE_NONE {
 		s += fmt.Sprintf(",%v,%v", obj.Dconv(p, &p.To), obj.Dconv(p, &p.To3))
