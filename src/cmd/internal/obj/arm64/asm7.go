@@ -2251,36 +2251,35 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 			o1 = olsr12u(ctxt, int32(opldr12(ctxt, int(p.As))), v, r, int(p.To.Reg))
 		}
 
-// TODO:
-//	case 22: /* movT (R)O!,R; movT O(R)!, R -> ldrT */
-//		v = int32(p.From.Offset)
-//
-//		if v < -256 || v > 255 {
-//			ctxt.Diag("offset out of range\n%v", p)
-//		}
-//		o1 = opldrpp(ctxt, int(p.As))
-//		if p.From.Type == D_XPOST {
-//			o1 |= 1 << 10
-//		} else {
-//
-//			o1 |= 3 << 10
-//		}
-//		o1 |= ((uint32(v) & 0x1FF) << 12) | (uint32(p.From.Reg&31) << 5) | uint32(p.To.Reg&31)
-//
-//	case 23: /* movT R,(R)O!; movT O(R)!, R -> strT */
-//		v = int32(p.To.Offset)
-//
-//		if v < -256 || v > 255 {
-//			ctxt.Diag("offset out of range\n%v", p)
-//		}
-//		o1 = LD2STR(opldrpp(ctxt, int(p.As)))
-//		if p.To.Type == D_XPOST {
-//			o1 |= 1 << 10
-//		} else {
-//
-//			o1 |= 3 << 10
-//		}
-//		o1 |= ((uint32(v) & 0x1FF) << 12) | (uint32(p.To.Reg&31) << 5) | uint32(p.From.Reg&31)
+	case 22: /* movT (R)O!,R; movT O(R)!, R -> ldrT */
+		v = int32(p.From.Offset)
+
+		if v < -256 || v > 255 {
+			ctxt.Diag("offset out of range\n%v", p)
+		}
+		o1 = opldrpp(ctxt, int(p.As))
+		if o.scond == C_XPOST {
+			o1 |= 1 << 10
+		} else {
+
+			o1 |= 3 << 10
+		}
+		o1 |= ((uint32(v) & 0x1FF) << 12) | (uint32(p.From.Reg&31) << 5) | uint32(p.To.Reg&31)
+
+	case 23: /* movT R,(R)O!; movT O(R)!, R -> strT */
+		v = int32(p.To.Offset)
+
+		if v < -256 || v > 255 {
+			ctxt.Diag("offset out of range\n%v", p)
+		}
+		o1 = LD2STR(opldrpp(ctxt, int(p.As)))
+		if o.scond == C_XPOST {
+			o1 |= 1 << 10
+		} else {
+
+			o1 |= 3 << 10
+		}
+		o1 |= ((uint32(v) & 0x1FF) << 12) | (uint32(p.To.Reg&31) << 5) | uint32(p.From.Reg&31)
 
 	case 24: /* mov/mvn Rs,Rd -> add $0,Rs,Rd or orr Rs,ZR,Rd */
 		rf = int(p.From.Reg)
@@ -2888,34 +2887,34 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		}
 		o2 = olsr12u(ctxt, int32(opldr12(ctxt, int(p.As))), 0, REGTMP, int(p.To.Reg))
 
-//	case 66: /* ldp O(R)!, (r1, r2); ldp (R)O!, (r1, r2) */
-//		v = int32(p.From.Offset)
-//
-//		if v < -512 || v > 504 {
-//			ctxt.Diag("offset out of range\n%v", p)
-//		}
-//		if p.To.Type == D_XPOST {
-//			o1 |= 1 << 23
-//		} else {
-//
-//			o1 |= 3 << 23
-//		}
-//		o1 |= 1 << 22
-//		o1 |= uint32(int64(2<<30|5<<27|((uint32(v)/8)&0x7f)<<15) | p.To.Offset<<10 | int64(uint32(p.From.Reg&31)<<5) | int64(p.To.Reg&31))
-//
-//	case 67: /* stp (r1, r2), O(R)!; stp (r1, r2), (R)O! */
-//		v = int32(p.To.Offset)
-//
-//		if v < -512 || v > 504 {
-//			ctxt.Diag("offset out of range\n%v", p)
-//		}
-//		if p.To.Type == D_XPOST {
-//			o1 |= 1 << 23
-//		} else {
-//
-//			o1 |= 3 << 23
-//		}
-//		o1 |= uint32(int64(2<<30|5<<27|((uint32(v)/8)&0x7f)<<15) | p.From.Offset<<10 | int64(uint32(p.To.Reg&31)<<5) | int64(p.From.Reg&31))
+	case 66: /* ldp O(R)!, (r1, r2); ldp (R)O!, (r1, r2) */
+		v = int32(p.From.Offset)
+
+		if v < -512 || v > 504 {
+			ctxt.Diag("offset out of range\n%v", p)
+		}
+		if o.scond == C_XPOST {
+			o1 |= 1 << 23
+		} else {
+
+			o1 |= 3 << 23
+		}
+		o1 |= 1 << 22
+		o1 |= uint32(int64(2<<30|5<<27|((uint32(v)/8)&0x7f)<<15) | p.To.Offset<<10 | int64(uint32(p.From.Reg&31)<<5) | int64(p.To.Reg&31))
+
+	case 67: /* stp (r1, r2), O(R)!; stp (r1, r2), (R)O! */
+		v = int32(p.To.Offset)
+
+		if v < -512 || v > 504 {
+			ctxt.Diag("offset out of range\n%v", p)
+		}
+		if o.scond == C_XPOST {
+			o1 |= 1 << 23
+		} else {
+
+			o1 |= 3 << 23
+		}
+		o1 |= uint32(int64(2<<30|5<<27|((uint32(v)/8)&0x7f)<<15) | p.From.Offset<<10 | int64(uint32(p.To.Reg&31)<<5) | int64(p.From.Reg&31))
 
 	// This is supposed to be something that stops execution.
 	// It's not supposed to be reached, ever, but if it is, we'd
