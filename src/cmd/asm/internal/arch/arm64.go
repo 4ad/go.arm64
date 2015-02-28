@@ -8,7 +8,17 @@
 
 package arch
 
-import "cmd/internal/obj/arm64"
+import (
+	"strings"
+
+	"cmd/internal/obj"
+	"cmd/internal/obj/arm64"
+)
+
+var arm64LS = map[string]uint8{
+	"W":  arm64.C_XPRE,
+	"P":  arm64.C_XPOST,
+}
 
 var arm64Jump = map[string]bool{
 	"B":    true,
@@ -44,6 +54,43 @@ func IsARM64CMP(op int) bool {
 		return true
 	}
 	return false
+}
+
+// ARM64Prefix handles the special prefix for the ARM64.
+// It returns a boolean to indicate success; failure means
+// cond was unrecognized.
+func ARM64Prefix(prog *obj.Prog, cond string) bool {
+	if cond == "" {
+		return true
+	}
+	bits, ok := ParseARM64Prefix(cond)
+	if !ok {
+		return false
+	}
+	prog.Scond = bits
+	return true
+}
+
+// ParseARM64Prefix parses the prefix attached to an ARM64 instruction.
+// The input is a single string consisting of period-separated condition
+// codes, such as ".P.W". An initial period is ignored.
+func ParseARM64Prefix(cond string) (uint8, bool) {
+	if strings.HasPrefix(cond, ".") {
+		cond = cond[1:]
+	}
+	if cond == "" {
+		return 0, true
+	}
+	names := strings.Split(cond, ".")
+	bits := uint8(0)
+	for _, name := range names {
+		if b, present := arm64LS[name]; present {
+			bits |= b
+			continue
+		}
+		return 0, false
+	}
+	return bits, true
 }
 
 func arm64RegisterNumber(name string, n int16) (int16, bool) {

@@ -29,6 +29,11 @@ func (p *Parser) append(prog *obj.Prog, cond string, doLabel bool) {
 			p.errorf("unrecognized condition code .%q", cond)
 		}
 	}
+	if p.arch.Thechar == '7' {
+		if !arch.ARM64Prefix(prog, cond) {
+			p.errorf("unrecognized prefix .%q", cond)
+		}
+	}
 	if p.firstProg == nil {
 		p.firstProg = prog
 	} else {
