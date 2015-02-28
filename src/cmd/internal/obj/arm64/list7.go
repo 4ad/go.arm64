@@ -81,6 +81,13 @@ func Pconv(p *obj.Prog) (s string) {
 		}
 	}()
 
+	suffix := ""
+	switch p.Scond {
+	case C_XPRE:
+		suffix = ".P"
+	case C_XPOST:
+		suffix = ".W"
+	}
 	a := int(p.As)
 	switch a {
 	case obj.ATEXT, obj.AGLOBL:
@@ -91,9 +98,9 @@ func Pconv(p *obj.Prog) (s string) {
 	}
 
 	if p.Reg == 0 && p.From3.Type == obj.TYPE_NONE && p.To3.Type == obj.TYPE_NONE {
-		return fmt.Sprintf("%.5d (%v)\t%v\t%v,%v", p.Pc, p.Line(), Aconv(a), obj.Dconv(p, &p.From), obj.Dconv(p, &p.To))
+		return fmt.Sprintf("%.5d (%v)\t%v%s\t%v,%v", p.Pc, p.Line(), Aconv(a), suffix, obj.Dconv(p, &p.From), obj.Dconv(p, &p.To))
 	}
-	s = fmt.Sprintf("%.5d (%v)\t%v\t%v", p.Pc, p.Line(), Aconv(a), obj.Dconv(p, &p.From))
+	s = fmt.Sprintf("%.5d (%v)\t%v%s\t%v", p.Pc, p.Line(), Aconv(a), suffix, obj.Dconv(p, &p.From))
 	if p.From3.Type != obj.TYPE_NONE {
 		s += fmt.Sprintf(",%v", obj.Dconv(p, &p.From3))
 	}

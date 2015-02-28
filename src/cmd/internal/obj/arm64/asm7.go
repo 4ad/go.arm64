@@ -63,7 +63,7 @@ type Oprang struct {
 	stop  []Optab
 }
 
-type Opcross [32][2][32]uint8
+type Opcross [32][2][32][4]uint8
 
 var oprange [ALAST]Oprang
 
@@ -1113,6 +1113,7 @@ func oplook(ctxt *obj.Link, p *obj.Prog) *Optab {
 	var a1 int
 	var a2 int
 	var a3 int
+	var a4 int
 	var r int
 	var c1 []byte
 	var c2 []byte
@@ -1141,10 +1142,11 @@ func oplook(ctxt *obj.Link, p *obj.Prog) *Optab {
 	if p.Reg != 0 {
 		a2 = C_REG
 	}
+	a4 = int(p.Scond)
 	r = int(p.As)
 	o = oprange[r].start
 	if o == nil {
-		a1 = int(opcross[repop[r]][a1][a2][a3])
+		a1 = int(opcross[repop[r]][a1][a2][a3][a4])
 		if a1 != 0 {
 			p.Optab = uint16(a1 + 1)
 			return &optab[a1:][0]
@@ -1154,7 +1156,7 @@ func oplook(ctxt *obj.Link, p *obj.Prog) *Optab {
 	}
 
 	if false {
-		fmt.Printf("oplook %v %d %d %d\n", Aconv(int(p.As)), a1, a2, a3)
+		fmt.Printf("oplook %v %d %d %d\n", Aconv(int(p.As)), a1, a2, a3, a4)
 		fmt.Printf("\t\t%d %d\n", p.From.Type, p.To.Type)
 	}
 
