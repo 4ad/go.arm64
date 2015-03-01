@@ -235,7 +235,7 @@ const (
 
 const (
 	C_NONE   = iota
-	C_REG    // R0..R30, ZR
+	C_REG    // R0..R30
 	C_RSP    // R0..R30, RSP
 	C_FREG   // F0..F31
 	C_VREG   // V0..V31

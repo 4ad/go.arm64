@@ -976,14 +976,16 @@ func aclass(ctxt *obj.Link, a *obj.Addr) int {
 
 	case obj.TYPE_REG:
 		switch {
-		case a.Reg == REGSP:
-			return C_RSP
-		case REG_R0 <= a.Reg && a.Reg <= REG_R31:
+		case REG_R0 <= a.Reg && a.Reg <= REG_R30: // not 31
 			return C_REG
+		case a.Reg == REGZERO:
+			return C_ZCON
 		case REG_F0 <= a.Reg && a.Reg <= REG_F31:
 			return C_FREG
 		case REG_V0 <= a.Reg && a.Reg <= REG_V31:
 			return C_VREG
+		case a.Reg == REGSP:
+			return C_RSP
 		case a.Reg&REG_EXT != 0:
 			return C_EXTREG
 		case a.Reg >= REG_SPECIAL:
@@ -1152,7 +1154,7 @@ func oplook(ctxt *obj.Link, p *obj.Prog) *Optab {
 	}
 
 	if false {
-		fmt.Printf("oplook %v %d %d\n", Aconv(int(p.As)), a1, a2, a3)
+		fmt.Printf("oplook %v %d %d %d\n", Aconv(int(p.As)), a1, a2, a3)
 		fmt.Printf("\t\t%d %d\n", p.From.Type, p.To.Type)
 	}
 
@@ -1901,7 +1903,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 	o3 = 0
 	o4 = 0
 	o5 = 0
-	if false { /*debug['P']*/
+	if true { /*debug['P']*/
 		fmt.Printf("%x: %v\ttype %d\n", uint32(p.Pc), p, o.type_)
 	}
 	switch o.type_ {
