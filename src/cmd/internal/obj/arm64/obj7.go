@@ -465,7 +465,7 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 				q = ctxt.NewProg()
 				q.As = ASUB
 				q.Lineno = p.Lineno
-				q.From.Type = obj.NAME_EXTERN
+				q.From.Type = obj.TYPE_CONST
 				q.From.Offset = int64(ctxt.Autosize) - int64(aoffset)
 				q.To.Type = obj.TYPE_REG
 				q.To.Reg = REGSP
