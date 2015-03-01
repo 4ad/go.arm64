@@ -396,6 +396,7 @@ func archArm64() *Arch {
 	register["SB"] = RSB
 	register["FP"] = RFP
 	register["PC"] = RPC
+	register["SP"] = RSP
 	// Avoid unintentionally clobbering g using R28.
 	delete(register, "R28")
 	register["g"] = arm64.REG_R28
