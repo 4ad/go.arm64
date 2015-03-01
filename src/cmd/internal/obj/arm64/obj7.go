@@ -64,7 +64,7 @@ func stacksplit(ctxt *obj.Link, p *obj.Prog, framesize int32, noctxt int) *obj.P
 		p.From.Offset = 3 * int64(ctxt.Arch.Ptrsize) // G.stackguard1
 	}
 	p.To.Type = obj.TYPE_REG
-	p.To.Reg = 1
+	p.To.Reg = REG_R1
 
 	q = nil
 	if framesize <= obj.StackSmall {
@@ -77,13 +77,13 @@ func stacksplit(ctxt *obj.Link, p *obj.Prog, framesize int32, noctxt int) *obj.P
 		p.From.Type = obj.TYPE_REG
 		p.From.Reg = REGSP
 		p.To.Type = obj.TYPE_REG
-		p.To.Reg = 2
+		p.To.Reg = REG_R2
 
 		p = obj.Appendp(ctxt, p)
 		p.As = ACMP
 		p.From.Type = obj.TYPE_REG
-		p.From.Reg = 1
-		p.Reg = 2
+		p.From.Reg = REG_R1
+		p.Reg = REG_R2
 	} else if framesize <= obj.StackBig {
 		// large stack: SP-framesize < stackguard-StackSmall
 		//	SUB	$framesize, SP, R2
@@ -95,13 +95,13 @@ func stacksplit(ctxt *obj.Link, p *obj.Prog, framesize int32, noctxt int) *obj.P
 		p.From.Offset = int64(framesize)
 		p.Reg = REGSP
 		p.To.Type = obj.TYPE_REG
-		p.To.Reg = 2
+		p.To.Reg = REG_R2
 
 		p = obj.Appendp(ctxt, p)
 		p.As = ACMP
 		p.From.Type = obj.TYPE_REG
-		p.From.Reg = 1
-		p.Reg = 2
+		p.From.Reg = REG_R1
+		p.Reg = REG_R2
 	} else {
 
 		// Such a large stack we need to protect against wraparound
@@ -120,7 +120,7 @@ func stacksplit(ctxt *obj.Link, p *obj.Prog, framesize int32, noctxt int) *obj.P
 		p.As = ACMP
 		p.From.Type = obj.TYPE_CONST
 		p.From.Offset = obj.StackPreempt
-		p.Reg = 1
+		p.Reg = REG_R1
 
 		p = obj.Appendp(ctxt, p)
 		q = p
@@ -133,27 +133,27 @@ func stacksplit(ctxt *obj.Link, p *obj.Prog, framesize int32, noctxt int) *obj.P
 		p.From.Offset = obj.StackGuard
 		p.Reg = REGSP
 		p.To.Type = obj.TYPE_REG
-		p.To.Reg = 2
+		p.To.Reg = REG_R2
 
 		p = obj.Appendp(ctxt, p)
 		p.As = ASUB
 		p.From.Type = obj.TYPE_REG
-		p.From.Reg = 1
+		p.From.Reg = REG_R1
 		p.To.Type = obj.TYPE_REG
-		p.To.Reg = 2
+		p.To.Reg = REG_R2
 
 		p = obj.Appendp(ctxt, p)
 		p.As = AMOV
 		p.From.Type = obj.TYPE_CONST
 		p.From.Offset = int64(framesize) + (obj.StackGuard - obj.StackSmall)
 		p.To.Type = obj.TYPE_REG
-		p.To.Reg = 3
+		p.To.Reg = REG_R3
 
 		p = obj.Appendp(ctxt, p)
 		p.As = ACMP
 		p.From.Type = obj.TYPE_REG
-		p.From.Reg = 3
-		p.Reg = 2
+		p.From.Reg = REG_R3
+		p.Reg = REG_R2
 	}
 
 	// BHI	done
@@ -170,7 +170,7 @@ func stacksplit(ctxt *obj.Link, p *obj.Prog, framesize int32, noctxt int) *obj.P
 	p.From.Type = obj.TYPE_REG
 	p.From.Reg = REGLINK
 	p.To.Type = obj.TYPE_REG
-	p.To.Reg = 3
+	p.To.Reg = REG_R3
 	if q != nil {
 		q.Pcond = p
 	}
@@ -475,8 +475,10 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 	var q *obj.Prog
 	var q1 *obj.Prog
 	var q2 *obj.Prog
+	var retjmp *obj.LSym
 	var o int
 	var textstksiz int64
+	var stkadj int64
 	var aoffset int32
 
 	if ctxt.Symmorestack[0] == nil {
@@ -580,13 +582,14 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 			if textstksiz < 0 {
 				ctxt.Autosize = 0
 			} else {
-
 				ctxt.Autosize = int32(textstksiz + 8)
 			}
 			if (cursym.Text.Mark&LEAF != 0) && ctxt.Autosize <= 8 {
 				ctxt.Autosize = 0
 			} else if ctxt.Autosize&(16-1) != 0 {
-				ctxt.Autosize += 16 - (ctxt.Autosize & (16 - 1))
+				stkadj = 16 - (int64(ctxt.Autosize) & (16 - 1))
+				ctxt.Autosize += int32(stkadj)
+				cursym.Locals += int32(stkadj)
 			}
 			p.To.Offset = int64(ctxt.Autosize) - 8
 			if ctxt.Autosize == 0 && !(cursym.Text.Mark&LEAF != 0) {
@@ -595,6 +598,10 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 				}
 				obj.Bflush(ctxt.Bso)
 				cursym.Text.Mark |= LEAF
+			}
+
+			if !(p.Reg&obj.NOSPLIT != 0) {
+				p = stacksplit(ctxt, p, ctxt.Autosize, bool2int(!(cursym.Text.Reg&obj.NEEDCTXT != 0))) // emit split check
 			}
 
 			aoffset = ctxt.Autosize
@@ -645,7 +652,7 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 				//	MOV g_panic(g), R1
 				//	CMP $0, R1
 				//	BEQ end
-				//	MOV panic_argp(R0), R2
+				//	MOV panic_argp(R1), R2
 				//	ADD $(autosize+8), RSP, R3
 				//	CMP R2, R3
 				//	BNE end
@@ -734,12 +741,8 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 				break
 			}
 
-			if p.To.Sym != nil { // retjmp
-				p.As = AB
-				p.To.Type = obj.TYPE_BRANCH
-				break
-			}
-
+			retjmp = p.To.Sym
+			p.To = obj.Addr{}
 			if cursym.Text.Mark&LEAF != 0 {
 				if ctxt.Autosize != 0 {
 					p.As = AADD
@@ -786,6 +789,14 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 				q.Link = p.Link
 				p.Link = q
 				p = q
+			}
+
+			if retjmp != nil { // retjmp
+				p.As = AB
+				p.To.Type = obj.TYPE_BRANCH
+				p.To.Sym = retjmp
+				p.Spadj = +ctxt.Autosize
+				break
 			}
 
 			p.As = ARET
