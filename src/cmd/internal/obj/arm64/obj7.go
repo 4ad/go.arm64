@@ -600,7 +600,7 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 				cursym.Text.Mark |= LEAF
 			}
 
-			if !(p.Reg&obj.NOSPLIT != 0) {
+			if !(p.From3.Offset&obj.NOSPLIT != 0) {
 				p = stacksplit(ctxt, p, ctxt.Autosize, bool2int(!(cursym.Text.Reg&obj.NEEDCTXT != 0))) // emit split check
 			}
 
