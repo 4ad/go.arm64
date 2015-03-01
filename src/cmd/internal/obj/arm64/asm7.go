@@ -1903,7 +1903,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 	o3 = 0
 	o4 = 0
 	o5 = 0
-	if true { /*debug['P']*/
+	if false { /*debug['P']*/
 		fmt.Printf("%x: %v\ttype %d\n", uint32(p.Pc), p, o.type_)
 	}
 	switch o.type_ {
