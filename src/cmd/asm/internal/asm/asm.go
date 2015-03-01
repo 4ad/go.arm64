@@ -510,6 +510,10 @@ func (p *Parser) asmInstruction(op int, cond string, a []obj.Addr) {
 			prog.From = a[0]
 			prog.Reg = p.getRegister(prog, op, &a[1])
 			prog.To = a[2]
+		case '7':
+			prog.From = a[0]
+			prog.Reg = p.getRegister(prog, op, &a[1])
+			prog.To = a[2]
 		case '6', '8':
 			// CMPSD etc.; third operand is imm8, stored in offset, or a register.
 			prog.From = a[0]
