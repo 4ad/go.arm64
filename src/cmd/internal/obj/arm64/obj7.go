@@ -307,19 +307,6 @@ loop:
 	goto loop
 }
 
-func parsetextconst(arg int64, textstksiz *int64, textarg *int64) {
-	*textstksiz = arg & 0xffffffff
-	if *textstksiz&0x80000000 != 0 {
-		*textstksiz = -(-*textstksiz & 0xffffffff)
-	}
-
-	*textarg = (arg >> 32) & 0xffffffff
-	if *textarg&0x80000000 != 0 {
-		*textarg = 0
-	}
-	*textarg = (*textarg + 7) &^ 7
-}
-
 func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 	var p *obj.Prog
 	var q *obj.Prog
@@ -327,7 +314,6 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 	var q2 *obj.Prog
 	var o int
 	var textstksiz int64
-	var textarg int64
 	var aoffset int32
 
 	if ctxt.Symmorestack[0] == nil {
@@ -342,13 +328,13 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 	}
 
 	p = cursym.Text
-	parsetextconst(p.To.Offset, &textstksiz, &textarg)
+	textstksiz = p.To.Offset
 	aoffset = int32(textstksiz)
 	if aoffset < 0 {
 		aoffset = 0
 	}
 
-	cursym.Args = int32(p.To.Offset >> 32)
+	cursym.Args = p.To.U.Argsize
 	cursym.Locals = int32(textstksiz)
 
 	/*
@@ -439,7 +425,7 @@ func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
 			} else if ctxt.Autosize&(16-1) != 0 {
 				ctxt.Autosize += 16 - (ctxt.Autosize & (16 - 1))
 			}
-			p.To.Offset = int64(uint64(p.To.Offset)&(0xffffffff<<32) | uint64(uint32(ctxt.Autosize-8)))
+			p.To.Offset = int64(ctxt.Autosize) - 8
 			if ctxt.Autosize == 0 && !(cursym.Text.Mark&LEAF != 0) {
 				if ctxt.Debugvlog != 0 {
 					fmt.Fprintf(ctxt.Bso, "save suppressed in: %s\n", cursym.Text.From.Sym.Name)
