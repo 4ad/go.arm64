@@ -969,29 +969,33 @@ func movcon(v int64) int {
 	return -1
 }
 
+func rclass(r int16) int {
+	switch {
+	case REG_R0 <= r && r <= REG_R30: // not 31
+		return C_REG
+	case r == REGZERO:
+		return C_ZCON
+	case REG_F0 <= r && r <= REG_F31:
+		return C_FREG
+	case REG_V0 <= r && r <= REG_V31:
+		return C_VREG
+	case r == REGSP:
+		return C_RSP
+	case r&REG_EXT != 0:
+		return C_EXTREG
+	case r >= REG_SPECIAL:
+		return C_SPR
+	}
+	return C_GOK
+}
+
 func aclass(ctxt *obj.Link, a *obj.Addr) int {
 	switch a.Type {
 	case obj.TYPE_NONE:
 		return C_NONE
 
 	case obj.TYPE_REG:
-		switch {
-		case REG_R0 <= a.Reg && a.Reg <= REG_R30: // not 31
-			return C_REG
-		case a.Reg == REGZERO:
-			return C_ZCON
-		case REG_F0 <= a.Reg && a.Reg <= REG_F31:
-			return C_FREG
-		case REG_V0 <= a.Reg && a.Reg <= REG_V31:
-			return C_VREG
-		case a.Reg == REGSP:
-			return C_RSP
-		case a.Reg&REG_EXT != 0:
-			return C_EXTREG
-		case a.Reg >= REG_SPECIAL:
-			return C_SPR
-		}
-		return C_GOK
+		return rclass(a.Reg)
 
 	case obj.TYPE_REGREG:
 		return C_PAIR
@@ -1139,7 +1143,7 @@ func oplook(ctxt *obj.Link, p *obj.Prog) *Optab {
 	a3--
 	a2 = C_NONE
 	if p.Reg != 0 {
-		a2 = C_REG
+		a2 = rclass(p.Reg)
 	}
 	r = int(p.As)
 	o = oprange[r].start
