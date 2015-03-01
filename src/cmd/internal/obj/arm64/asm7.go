@@ -2304,7 +2304,6 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 
 	case 24: /* mov/mvn Rs,Rd -> add $0,Rs,Rd or orr Rs,ZR,Rd */
 		rf = int(p.From.Reg)
-
 		rt = int(p.To.Reg)
 		s = bool2int(rf == REGSP || rt == REGSP)
 		if p.As == AMVN || p.As == AMVNW {
@@ -2317,9 +2316,8 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 			o1 = opirr(ctxt, int(p.As))
 			o1 |= (uint32(rf&31) << 5) | uint32(rt&31)
 		} else {
-
 			o1 = oprrr(ctxt, int(p.As))
-			o1 |= (uint32(rf) << 16&31) | (REGZERO&31 << 5) | uint32(rt&31)
+			o1 |= (uint32(rf&31) << 16) | (REGZERO&31 << 5) | uint32(rt&31)
 		}
 
 	case 25: /* negX Rs, Rd -> subX Rs<<0, ZR, Rd */
