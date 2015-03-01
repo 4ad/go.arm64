@@ -36,7 +36,7 @@ import (
 )
 
 const (
-	STRINGSZ = 200
+	STRINGSZ = 1000
 )
 
 var strcond = [16]string{
