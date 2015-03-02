@@ -470,7 +470,7 @@ loop:
 	goto loop
 }
 
-func addstacksplit(ctxt *obj.Link, cursym *obj.LSym) {
+func preprocess(ctxt *obj.Link, cursym *obj.LSym) {
 	var p *obj.Prog
 	var q *obj.Prog
 	var q1 *obj.Prog
@@ -832,7 +832,7 @@ var Linkarm64 = obj.LinkArch{
 	Pconv:      Pconv,
 	Name:       "arm64",
 	Thechar:    '7',
-	Preprocess: addstacksplit,
+	Preprocess: preprocess,
 	Assemble:   span7,
 	Follow:     follow,
 	Progedit:   progedit,
