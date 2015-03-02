@@ -832,7 +832,6 @@ var Linkarm64 = obj.LinkArch{
 	Pconv:      Pconv,
 	Name:       "arm64",
 	Thechar:    '7',
-	Endian:     obj.LittleEndian,
 	Preprocess: addstacksplit,
 	Assemble:   span7,
 	Follow:     follow,
