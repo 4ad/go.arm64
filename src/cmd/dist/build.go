@@ -50,12 +50,13 @@ var (
 )
 
 // The known architecture letters.
-var gochars = "566899"
+var gochars = "5766899"
 
 // The known architectures.
 var okgoarch = []string{
 	// same order as gochars
 	"arm",
+	"arm64",
 	"amd64",
 	"amd64p32",
 	"386",
