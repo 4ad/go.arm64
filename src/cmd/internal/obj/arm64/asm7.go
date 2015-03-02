@@ -518,18 +518,12 @@ var pstatefield = []struct {
 	a uint32
 	b uint32
 }{
-	struct {
-		a uint32
-		b uint32
-	}{REG_SPSel, 0<<16 | 4<<12 | 5<<5},
-	struct {
-		a uint32
-		b uint32
-	}{REG_DAIFSet, 3<<16 | 4<<12 | 6<<5},
-	struct {
-		a uint32
-		b uint32
-	}{REG_DAIFClr, 3<<16 | 4<<12 | 7<<5},
+
+	{REG_SPSel, 0<<16 | 4<<12 | 5<<5},
+
+	{REG_DAIFSet, 3<<16 | 4<<12 | 6<<5},
+
+	{REG_DAIFClr, 3<<16 | 4<<12 | 7<<5},
 }
 
 var pool struct {
