@@ -312,20 +312,12 @@ func archArm64() *Arch {
 	instructions["BL"] = arm64.ABL
 	instructions["RET"] = arm64.ARETURN
 
-	unaryDestination := make(map[int]bool) // Instruction takes one operand and result is a destination.
-	// These instructions write to prog.To.
-	// TODO: These are silly. Fix once C assembler is gone.
-	unaryDestination[arm64.AWORD] = true
-	unaryDestination[arm64.ADWORD] = true
-	unaryDestination[arm64.ABL] = true
-
 	return &Arch{
 		LinkArch:         &arm64.Linkarm64,
 		Instructions:     instructions,
 		Register:         register,
 		RegisterPrefix:   registerPrefix,
 		RegisterNumber:   arm64RegisterNumber,
-		UnaryDestination: unaryDestination,
 		IsJump:           jumpArm64,
 		Aconv:            arm64.Aconv,
 	}

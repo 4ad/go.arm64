@@ -826,6 +826,12 @@ func nocache(p *obj.Prog) {
 	p.To.Class = 0
 }
 
+var unaryDst = map[int]bool{
+	AWORD:  true,
+	ADWORD: true,
+	ABL:    true,
+}
+
 var Linkarm64 = obj.LinkArch{
 	Rconv:      Rconv,
 	ByteOrder:  binary.LittleEndian,
@@ -836,6 +842,7 @@ var Linkarm64 = obj.LinkArch{
 	Assemble:   span7,
 	Follow:     follow,
 	Progedit:   progedit,
+	UnaryDst:   unaryDst,
 	Minlc:      4,
 	Ptrsize:    8,
 	Regsize:    8,
