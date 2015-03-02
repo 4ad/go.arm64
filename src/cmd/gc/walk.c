@@ -3528,7 +3528,8 @@ walkdiv(Node **np, NodeList **init)
 	Magic m;
 
 	// TODO(minux)
-	if(thechar == '9')
+	// TODO(dfc)
+	if(thechar == '9' || thechar == '7')
 		return;
 
 	n = *np;
