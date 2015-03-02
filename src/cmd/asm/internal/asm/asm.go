@@ -29,6 +29,11 @@ func (p *Parser) append(prog *obj.Prog, cond string, doLabel bool) {
 			p.errorf("unrecognized condition code .%q", cond)
 		}
 	}
+	if p.arch.Thechar == '7' {
+		if !arch.ARM64Suffix(prog, cond) {
+			p.errorf("unrecognized prefix .%q", cond)
+		}
+	}
 	if p.firstProg == nil {
 		p.firstProg = prog
 	} else {
@@ -454,6 +459,11 @@ func (p *Parser) asmInstruction(op int, cond string, a []obj.Addr) {
 				p.errorf("unrecognized addressing for %s", p.arch.Aconv(op))
 			}
 		}
+		if p.arch.Thechar == '7' && arch.IsARM64CMP(op) {
+			prog.From = a[0]
+			prog.Reg = p.getRegister(prog, op, &a[1])
+			break
+		}
 		prog.From = a[0]
 		prog.To = a[1]
 		switch p.arch.Thechar {
@@ -497,6 +507,10 @@ func (p *Parser) asmInstruction(op int, cond string, a []obj.Addr) {
 				break
 			}
 			// Otherwise the 2nd operand (a[1]) must be a register.
+			prog.From = a[0]
+			prog.Reg = p.getRegister(prog, op, &a[1])
+			prog.To = a[2]
+		case '7':
 			prog.From = a[0]
 			prog.Reg = p.getRegister(prog, op, &a[1])
 			prog.To = a[2]
