@@ -296,8 +296,8 @@ const (
 	C_UOREG64K
 	C_LOREG
 
-	C_ADDR  // TODO(aram): explain difference from C_VCONADDR
-	C_ROFF  // register offset (including register extended)
+	C_ADDR // TODO(aram): explain difference from C_VCONADDR
+	C_ROFF // register offset (including register extended)
 
 	C_XPRE
 	C_XPOST
