@@ -560,59 +560,49 @@ func gmove(f *gc.Node, t *gc.Node) {
 	/*
 	 * integer to float
 	 */
-	case gc.TINT32<<16 | gc.TFLOAT32,
-		gc.TINT32<<16 | gc.TFLOAT64,
-		gc.TINT64<<16 | gc.TFLOAT32,
-		gc.TINT64<<16 | gc.TFLOAT64,
+	case gc.TINT8<<16 | gc.TFLOAT32,
 		gc.TINT16<<16 | gc.TFLOAT32,
+		gc.TINT32<<16 | gc.TFLOAT32:
+		a = arm64.ASCVTFWS
+
+		goto rdst
+
+	case gc.TINT8<<16 | gc.TFLOAT64,
 		gc.TINT16<<16 | gc.TFLOAT64,
-		gc.TINT8<<16 | gc.TFLOAT32,
-		gc.TINT8<<16 | gc.TFLOAT64,
+		gc.TINT32<<16 | gc.TFLOAT64:
+		a = arm64.ASCVTFWD
+
+		goto rdst
+
+	case gc.TINT64<<16 | gc.TFLOAT32:
+		a = arm64.ASCVTFS
+		goto rdst
+
+	case gc.TINT64<<16 | gc.TFLOAT64:
+		a = arm64.ASCVTFD
+		goto rdst
+
+	case gc.TUINT8<<16 | gc.TFLOAT32,
 		gc.TUINT16<<16 | gc.TFLOAT32,
+		gc.TUINT32<<16 | gc.TFLOAT32:
+		a = arm64.AUCVTFWS
+
+		goto rdst
+
+	case gc.TUINT8<<16 | gc.TFLOAT64,
 		gc.TUINT16<<16 | gc.TFLOAT64,
-		gc.TUINT8<<16 | gc.TFLOAT32,
-		gc.TUINT8<<16 | gc.TFLOAT64,
-		gc.TUINT32<<16 | gc.TFLOAT32,
-		gc.TUINT32<<16 | gc.TFLOAT64,
-		gc.TUINT64<<16 | gc.TFLOAT32,
-		gc.TUINT64<<16 | gc.TFLOAT64:
-		bignodes()
+		gc.TUINT32<<16 | gc.TFLOAT64:
+		a = arm64.AUCVTFWD
 
-		var r1 gc.Node
-		regalloc(&r1, gc.Types[gc.TINT64], nil)
-		gmove(f, &r1)
-		if ft == gc.TUINT64 {
-			gc.Nodreg(&r2, gc.Types[gc.TUINT64], arm64.REGTMP)
-			gmove(&bigi, &r2)
-			gins(arm64.ACMPU, &r1, &r2)
-			p1 := (*obj.Prog)(gc.Gbranch(optoas(gc.OLT, gc.Types[gc.TUINT64]), nil, +1))
-			p2 := (*obj.Prog)(gins(arm64.ALSR, nil, &r1))
-			p2.From.Type = obj.TYPE_CONST
-			p2.From.Offset = 1
-			gc.Patch(p1, gc.Pc)
-		}
+		goto rdst
 
-		regalloc(&r2, gc.Types[gc.TFLOAT64], t)
-		p1 := (*obj.Prog)(gins(arm64.AMOVD, &r1, nil))
-		p1.To.Type = obj.TYPE_MEM
-		p1.To.Reg = arm64.REGSP
-		p1.To.Offset = -8
-		p1 = gins(arm64.AFMOVD, nil, &r2)
-		p1.From.Type = obj.TYPE_MEM
-		p1.From.Reg = arm64.REGSP
-		p1.From.Offset = -8
-		gins(arm64.AFCFID, &r2, &r2)
-		regfree(&r1)
-		if ft == gc.TUINT64 {
-			p1 := (*obj.Prog)(gc.Gbranch(optoas(gc.OLT, gc.Types[gc.TUINT64]), nil, +1)) // use CR0 here again
-			gc.Nodreg(&r1, gc.Types[gc.TFLOAT64], arm64.FREGTWO)
-			gins(arm64.AFMULD, &r1, &r2)
-			gc.Patch(p1, gc.Pc)
-		}
+	case gc.TUINT64<<16 | gc.TFLOAT32:
+		a = arm64.AUCVTFS
+		goto rdst
 
-		gmove(&r2, t)
-		regfree(&r2)
-		return
+	case gc.TUINT64<<16 | gc.TFLOAT64:
+		a = arm64.AUCVTFD
+		goto rdst
 
 		/*
 		 * float to float
