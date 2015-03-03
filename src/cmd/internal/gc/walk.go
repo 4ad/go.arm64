@@ -3626,7 +3626,7 @@ func samecheap(a *Node, b *Node) bool {
 }
 
 func walkrotate(np **Node) {
-	if Thearch.Thechar == '9' {
+	if Thearch.Thechar == '7' || Thearch.Thechar == '9' {
 		return
 	}
 
