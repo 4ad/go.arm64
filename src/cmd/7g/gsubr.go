@@ -538,7 +538,7 @@ func gmove(f *gc.Node, t *gc.Node) {
 			gmove(&bigf, &r2)
 			gins(arm64.AFCMPU, &r1, &r2)
 			p1 := (*obj.Prog)(gc.Gbranch(optoas(gc.OLT, gc.Types[gc.TFLOAT64]), nil, +1))
-			gins(arm64.AFSUB, &r2, &r1)
+			gins(arm64.AFSUBD, &r2, &r1)
 			gc.Patch(p1, gc.Pc)
 			regfree(&r2)
 		}
@@ -938,7 +938,7 @@ func optoas(op int, t *gc.Type) int {
 		a = arm64.AFSUBS
 
 	case gc.OSUB<<16 | gc.TFLOAT64:
-		a = arm64.AFSUB
+		a = arm64.AFSUBD
 
 	case gc.OMINUS<<16 | gc.TINT8,
 		gc.OMINUS<<16 | gc.TUINT8,
