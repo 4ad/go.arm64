@@ -910,6 +910,7 @@ var cleantab = []string{
 	"cmd/5l",
 	"cmd/6g",
 	"cmd/6l",
+	"cmd/7l",
 	"cmd/8g",
 	"cmd/8l",
 	"cmd/9g",

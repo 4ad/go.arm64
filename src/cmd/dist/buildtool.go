@@ -27,6 +27,7 @@ var bootstrapDirs = []string{
 	"5l",
 	"6g",
 	"6l",
+	"7l",
 	"8g",
 	"8l",
 	"9g",
