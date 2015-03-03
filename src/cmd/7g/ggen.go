@@ -731,7 +731,7 @@ func clearfat(nl *gc.Node) {
 	}
 
 	var r0 gc.Node
-	gc.Nodreg(&r0, gc.Types[gc.TUINT64], arm64.REG_R0) // r0 is always zero
+	gc.Nodreg(&r0, gc.Types[gc.TUINT64], arm64.REGZERO)
 	var dst gc.Node
 	gc.Nodreg(&dst, gc.Types[gc.Tptr], arm64.REGRT1)
 	reg[arm64.REGRT1-arm64.REG_R0]++
@@ -760,7 +760,7 @@ func clearfat(nl *gc.Node) {
 
 		regfree(&end)
 
-		// The loop leaves R3 on the last zeroed dword
+		// The loop leaves R16 on the last zeroed dword
 		boff = 8
 	} else if q >= 4 {
 		p := gins(arm64.ASUB, nil, &dst)
@@ -773,7 +773,7 @@ func clearfat(nl *gc.Node) {
 		// 4 and 128 = magic constants: see ../../runtime/asm_arm64x.s
 		p.To.Offset = int64(4 * (128 - q))
 
-		// duffzero leaves R3 on the last zeroed dword
+		// duffzero leaves R16 on the last zeroed dword
 		boff = 8
 	} else {
 		var p *obj.Prog
