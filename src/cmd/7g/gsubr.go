@@ -266,7 +266,7 @@ func ginscon2(as int, n2 *gc.Node, c int64) {
 	regalloc(&ntmp, gc.Types[gc.TINT64], nil)
 
 	gins(arm64.AMOVD, &n1, &ntmp)
-	gins(as, n2, &ntmp)
+	gcmp(as, n2, &ntmp)
 	regfree(&ntmp)
 }
 
