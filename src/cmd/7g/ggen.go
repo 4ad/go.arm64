@@ -602,9 +602,9 @@ func cgen_hmul(nl *gc.Node, nr *gc.Node, res *gc.Node) {
 	case gc.TINT64,
 		gc.TUINT64:
 		if gc.Issigned[t.Etype] {
-			gins(arm64.AMULHD, &n2, &n1)
+			gins(arm64.ASMULH, &n2, &n1)
 		} else {
-			gins(arm64.AMULHDU, &n2, &n1)
+			gins(arm64.AUMULH, &n2, &n1)
 		}
 
 	default:
