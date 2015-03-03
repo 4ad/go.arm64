@@ -675,22 +675,18 @@ func gins(as int, f *gc.Node, t *gc.Node) *obj.Prog {
 	w := int32(0)
 	switch as {
 	case arm64.AMOVB,
-		arm64.AMOVBU,
-		arm64.AMOVBZU:
+		arm64.AMOVBU:
 		w = 1
 
 	case arm64.AMOVH,
-		arm64.AMOVHU,
-		arm64.AMOVHZU:
+		arm64.AMOVHU:
 		w = 2
 
 	case arm64.AMOVW,
-		arm64.AMOVWU,
-		arm64.AMOVWZU:
+		arm64.AMOVWU:
 		w = 4
 
-	case arm64.AMOVD,
-		arm64.AMOVDU:
+	case arm64.AMOVD:
 		if af.Type == obj.TYPE_CONST || af.Type == obj.TYPE_ADDR {
 			break
 		}
