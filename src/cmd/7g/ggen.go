@@ -148,13 +148,12 @@ func ginscall(f *gc.Node, proc int) {
 				// of the instruction byte before the return PC.
 				// To avoid that being an unrelated instruction,
 				// insert a arm64 NOP that we will have the right line number.
-				// The arm64 NOP is really or r0, r0, r0; use that description
+				// The arm64 NOP is really or HINT $0; use that description
 				// because the NOP pseudo-instruction would be removed by
 				// the linker.
-				var reg gc.Node
-				gc.Nodreg(&reg, gc.Types[gc.TINT], arm64.REG_R0)
-
-				gins(arm64.AORR, &reg, &reg)
+				var con gc.Node
+				gc.Nodconst(&con, gc.Types[gc.TINT], 0)
+				gins(arm64.AHINT, &con, nil)
 			}
 
 			p := gins(arm64.ABL, nil, f)
