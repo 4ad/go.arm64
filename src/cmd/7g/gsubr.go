@@ -244,7 +244,7 @@ func ginscon(as int, c int64, n2 *gc.Node) {
 
 /*
  * generate
- *	as n, $c (CMP/CMPU)
+ *	as n, $c (CMP)
  */
 func ginscon2(as int, n2 *gc.Node, c int64) {
 	var n1 gc.Node
@@ -257,12 +257,6 @@ func ginscon2(as int, n2 *gc.Node, c int64) {
 
 	case arm64.ACMP:
 		if -arm64.BIG <= c && c <= arm64.BIG {
-			gins(as, n2, &n1)
-			return
-		}
-
-	case arm64.ACMPU:
-		if 0 <= c && c <= 2*arm64.BIG {
 			gins(as, n2, &n1)
 			return
 		}
@@ -810,33 +804,34 @@ func optoas(op int, t *gc.Type) int {
 		gc.ONE<<16 | gc.TFLOAT64:
 		a = arm64.ABNE
 
-	case gc.OLT<<16 | gc.TINT8, // ACMP
+	case gc.OLT<<16 | gc.TINT8,
 		gc.OLT<<16 | gc.TINT16,
 		gc.OLT<<16 | gc.TINT32,
-		gc.OLT<<16 | gc.TINT64,
-		gc.OLT<<16 | gc.TUINT8,
-		// ACMPU
+		gc.OLT<<16 | gc.TINT64:
+		a = arm64.ABLT
+		
+		
+	case gc.OLT<<16 | gc.TUINT8,
 		gc.OLT<<16 | gc.TUINT16,
 		gc.OLT<<16 | gc.TUINT32,
 		gc.OLT<<16 | gc.TUINT64,
 		gc.OLT<<16 | gc.TFLOAT32,
-		// AFCMPU
 		gc.OLT<<16 | gc.TFLOAT64:
-		a = arm64.ABLT
+		a = arm64.ABLO
 
-	case gc.OLE<<16 | gc.TINT8, // ACMP
+	case gc.OLE<<16 | gc.TINT8,
 		gc.OLE<<16 | gc.TINT16,
 		gc.OLE<<16 | gc.TINT32,
-		gc.OLE<<16 | gc.TINT64,
-		gc.OLE<<16 | gc.TUINT8,
-		// ACMPU
+		gc.OLE<<16 | gc.TINT64:
+		a = arm64.ABLE
+	
+	case gc.OLE<<16 | gc.TUINT8,
 		gc.OLE<<16 | gc.TUINT16,
 		gc.OLE<<16 | gc.TUINT32,
 		gc.OLE<<16 | gc.TUINT64,
 		gc.OLE<<16 | gc.TFLOAT32,
-		// AFCMPU
 		gc.OLE<<16 | gc.TFLOAT64:
-		a = arm64.ABLE
+		a = arm64.ABLS
 
 	case gc.OGT<<16 | gc.TINT8,
 		gc.OGT<<16 | gc.TINT16,
