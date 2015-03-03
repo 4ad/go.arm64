@@ -210,7 +210,7 @@ var optab = []Optab{
 	{AAND, C_SHIFT, C_NONE, C_REG, 3, 4, 0, 0, 0},
 	{ABIC, C_SHIFT, C_REG, C_REG, 3, 4, 0, 0, 0},
 	{ABIC, C_SHIFT, C_NONE, C_REG, 3, 4, 0, 0, 0},
-	{AMOV, C_RSP, C_NONE, C_RSP, 24, 4, 0, 0, 0},
+	{AMOVD, C_RSP, C_NONE, C_RSP, 24, 4, 0, 0, 0},
 	{AMVN, C_REG, C_NONE, C_REG, 24, 4, 0, 0, 0},
 	{AMOVB, C_REG, C_NONE, C_REG, 45, 4, 0, 0, 0},
 	{AMOVBU, C_REG, C_NONE, C_REG, 45, 4, 0, 0, 0},
@@ -220,16 +220,16 @@ var optab = []Optab{
 
 	/* MOVs that become MOVK/MOVN/MOVZ/ADD/SUB/OR */
 	{AMOVW, C_MOVCON, C_NONE, C_REG, 32, 4, 0, 0, 0},
-	{AMOV, C_MOVCON, C_NONE, C_REG, 32, 4, 0, 0, 0},
+	{AMOVD, C_MOVCON, C_NONE, C_REG, 32, 4, 0, 0, 0},
 
 	// TODO: these don't work properly.
 	// { AMOVW,		C_ADDCON,	C_NONE,	C_REG,		2, 4, 0 , 0},
-	// { AMOV,		C_ADDCON,	C_NONE,	C_REG,		2, 4, 0 , 0},
+	// { AMOVD,		C_ADDCON,	C_NONE,	C_REG,		2, 4, 0 , 0},
 	// { AMOVW,		C_BITCON,	C_NONE,	C_REG,		53, 4, 0 , 0},
-	// { AMOV,		C_BITCON,	C_NONE,	C_REG,		53, 4, 0 , 0},
+	// { AMOVD,		C_BITCON,	C_NONE,	C_REG,		53, 4, 0 , 0},
 
 	{AMOVK, C_VCON, C_NONE, C_REG, 33, 4, 0, 0, 0},
-	{AMOV, C_AACON, C_NONE, C_REG, 4, 4, REGFROM, 0, 0},
+	{AMOVD, C_AACON, C_NONE, C_REG, 4, 4, REGFROM, 0, 0},
 	{ASDIV, C_REG, C_NONE, C_REG, 1, 4, 0, 0, 0},
 	{ASDIV, C_REG, C_REG, C_REG, 1, 4, 0, 0, 0},
 	{AB, C_NONE, C_NONE, C_SBRA, 5, 4, 0, 0, 0},
@@ -261,17 +261,17 @@ var optab = []Optab{
 	{AWORD, C_NONE, C_NONE, C_LEXT, 14, 4, 0, 0, 0},
 	{AWORD, C_NONE, C_NONE, C_ADDR, 14, 4, 0, 0, 0},
 	{AMOVW, C_VCON, C_NONE, C_REG, 12, 4, 0, LFROM, 0},
-	{AMOV, C_VCON, C_NONE, C_REG, 12, 4, 0, LFROM, 0},
+	{AMOVD, C_VCON, C_NONE, C_REG, 12, 4, 0, LFROM, 0},
 	{AMOVB, C_REG, C_NONE, C_ADDR, 64, 8, 0, LTO, 0},
 	{AMOVBU, C_REG, C_NONE, C_ADDR, 64, 8, 0, LTO, 0},
 	{AMOVH, C_REG, C_NONE, C_ADDR, 64, 8, 0, LTO, 0},
 	{AMOVW, C_REG, C_NONE, C_ADDR, 64, 8, 0, LTO, 0},
-	{AMOV, C_REG, C_NONE, C_ADDR, 64, 8, 0, LTO, 0},
+	{AMOVD, C_REG, C_NONE, C_ADDR, 64, 8, 0, LTO, 0},
 	{AMOVB, C_ADDR, C_NONE, C_REG, 65, 8, 0, LFROM, 0},
 	{AMOVBU, C_ADDR, C_NONE, C_REG, 65, 8, 0, LFROM, 0},
 	{AMOVH, C_ADDR, C_NONE, C_REG, 65, 8, 0, LFROM, 0},
 	{AMOVW, C_ADDR, C_NONE, C_REG, 65, 8, 0, LFROM, 0},
-	{AMOV, C_ADDR, C_NONE, C_REG, 65, 8, 0, LFROM, 0},
+	{AMOVD, C_ADDR, C_NONE, C_REG, 65, 8, 0, LFROM, 0},
 	{AMUL, C_REG, C_REG, C_REG, 15, 4, 0, 0, 0},
 	{AMUL, C_REG, C_NONE, C_REG, 15, 4, 0, 0, 0},
 	{AMADD, C_REG, C_REG, C_REG, 15, 4, 0, 0, 0},
@@ -306,11 +306,11 @@ var optab = []Optab{
 	{AMOVW, C_REG, C_NONE, C_NSAUTO, 20, 4, REGSP, 0, 0},
 	{AMOVW, C_REG, C_NONE, C_NSOREG, 20, 4, 0, 0, 0},
 
-	{AMOV, C_REG, C_NONE, C_UAUTO32K, 20, 4, REGSP, 0, 0},
-	{AMOV, C_REG, C_NONE, C_ZOREG, 20, 4, 0, 0, 0},
-	{AMOV, C_REG, C_NONE, C_UOREG32K, 20, 4, 0, 0, 0},
-	{AMOV, C_REG, C_NONE, C_NSOREG, 20, 4, 0, 0, 0},
-	{AMOV, C_REG, C_NONE, C_NSAUTO, 20, 4, REGSP, 0, 0},
+	{AMOVD, C_REG, C_NONE, C_UAUTO32K, 20, 4, REGSP, 0, 0},
+	{AMOVD, C_REG, C_NONE, C_ZOREG, 20, 4, 0, 0, 0},
+	{AMOVD, C_REG, C_NONE, C_UOREG32K, 20, 4, 0, 0, 0},
+	{AMOVD, C_REG, C_NONE, C_NSOREG, 20, 4, 0, 0, 0},
+	{AMOVD, C_REG, C_NONE, C_NSAUTO, 20, 4, REGSP, 0, 0},
 
 	/* short displacement load */
 	{AMOVB, C_UAUTO4K, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
@@ -337,11 +337,11 @@ var optab = []Optab{
 	{AMOVW, C_UOREG16K, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
 	{AMOVW, C_NSOREG, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
 
-	{AMOV, C_UAUTO32K, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
-	{AMOV, C_NSAUTO, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
-	{AMOV, C_ZOREG, C_NONE, C_REG, 21, 4, 0, 0, 0},
-	{AMOV, C_UOREG32K, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
-	{AMOV, C_NSOREG, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
+	{AMOVD, C_UAUTO32K, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
+	{AMOVD, C_NSAUTO, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
+	{AMOVD, C_ZOREG, C_NONE, C_REG, 21, 4, 0, 0, 0},
+	{AMOVD, C_UOREG32K, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
+	{AMOVD, C_NSOREG, C_NONE, C_REG, 21, 4, REGSP, 0, 0},
 
 	/* long displacement store */
 	{AMOVB, C_REG, C_NONE, C_LAUTO, 30, 8, REGSP, 0, 0},
@@ -352,8 +352,8 @@ var optab = []Optab{
 	{AMOVH, C_REG, C_NONE, C_LOREG, 30, 8, 0, 0, 0},
 	{AMOVW, C_REG, C_NONE, C_LAUTO, 30, 8, REGSP, 0, 0},
 	{AMOVW, C_REG, C_NONE, C_LOREG, 30, 8, 0, 0, 0},
-	{AMOV, C_REG, C_NONE, C_LAUTO, 30, 8, REGSP, 0, 0},
-	{AMOV, C_REG, C_NONE, C_LOREG, 30, 8, 0, 0, 0},
+	{AMOVD, C_REG, C_NONE, C_LAUTO, 30, 8, REGSP, 0, 0},
+	{AMOVD, C_REG, C_NONE, C_LOREG, 30, 8, 0, 0, 0},
 
 	/* long displacement load */
 	{AMOVB, C_LAUTO, C_NONE, C_REG, 31, 8, REGSP, 0, 0},
@@ -368,22 +368,22 @@ var optab = []Optab{
 	{AMOVW, C_LAUTO, C_NONE, C_REG, 31, 8, REGSP, 0, 0},
 	{AMOVW, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0, 0},
 	{AMOVW, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0, 0},
-	{AMOV, C_LAUTO, C_NONE, C_REG, 31, 8, REGSP, 0, 0},
-	{AMOV, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0, 0},
-	{AMOV, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0, 0},
+	{AMOVD, C_LAUTO, C_NONE, C_REG, 31, 8, REGSP, 0, 0},
+	{AMOVD, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0, 0},
+	{AMOVD, C_LOREG, C_NONE, C_REG, 31, 8, 0, 0, 0},
 
 	/* load long effective stack address (load int32 offset and add) */
-	{AMOV, C_LACON, C_NONE, C_REG, 34, 8, REGSP, LFROM, 0},
+	{AMOVD, C_LACON, C_NONE, C_REG, 34, 8, REGSP, LFROM, 0},
 
 	/* pre/post-indexed load (unscaled, signed 9-bit offset) */
-	{AMOV, C_LOREG, C_NONE, C_REG, 22, 4, 0, 0, C_XPOST},
+	{AMOVD, C_LOREG, C_NONE, C_REG, 22, 4, 0, 0, C_XPOST},
 	{AMOVW, C_LOREG, C_NONE, C_REG, 22, 4, 0, 0, C_XPOST},
 	{AMOVH, C_LOREG, C_NONE, C_REG, 22, 4, 0, 0, C_XPOST},
 	{AMOVB, C_LOREG, C_NONE, C_REG, 22, 4, 0, 0, C_XPOST},
 	{AMOVBU, C_LOREG, C_NONE, C_REG, 22, 4, 0, 0, C_XPOST},
 	{AFMOVS, C_LOREG, C_NONE, C_FREG, 22, 4, 0, 0, C_XPOST},
 	{AFMOVD, C_LOREG, C_NONE, C_FREG, 22, 4, 0, 0, C_XPOST},
-	{AMOV, C_LOREG, C_NONE, C_REG, 22, 4, 0, 0, C_XPRE},
+	{AMOVD, C_LOREG, C_NONE, C_REG, 22, 4, 0, 0, C_XPRE},
 	{AMOVW, C_LOREG, C_NONE, C_REG, 22, 4, 0, 0, C_XPRE},
 	{AMOVH, C_LOREG, C_NONE, C_REG, 22, 4, 0, 0, C_XPRE},
 	{AMOVB, C_LOREG, C_NONE, C_REG, 22, 4, 0, 0, C_XPRE},
@@ -392,14 +392,14 @@ var optab = []Optab{
 	{AFMOVD, C_LOREG, C_NONE, C_FREG, 22, 4, 0, 0, C_XPRE},
 
 	/* pre/post-indexed store (unscaled, signed 9-bit offset) */
-	{AMOV, C_REG, C_NONE, C_LOREG, 23, 4, 0, 0, C_XPOST},
+	{AMOVD, C_REG, C_NONE, C_LOREG, 23, 4, 0, 0, C_XPOST},
 	{AMOVW, C_REG, C_NONE, C_LOREG, 23, 4, 0, 0, C_XPOST},
 	{AMOVH, C_REG, C_NONE, C_LOREG, 23, 4, 0, 0, C_XPOST},
 	{AMOVB, C_REG, C_NONE, C_LOREG, 23, 4, 0, 0, C_XPOST},
 	{AMOVBU, C_REG, C_NONE, C_LOREG, 23, 4, 0, 0, C_XPOST},
 	{AFMOVS, C_FREG, C_NONE, C_LOREG, 23, 4, 0, 0, C_XPOST},
 	{AFMOVD, C_FREG, C_NONE, C_LOREG, 23, 4, 0, 0, C_XPOST},
-	{AMOV, C_REG, C_NONE, C_LOREG, 23, 4, 0, 0, C_XPRE},
+	{AMOVD, C_REG, C_NONE, C_LOREG, 23, 4, 0, 0, C_XPRE},
 	{AMOVW, C_REG, C_NONE, C_LOREG, 23, 4, 0, 0, C_XPRE},
 	{AMOVH, C_REG, C_NONE, C_LOREG, 23, 4, 0, 0, C_XPRE},
 	{AMOVB, C_REG, C_NONE, C_LOREG, 23, 4, 0, 0, C_XPRE},
@@ -415,11 +415,11 @@ var optab = []Optab{
 	{ASTP, C_PAIR, C_NONE, C_LOREG, 67, 4, 0, 0, C_XPOST},
 
 	/* special */
-	{AMOV, C_SPR, C_NONE, C_REG, 35, 4, 0, 0, 0},
+	{AMOVD, C_SPR, C_NONE, C_REG, 35, 4, 0, 0, 0},
 	{AMRS, C_SPR, C_NONE, C_REG, 35, 4, 0, 0, 0},
-	{AMOV, C_REG, C_NONE, C_SPR, 36, 4, 0, 0, 0},
+	{AMOVD, C_REG, C_NONE, C_SPR, 36, 4, 0, 0, 0},
 	{AMSR, C_REG, C_NONE, C_SPR, 36, 4, 0, 0, 0},
-	{AMOV, C_VCON, C_NONE, C_SPR, 37, 4, 0, 0, 0},
+	{AMOVD, C_VCON, C_NONE, C_SPR, 37, 4, 0, 0, 0},
 	{AMSR, C_VCON, C_NONE, C_SPR, 37, 4, 0, 0, 0},
 	{AERET, C_NONE, C_NONE, C_NONE, 41, 4, 0, 0, 0},
 	{AFMOVS, C_FREG, C_NONE, C_UAUTO16K, 20, 4, REGSP, 0, 0},
@@ -761,7 +761,7 @@ func addpool(ctxt *obj.Link, p *obj.Prog, a *obj.Addr) {
 	//	MOV addr, REGTEMP
 	//	MOVW REGTEMP, R
 	// where addr is the address of the DWORD containing the address of foo.
-	if p.As == AMOV || c == C_ADDR || c == C_VCON {
+	if p.As == AMOVD || c == C_ADDR || c == C_VCON {
 
 		t.As = ADWORD
 		sz = 8
@@ -1629,7 +1629,7 @@ func buildop(ctxt *obj.Link) {
 			oprange[ACSETM] = t
 			oprange[ACSETMW] = t
 
-		case AMOV,
+		case AMOVD,
 			AMOVBU,
 			AB,
 			ABL,
@@ -2094,7 +2094,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		o1 = omovlit(ctxt, int(p.As), p, &p.From, int(p.To.Reg))
 
 	case 13: /* addop $vcon, [R], R (64 bit literal); cmp $lcon,R -> addop $lcon,R, ZR */
-		o1 = omovlit(ctxt, AMOV, p, &p.From, REGTMP)
+		o1 = omovlit(ctxt, AMOVD, p, &p.From, REGTMP)
 
 		if !(o1 != 0) {
 			break
@@ -2347,7 +2347,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		//		o1 |= (uint32(r&31) << 5) | uint32(rt&31)
 
 	case 28: /* logop $vcon, [R], R (64 bit literal) */
-		o1 = omovlit(ctxt, AMOV, p, &p.From, REGTMP)
+		o1 = omovlit(ctxt, AMOVD, p, &p.From, REGTMP)
 
 		if !(o1 != 0) {
 			break
@@ -2423,7 +2423,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 	case 32: /* mov $con, R -> movz/movn */
 		r = 32
 
-		if p.As == AMOV {
+		if p.As == AMOVD {
 			r = 64
 		}
 		d = p.From.Offset
@@ -2434,7 +2434,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 			if s < 0 || s >= r {
 				ctxt.Diag("impossible move wide: %#x\n%v", uint64(p.From.Offset), p)
 			}
-			if p.As == AMOV {
+			if p.As == AMOVD {
 				o1 = opirr(ctxt, AMOVN)
 			} else {
 
@@ -2442,7 +2442,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 			}
 		} else {
 
-			if p.As == AMOV {
+			if p.As == AMOVD {
 				o1 = opirr(ctxt, AMOVZ)
 			} else {
 
@@ -2475,7 +2475,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		o1 |= uint32(((d & 0xFFFF) << 5) | int64((uint32(s)&3)<<21) | int64(rt&31))
 
 	case 34: /* mov $lacon,R */
-		o1 = omovlit(ctxt, AMOV, p, &p.From, REGTMP)
+		o1 = omovlit(ctxt, AMOVD, p, &p.From, REGTMP)
 
 		if !(o1 != 0) {
 			break
@@ -2735,7 +2735,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		if r == 0 {
 			r = rt
 		}
-		if as == AMOV {
+		if as == AMOVD {
 			as = AORR
 			r = REGZERO
 		} else if as == AMOVW {
@@ -2888,7 +2888,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 
 		/* reloc ops */
 	case 64: /* movT R,addr */
-		o1 = omovlit(ctxt, AMOV, p, &p.To, REGTMP)
+		o1 = omovlit(ctxt, AMOVD, p, &p.To, REGTMP)
 
 		if !(o1 != 0) {
 			break
@@ -2896,7 +2896,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		o2 = olsr12u(ctxt, int32(opstr12(ctxt, int(p.As))), 0, REGTMP, int(p.From.Reg))
 
 	case 65: /* movT addr,R */
-		o1 = omovlit(ctxt, AMOV, p, &p.From, REGTMP)
+		o1 = omovlit(ctxt, AMOVD, p, &p.From, REGTMP)
 
 		if !(o1 != 0) {
 			break
@@ -3022,7 +3022,7 @@ func oprrr(ctxt *obj.Link, a int) uint32 {
 	case AANDW:
 		return S32 | 0<<29 | 0xA<<24
 
-	case AMOV,
+	case AMOVD,
 		AORR:
 		return S64 | 1<<29 | 0xA<<24
 
@@ -3515,7 +3515,7 @@ func opirr(ctxt *obj.Link, a int) uint32 {
 
 	switch a {
 	/* op $addcon, Rn, Rd */
-	case AMOV,
+	case AMOVD,
 		AADD:
 		return S64 | 0<<30 | 0<<29 | 0x11<<24
 
@@ -4101,7 +4101,7 @@ func olsr12u(ctxt *obj.Link, o int32, v int32, b int, r int) uint32 {
 
 func opldr12(ctxt *obj.Link, a int) uint32 {
 	switch a {
-	case AMOV:
+	case AMOVD:
 		return LDSTR12U(3, 0, 1) /* imm12<<10 | Rn<<5 | Rt */
 
 	case AMOVW:
@@ -4153,7 +4153,7 @@ func olsr9s(ctxt *obj.Link, o int32, v int32, b int, r int) uint32 {
 
 func opldr9(ctxt *obj.Link, a int) uint32 {
 	switch a {
-	case AMOV:
+	case AMOVD:
 		return LDSTR9S(3, 0, 1) /* simm9<<12 | Rn<<5 | Rt */
 
 	case AMOVW:
@@ -4191,7 +4191,7 @@ func opstr9(ctxt *obj.Link, a int) uint32 {
 
 func opldrpp(ctxt *obj.Link, a int) uint32 {
 	switch a {
-	case AMOV:
+	case AMOVD:
 		return 3<<30 | 7<<27 | 0<<26 | 0<<24 | 1<<22 /* simm9<<12 | Rn<<5 | Rt */
 
 	case AMOVW:
@@ -4274,7 +4274,7 @@ func omovlit(ctxt *obj.Link, as int, p *obj.Prog, a *obj.Addr, dr int) uint32 {
 			fp = 1
 			w = 1 /* 64 bit simd&fp */
 
-		case AMOV:
+		case AMOVD:
 			if p.Pcond.As == ADWORD {
 				w = 1 /* 64 bit */
 			} else if p.Pcond.To.Offset < 0 {
@@ -4345,7 +4345,7 @@ func opextr(ctxt *obj.Link, a int, v int32, rn int, rm int, rt int) uint32 {
 func movesize(a int) int {
 
 	switch a {
-	case AMOV:
+	case AMOVD:
 		return 3
 
 	case AMOVW,

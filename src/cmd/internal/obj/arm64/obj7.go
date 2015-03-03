@@ -56,7 +56,7 @@ func stacksplit(ctxt *obj.Link, p *obj.Prog, framesize int32, noctxt int) *obj.P
 	// MOV	g_stackguard(g), R1
 	p = obj.Appendp(ctxt, p)
 
-	p.As = AMOV
+	p.As = AMOVD
 	p.From.Type = obj.TYPE_MEM
 	p.From.Reg = REGG
 	p.From.Offset = 2 * int64(ctxt.Arch.Ptrsize) // G.stackguard0
@@ -73,7 +73,7 @@ func stacksplit(ctxt *obj.Link, p *obj.Prog, framesize int32, noctxt int) *obj.P
 		//	CMP	stackguard, R2
 		p = obj.Appendp(ctxt, p)
 
-		p.As = AMOV
+		p.As = AMOVD
 		p.From.Type = obj.TYPE_REG
 		p.From.Reg = REGSP
 		p.To.Type = obj.TYPE_REG
@@ -143,7 +143,7 @@ func stacksplit(ctxt *obj.Link, p *obj.Prog, framesize int32, noctxt int) *obj.P
 		p.To.Reg = REG_R2
 
 		p = obj.Appendp(ctxt, p)
-		p.As = AMOV
+		p.As = AMOVD
 		p.From.Type = obj.TYPE_CONST
 		p.From.Offset = int64(framesize) + (obj.StackGuard - obj.StackSmall)
 		p.To.Type = obj.TYPE_REG
@@ -166,7 +166,7 @@ func stacksplit(ctxt *obj.Link, p *obj.Prog, framesize int32, noctxt int) *obj.P
 	// MOV	LR, R3
 	p = obj.Appendp(ctxt, p)
 
-	p.As = AMOV
+	p.As = AMOVD
 	p.From.Type = obj.TYPE_REG
 	p.From.Reg = REGLINK
 	p.To.Type = obj.TYPE_REG
@@ -178,7 +178,7 @@ func stacksplit(ctxt *obj.Link, p *obj.Prog, framesize int32, noctxt int) *obj.P
 	// only for debug
 	p = obj.Appendp(ctxt, p)
 
-	p.As = AMOV
+	p.As = AMOVD
 	p.From.Type = obj.TYPE_CONST
 	p.From.Offset = int64(framesize)
 	p.To.Type = obj.TYPE_REG
@@ -634,7 +634,7 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym) {
 			}
 
 			q1 = ctxt.NewProg()
-			q1.As = AMOV
+			q1.As = AMOVD
 			q1.Lineno = p.Lineno
 			q1.From.Type = obj.TYPE_REG
 			q1.From.Reg = REGLINK
@@ -666,7 +666,7 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym) {
 				q = q1
 
 				q = obj.Appendp(ctxt, q)
-				q.As = AMOV
+				q.As = AMOVD
 				q.From.Type = obj.TYPE_MEM
 				q.From.Reg = REGG
 				q.From.Offset = 4 * int64(ctxt.Arch.Ptrsize) // G.panic
@@ -685,7 +685,7 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym) {
 				q1 = q
 
 				q = obj.Appendp(ctxt, q)
-				q.As = AMOV
+				q.As = AMOVD
 				q.From.Type = obj.TYPE_MEM
 				q.From.Reg = REG_R1
 				q.From.Offset = 0 // Panic.argp
@@ -720,7 +720,7 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym) {
 				q.To.Reg = REG_R4
 
 				q = obj.Appendp(ctxt, q)
-				q.As = AMOV
+				q.As = AMOVD
 				q.From.Type = obj.TYPE_REG
 				q.From.Reg = 4
 				q.To.Type = obj.TYPE_MEM
@@ -760,7 +760,7 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym) {
 				if aoffset > 0xF0 {
 					aoffset = 0xF0
 				}
-				p.As = AMOV
+				p.As = AMOVD
 				p.From.Type = obj.TYPE_MEM
 				p.Scond = C_XPOST
 				p.From.Offset = int64(aoffset)
