@@ -505,75 +505,58 @@ func gmove(f *gc.Node, t *gc.Node) {
 		goto rdst
 
 		//warn("gmove: convert float to int not implemented: %N -> %N\n", f, t);
-	//return;
-	// algorithm is:
-	//	if small enough, use native float64 -> int64 conversion.
-	//	otherwise, subtract 2^63, convert, and add it back.
+
 	/*
 	* float to integer
 	 */
-	case gc.TFLOAT32<<16 | gc.TINT32,
-		gc.TFLOAT64<<16 | gc.TINT32,
-		gc.TFLOAT32<<16 | gc.TINT64,
-		gc.TFLOAT64<<16 | gc.TINT64,
-		gc.TFLOAT32<<16 | gc.TINT16,
+	case gc.TFLOAT32<<16 | gc.TINT32:
+		a = arm64.AFCVTZSSW
+		goto rdst
+
+	case gc.TFLOAT64<<16 | gc.TINT32:
+		a = arm64.AFCVTZSDW
+		goto rdst
+
+	case gc.TFLOAT32<<16 | gc.TINT64:
+		a = arm64.AFCVTZSS
+		goto rdst
+
+	case gc.TFLOAT64<<16 | gc.TINT64:
+		a = arm64.AFCVTZSD
+		goto rdts
+
+	case gc.TFLOAT32<<16 | gc.TUINT32:
+		a = arm64.AFCVTZUSW
+		goto rdts
+
+	case gc.TFLOAT64<<16 | gc.TUINT32:
+		a = arm64.AFCVTZUDW
+		goto rdts
+
+	case gc.TFLOAT32<<16 | gc.TUINT64:
+		a = arm64.AFCVTZUS
+		goto rdts
+
+	case gc.TFLOAT64<<16 | gc.TUINT64:
+		a = arm64.AFCVTZUD
+		goto rdts
+
+	case gc.TFLOAT32<<16 | gc.TINT16,
 		gc.TFLOAT32<<16 | gc.TINT8,
-		gc.TFLOAT32<<16 | gc.TUINT16,
-		gc.TFLOAT32<<16 | gc.TUINT8,
 		gc.TFLOAT64<<16 | gc.TINT16,
-		gc.TFLOAT64<<16 | gc.TINT8,
+		gc.TFLOAT64<<16 | gc.TINT8:
+		cvt = gc.Types[gc.TINT32]
+
+		goto hard
+
+	case gc.TFLOAT32<<16 | gc.TUINT16,
+		gc.TFLOAT32<<16 | gc.TUINT8,
 		gc.TFLOAT64<<16 | gc.TUINT16,
-		gc.TFLOAT64<<16 | gc.TUINT8,
-		gc.TFLOAT32<<16 | gc.TUINT32,
-		gc.TFLOAT64<<16 | gc.TUINT32,
-		gc.TFLOAT32<<16 | gc.TUINT64,
-		gc.TFLOAT64<<16 | gc.TUINT64:
-		bignodes()
+		gc.TFLOAT64<<16 | gc.TUINT8:
+		cvt = gc.Types[gc.TUINT32]
 
-		var r1 gc.Node
-		regalloc(&r1, gc.Types[ft], f)
-		gmove(f, &r1)
-		if tt == gc.TUINT64 {
-			regalloc(&r2, gc.Types[gc.TFLOAT64], nil)
-			gmove(&bigf, &r2)
-			gins(arm64.AFCMPU, &r1, &r2)
-			p1 := (*obj.Prog)(gc.Gbranch(optoas(gc.OLT, gc.Types[gc.TFLOAT64]), nil, +1))
-			gins(arm64.AFSUBD, &r2, &r1)
-			gc.Patch(p1, gc.Pc)
-			regfree(&r2)
-		}
+		goto hard
 
-		regalloc(&r2, gc.Types[gc.TFLOAT64], nil)
-		var r3 gc.Node
-		regalloc(&r3, gc.Types[gc.TINT64], t)
-		gins(arm64.AFCTIDZ, &r1, &r2)
-		p1 := (*obj.Prog)(gins(arm64.AFMOVD, &r2, nil))
-		p1.To.Type = obj.TYPE_MEM
-		p1.To.Reg = arm64.REGSP
-		p1.To.Offset = -8
-		p1 = gins(arm64.AMOVD, nil, &r3)
-		p1.From.Type = obj.TYPE_MEM
-		p1.From.Reg = arm64.REGSP
-		p1.From.Offset = -8
-		regfree(&r2)
-		regfree(&r1)
-		if tt == gc.TUINT64 {
-			p1 := (*obj.Prog)(gc.Gbranch(optoas(gc.OLT, gc.Types[gc.TFLOAT64]), nil, +1)) // use CR0 here again
-			gc.Nodreg(&r1, gc.Types[gc.TINT64], arm64.REGTMP)
-			gins(arm64.AMOVD, &bigi, &r1)
-			gins(arm64.AADD, &r1, &r3)
-			gc.Patch(p1, gc.Pc)
-		}
-
-		gmove(&r3, t)
-		regfree(&r3)
-		return
-
-		//warn("gmove: convert int to float not implemented: %N -> %N\n", f, t);
-	//return;
-	// algorithm is:
-	//	if small enough, use native int64 -> uint64 conversion.
-	//	otherwise, halve (rounding to odd?), convert, and double.
 	/*
 	 * integer to float
 	 */
