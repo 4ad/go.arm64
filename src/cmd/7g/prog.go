@@ -138,14 +138,14 @@ func proginfo(info *gc.ProgInfo, p *obj.Prog) {
 
 	if (p.From.Type == obj.TYPE_MEM || p.From.Type == obj.TYPE_ADDR) && p.From.Reg != 0 {
 		info.Regindex |= RtoB(int(p.From.Reg))
-		if info.Flags&gc.PostInc != 0 {
+		if p.Scond != 0 {
 			info.Regset |= RtoB(int(p.From.Reg))
 		}
 	}
 
 	if (p.To.Type == obj.TYPE_MEM || p.To.Type == obj.TYPE_ADDR) && p.To.Reg != 0 {
 		info.Regindex |= RtoB(int(p.To.Reg))
-		if info.Flags&gc.PostInc != 0 {
+		if p.Scond != 0 {
 			info.Regset |= RtoB(int(p.To.Reg))
 		}
 	}
@@ -156,14 +156,14 @@ func proginfo(info *gc.ProgInfo, p *obj.Prog) {
 	}
 
 	if p.As == obj.ADUFFZERO {
-		info.Reguse |= 1<<0 | RtoB(arm64.REG_R3)
-		info.Regset |= RtoB(arm64.REG_R3)
+		info.Reguse |= RtoB(arm64.REGRT1)
+		info.Regset |= RtoB(arm64.REGRT1)
 	}
 
 	if p.As == obj.ADUFFCOPY {
 		// TODO(austin) Revisit when duffcopy is implemented
-		info.Reguse |= RtoB(arm64.REG_R3) | RtoB(arm64.REG_R4) | RtoB(arm64.REG_R5)
+		info.Reguse |= RtoB(arm64.REGRT1) | RtoB(arm64.REGRT2) | RtoB(arm64.REG_R5)
 
-		info.Regset |= RtoB(arm64.REG_R3) | RtoB(arm64.REG_R4)
+		info.Regset |= RtoB(arm64.REGRT1) | RtoB(arm64.REGRT2)
 	}
 }
