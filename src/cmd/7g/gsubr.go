@@ -43,19 +43,10 @@ import "cmd/internal/gc"
 var unmappedzero int64 = 4096
 
 var resvd = []int{
-	arm64.REGZERO,
-	arm64.REGSP, // reserved for SP
-	// We need to preserve the C ABI TLS pointer because sigtramp
-	// may happen during C code and needs to access the g.  C
-	// clobbers REGG, so if Go were to clobber REGTLS, sigtramp
-	// won't know which convention to use.  By preserving REGTLS,
-	// we can just retrieve g from TLS when we aren't sure.
-	arm64.REGTLS,
-
-	// TODO(austin): Consolidate REGTLS and REGG?
+	arm64.REGTMP,
 	arm64.REGG,
-	arm64.REGTMP, // REGTMP
-	arm64.FREGCVI,
+	arm64.REGZERO,
+	arm64.REGSP,
 	arm64.FREGZERO,
 	arm64.FREGHALF,
 	arm64.FREGONE,
