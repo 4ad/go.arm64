@@ -1470,16 +1470,16 @@ func sgen(n *gc.Node, ns *gc.Node, w int64) {
 		gc.Fatal("sgen: invalid alignment %d for %v", align, gc.Tconv(n.Type, 0))
 
 	case 1:
-		op = arm64.AMOVBU
+		op = arm64.AMOVB
 
 	case 2:
-		op = arm64.AMOVHU
+		op = arm64.AMOVH
 
 	case 4:
-		op = arm64.AMOVWZU // there is no lwau, only lwaux
+		op = arm64.AMOVW
 
 	case 8:
-		op = arm64.AMOVDU
+		op = arm64.AMOVD
 	}
 
 	if w%int64(align) != 0 {
@@ -1582,6 +1582,7 @@ func sgen(n *gc.Node, ns *gc.Node, w int64) {
 		p = gins(op, &tmp, &dst)
 		p.To.Type = obj.TYPE_MEM
 		p.To.Offset = int64(dir)
+		p.Scond = arm64.C_XPRE
 
 		p = gins(arm64.ACMP, &src, &nend)
 
@@ -1604,10 +1605,12 @@ func sgen(n *gc.Node, ns *gc.Node, w int64) {
 			p = gins(op, &src, &tmp)
 			p.From.Type = obj.TYPE_MEM
 			p.From.Offset = int64(dir)
+			p.Scond = arm64.C_XPRE
 
 			p = gins(op, &tmp, &dst)
 			p.To.Type = obj.TYPE_MEM
 			p.To.Offset = int64(dir)
+			p.Scond = arm64.C_XPRE
 		}
 	}
 
