@@ -316,7 +316,6 @@ func gmove(f *gc.Node, t *gc.Node) {
 	}
 
 	// cannot have two memory operands
-	var r2 gc.Node
 	var r1 gc.Node
 	var a int
 	if gc.Ismem(f) && gc.Ismem(t) {
@@ -523,23 +522,23 @@ func gmove(f *gc.Node, t *gc.Node) {
 
 	case gc.TFLOAT64<<16 | gc.TINT64:
 		a = arm64.AFCVTZSD
-		goto rdts
+		goto rdst
 
 	case gc.TFLOAT32<<16 | gc.TUINT32:
 		a = arm64.AFCVTZUSW
-		goto rdts
+		goto rdst
 
 	case gc.TFLOAT64<<16 | gc.TUINT32:
 		a = arm64.AFCVTZUDW
-		goto rdts
+		goto rdst
 
 	case gc.TFLOAT32<<16 | gc.TUINT64:
 		a = arm64.AFCVTZUS
-		goto rdts
+		goto rdst
 
 	case gc.TFLOAT64<<16 | gc.TUINT64:
 		a = arm64.AFCVTZUD
-		goto rdts
+		goto rdst
 
 	case gc.TFLOAT32<<16 | gc.TINT16,
 		gc.TFLOAT32<<16 | gc.TINT8,
