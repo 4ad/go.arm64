@@ -279,7 +279,8 @@ func SetBlockProfileRate(rate int) {
 		r = 1 // profile everything
 	} else {
 		// convert ns to cycles, use float64 to prevent overflow during multiplication
-		r = int64(float64(rate) * float64(tickspersecond()) / (1000 * 1000 * 1000))
+		// TODO(aram): re-add float64 here.
+		r = int64(rate) * tickspersecond() / (1000 * 1000 * 1000)
 		if r == 0 {
 			r = 1
 		}
@@ -343,7 +344,8 @@ func (r *StackRecord) Stack() []uintptr {
 // memory profiling rate should do so just once, as early as
 // possible in the execution of the program (for example,
 // at the beginning of main).
-var MemProfileRate int = 512 * 1024
+//var MemProfileRate int = 512 * 1024	//TODO(aram)
+var MemProfileRate int = 0
 
 // A MemProfileRecord describes the live objects allocated
 // by a particular call sequence (stack trace).
