@@ -793,8 +793,7 @@ func optoas(op int, t *gc.Type) int {
 		gc.OLT<<16 | gc.TINT32,
 		gc.OLT<<16 | gc.TINT64:
 		a = arm64.ABLT
-		
-		
+
 	case gc.OLT<<16 | gc.TUINT8,
 		gc.OLT<<16 | gc.TUINT16,
 		gc.OLT<<16 | gc.TUINT32,
@@ -821,25 +820,29 @@ func optoas(op int, t *gc.Type) int {
 		gc.OGT<<16 | gc.TINT16,
 		gc.OGT<<16 | gc.TINT32,
 		gc.OGT<<16 | gc.TINT64,
-		gc.OGT<<16 | gc.TUINT8,
-		gc.OGT<<16 | gc.TUINT16,
-		gc.OGT<<16 | gc.TUINT32,
-		gc.OGT<<16 | gc.TUINT64,
 		gc.OGT<<16 | gc.TFLOAT32,
 		gc.OGT<<16 | gc.TFLOAT64:
 		a = arm64.ABGT
+
+	case gc.OGT<<16 | gc.TUINT8,
+		gc.OGT<<16 | gc.TUINT16,
+		gc.OGT<<16 | gc.TUINT32,
+		gc.OGT<<16 | gc.TUINT64:
+		a = arm64.ABHI
 
 	case gc.OGE<<16 | gc.TINT8,
 		gc.OGE<<16 | gc.TINT16,
 		gc.OGE<<16 | gc.TINT32,
 		gc.OGE<<16 | gc.TINT64,
-		gc.OGE<<16 | gc.TUINT8,
-		gc.OGE<<16 | gc.TUINT16,
-		gc.OGE<<16 | gc.TUINT32,
-		gc.OGE<<16 | gc.TUINT64,
 		gc.OGE<<16 | gc.TFLOAT32,
 		gc.OGE<<16 | gc.TFLOAT64:
 		a = arm64.ABGE
+
+	case gc.OGE<<16 | gc.TUINT8,
+		gc.OGE<<16 | gc.TUINT16,
+		gc.OGE<<16 | gc.TUINT32,
+		gc.OGE<<16 | gc.TUINT64:
+		a = arm64.ABHS
 
 	case gc.OCMP<<16 | gc.TBOOL,
 		gc.OCMP<<16 | gc.TINT8,
@@ -938,6 +941,12 @@ func optoas(op int, t *gc.Type) int {
 		gc.OMINUS<<16 | gc.TUINT64,
 		gc.OMINUS<<16 | gc.TPTR64:
 		a = arm64.ANEG
+
+	case gc.OMINUS<<16 | gc.TFLOAT32:
+		a = arm64.AFNEGS
+
+	case gc.OMINUS<<16 | gc.TFLOAT64:
+		a = arm64.AFNEGD
 
 	case gc.OAND<<16 | gc.TINT8,
 		gc.OAND<<16 | gc.TUINT8,
