@@ -1014,11 +1014,11 @@ func optoas(op int, t *gc.Type) int {
 	//	break;
 
 	case gc.OHMUL<<16 | gc.TINT64:
-		a = arm64.AMULHD
+		a = arm64.ASMULH
 
 	case gc.OHMUL<<16 | gc.TUINT64,
 		gc.OHMUL<<16 | gc.TPTR64:
-		a = arm64.AMULHDU
+		a = arm64.AUMULH
 
 	case gc.OMUL<<16 | gc.TINT8,
 		gc.OMUL<<16 | gc.TINT16,
