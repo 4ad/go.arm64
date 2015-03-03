@@ -89,7 +89,8 @@ func zerorange(p *obj.Prog, frame int64, lo int64, hi int64) *obj.Prog {
 		p = appendpp(p, arm64.AMOVD, obj.TYPE_REG, arm64.REGZERO, 0, obj.TYPE_MEM, arm64.REGRT1, int64(gc.Widthptr))
 		p.Scond = arm64.C_XPRE
 		p1 := p
-		p = appendpp(p, arm64.ACMP, obj.TYPE_REG, arm64.REGRT1, 0, obj.TYPE_REG, arm64.REGRT2, 0)
+		p = appendpp(p, arm64.ACMP, obj.TYPE_REG, arm64.REGRT1, 0, obj.TYPE_NONE, 0, 0)
+		p.Reg = arm64.REGRT2
 		p = appendpp(p, arm64.ABNE, obj.TYPE_NONE, 0, 0, obj.TYPE_BRANCH, 0, 0)
 		gc.Patch(p, p1)
 	}
@@ -209,8 +210,7 @@ func ginscall(f *gc.Node, proc int) {
 		if proc == 2 {
 			gc.Nodreg(&reg, gc.Types[gc.TINT64], arm64.REG_R3)
 			p := gins(arm64.ACMP, &reg, nil)
-			p.To.Type = obj.TYPE_REG
-			p.To.Reg = arm64.REG_R0
+			p.Reg = arm64.REG_R0
 			p = gc.Gbranch(arm64.ABEQ, nil, +1)
 			cgen_ret(nil)
 			gc.Patch(p, gc.Pc)
@@ -491,9 +491,7 @@ func dodiv(op int, nl *gc.Node, nr *gc.Node, res *gc.Node) {
 
 	// Handle divide-by-zero panic.
 	p1 := gins(optoas(gc.OCMP, t), &tr, nil)
-
-	p1.To.Type = obj.TYPE_REG
-	p1.To.Reg = arm64.REGZERO
+	p1.Reg = arm64.REGZERO
 	p1 = gc.Gbranch(optoas(gc.ONE, t), nil, +1)
 	if panicdiv == nil {
 		panicdiv = gc.Sysfunc("panicdivide")
@@ -505,7 +503,7 @@ func dodiv(op int, nl *gc.Node, nr *gc.Node, res *gc.Node) {
 	if check != 0 {
 		var nm1 gc.Node
 		gc.Nodconst(&nm1, t, -1)
-		gins(optoas(gc.OCMP, t), &tr, &nm1)
+		gcmp(optoas(gc.OCMP, t), &tr, &nm1)
 		p1 := gc.Gbranch(optoas(gc.ONE, t), nil, +1)
 		if op == gc.ODIV {
 			// a / (-1) is -a.
@@ -691,7 +689,7 @@ func cgen_shift(op int, bounded bool, nl *gc.Node, nr *gc.Node, res *gc.Node) {
 	// test and fix up large shifts
 	if !bounded {
 		gc.Nodconst(&n3, tcount, nl.Type.Width*8)
-		gins(optoas(gc.OCMP, tcount), &n1, &n3)
+		gcmp(optoas(gc.OCMP, tcount), &n1, &n3)
 		p1 := (*obj.Prog)(gc.Gbranch(optoas(gc.OLT, tcount), nil, +1))
 		if op == gc.ORSH && gc.Issigned[nl.Type.Etype] {
 			gc.Nodconst(&n3, gc.Types[gc.TUINT32], nl.Type.Width*8-1)
@@ -756,7 +754,7 @@ func clearfat(nl *gc.Node) {
 		p.Scond = arm64.C_XPRE
 		pl := (*obj.Prog)(p)
 
-		p = gins(arm64.ACMP, &dst, &end)
+		p = gcmp(arm64.ACMP, &dst, &end)
 		gc.Patch(gc.Gbranch(arm64.ABNE, nil, 0), pl)
 
 		regfree(&end)
@@ -850,8 +848,7 @@ func expandchecks(firstp *obj.Prog) {
 		p1.Pc = 9999
 		p2.Pc = 9999
 		p.As = arm64.ACMP
-		p.To.Type = obj.TYPE_REG
-		p.To.Reg = arm64.REGZERO
+		p.Reg = arm64.REGZERO
 		p1.As = arm64.ABNE
 
 		//p1->from.type = TYPE_CONST;

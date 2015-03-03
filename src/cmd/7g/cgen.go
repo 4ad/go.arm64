@@ -403,7 +403,7 @@ func cgen(n *gc.Node, res *gc.Node) {
 
 			var n2 gc.Node
 			gc.Nodconst(&n2, gc.Types[gc.Tptr], 0)
-			gins(optoas(gc.OCMP, gc.Types[gc.Tptr]), &n1, &n2)
+			gcmp(optoas(gc.OCMP, gc.Types[gc.Tptr]), &n1, &n2)
 			p1 := gc.Gbranch(optoas(gc.OEQ, gc.Types[gc.Tptr]), nil, 0)
 
 			n2 = n1
@@ -444,7 +444,7 @@ func cgen(n *gc.Node, res *gc.Node) {
 
 			var n2 gc.Node
 			gc.Nodconst(&n2, gc.Types[gc.Tptr], 0)
-			gins(optoas(gc.OCMP, gc.Types[gc.Tptr]), &n1, &n2)
+			gcmp(optoas(gc.OCMP, gc.Types[gc.Tptr]), &n1, &n2)
 			p1 := gc.Gbranch(optoas(gc.OEQ, gc.Types[gc.Tptr]), nil, 0)
 
 			n2 = n1
@@ -802,7 +802,7 @@ func agenr(n *gc.Node, a *gc.Node, res *gc.Node) {
 				}
 			}
 
-			gins(optoas(gc.OCMP, gc.Types[gc.TUINT64]), &n2, &n4)
+			gcmp(optoas(gc.OCMP, gc.Types[gc.TUINT64]), &n2, &n4)
 			if n4.Op == gc.OREGISTER {
 				regfree(&n4)
 			}
@@ -1149,7 +1149,7 @@ func bgen(n *gc.Node, true_ bool, likely int, to *obj.Prog) {
 		cgen(n, &n1)
 		var n2 gc.Node
 		gc.Nodconst(&n2, n.Type, 0)
-		gins(optoas(gc.OCMP, n.Type), &n1, &n2)
+		gcmp(optoas(gc.OCMP, n.Type), &n1, &n2)
 		a := arm64.ABNE
 		if !true_ {
 			a = arm64.ABEQ
@@ -1260,7 +1260,7 @@ func bgen(n *gc.Node, true_ bool, likely int, to *obj.Prog) {
 			var n2 gc.Node
 			regalloc(&n2, gc.Types[gc.Tptr], &n1)
 			gmove(&n1, &n2)
-			gins(optoas(gc.OCMP, gc.Types[gc.Tptr]), &n2, &tmp)
+			gcmp(optoas(gc.OCMP, gc.Types[gc.Tptr]), &n2, &tmp)
 			regfree(&n2)
 			gc.Patch(gc.Gbranch(a, gc.Types[gc.Tptr], likely), to)
 			regfree(&n1)
@@ -1283,7 +1283,7 @@ func bgen(n *gc.Node, true_ bool, likely int, to *obj.Prog) {
 			var n2 gc.Node
 			regalloc(&n2, gc.Types[gc.Tptr], &n1)
 			gmove(&n1, &n2)
-			gins(optoas(gc.OCMP, gc.Types[gc.Tptr]), &n2, &tmp)
+			gcmp(optoas(gc.OCMP, gc.Types[gc.Tptr]), &n2, &tmp)
 			regfree(&n2)
 			gc.Patch(gc.Gbranch(a, gc.Types[gc.Tptr], likely), to)
 			regfree(&n1)
@@ -1317,24 +1317,13 @@ func bgen(n *gc.Node, true_ bool, likely int, to *obj.Prog) {
 
 		regalloc(&n1, nl.Type, nil)
 		cgen(nl, &n1)
-
-		// TODO(minux): cmpi does accept 16-bit signed immediate as p->to.
-		// and cmpli accepts 16-bit unsigned immediate.
-		//if(smallintconst(nr)) {
-		//	gins(optoas(OCMP, nr->type), &n1, nr);
-		//	patch(gbranch(optoas(a, nr->type), nr->type, likely), to);
-		//	regfree(&n1);
-		//	break;
-		//}
-
 		regalloc(&n2, nr.Type, nil)
-
 		cgen(nr, &n2)
 
 	cmp:
 		l := &n1
 		r := &n2
-		gins(optoas(gc.OCMP, nr.Type), l, r)
+		gcmp(optoas(gc.OCMP, nr.Type), l, r)
 		if gc.Isfloat[nr.Type.Etype] && (a == gc.OLE || a == gc.OGE) {
 			// To get NaN right, must rewrite x <= y into separate x < y or x = y.
 			switch a {
@@ -1584,7 +1573,7 @@ func sgen(n *gc.Node, ns *gc.Node, w int64) {
 		p.To.Offset = int64(dir)
 		p.Scond = arm64.C_XPRE
 
-		p = gins(arm64.ACMP, &src, &nend)
+		p = gcmp(arm64.ACMP, &src, &nend)
 
 		gc.Patch(gc.Gbranch(arm64.ABNE, nil, 0), ploop)
 		regfree(&nend)

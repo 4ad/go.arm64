@@ -257,7 +257,7 @@ func ginscon2(as int, n2 *gc.Node, c int64) {
 
 	case arm64.ACMP:
 		if -arm64.BIG <= c && c <= arm64.BIG {
-			gins(as, n2, &n1)
+			gcmp(as, n2, &n1)
 			return
 		}
 	}
@@ -724,6 +724,35 @@ func fixlargeoffset(n *gc.Node) {
 		ginscon(optoas(gc.OADD, gc.Types[gc.Tptr]), n.Xoffset, &a)
 		n.Xoffset = 0
 	}
+}
+
+/*
+ * insert n into reg slot of p
+ */
+func raddr(n *gc.Node, p *obj.Prog) {
+	var a obj.Addr
+
+	gc.Naddr(n, &a, 1)
+	if a.Type != obj.TYPE_REG {
+		if n != nil {
+			gc.Fatal("bad in raddr: %v", gc.Oconv(int(n.Op), 0))
+		} else {
+			gc.Fatal("bad in raddr: <null>")
+		}
+		p.Reg = 0
+	} else {
+		p.Reg = a.Reg
+	}
+}
+
+func gcmp(as int, lhs *gc.Node, rhs *gc.Node) *obj.Prog {
+	if lhs.Op != gc.OREGISTER {
+		gc.Fatal("bad operands to gcmp: %v %v", gc.Oconv(int(lhs.Op), 0), gc.Oconv(int(rhs.Op), 0))
+	}
+
+	p := gins(as, rhs, nil)
+	raddr(lhs, p)
+	return p
 }
 
 /*
