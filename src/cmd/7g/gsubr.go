@@ -1012,7 +1012,7 @@ func optoas(op int, t *gc.Type) int {
 		gc.OLSH<<16 | gc.TINT64,
 		gc.OLSH<<16 | gc.TUINT64,
 		gc.OLSH<<16 | gc.TPTR64:
-		a = arm64.ASLD
+		a = arm64.ALSL
 
 	case gc.ORSH<<16 | gc.TUINT8,
 		gc.ORSH<<16 | gc.TUINT16,
