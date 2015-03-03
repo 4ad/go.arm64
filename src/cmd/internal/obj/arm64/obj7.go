@@ -833,7 +833,6 @@ var unaryDst = map[int]bool{
 }
 
 var Linkarm64 = obj.LinkArch{
-	Rconv:      Rconv,
 	ByteOrder:  binary.LittleEndian,
 	Pconv:      Pconv,
 	Name:       "arm64",
