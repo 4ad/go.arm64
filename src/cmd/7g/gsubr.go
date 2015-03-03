@@ -1074,7 +1074,7 @@ func optoas(op int, t *gc.Type) int {
 		gc.ODIV<<16 | gc.TINT16,
 		gc.ODIV<<16 | gc.TINT32,
 		gc.ODIV<<16 | gc.TINT64:
-		a = arm64.ADIVD
+		a = arm64.ASDIV
 
 	case gc.ODIV<<16 | gc.TUINT8,
 		gc.ODIV<<16 | gc.TUINT16,
@@ -1082,7 +1082,7 @@ func optoas(op int, t *gc.Type) int {
 		gc.ODIV<<16 | gc.TPTR32,
 		gc.ODIV<<16 | gc.TUINT64,
 		gc.ODIV<<16 | gc.TPTR64:
-		a = arm64.ADIVDU
+		a = arm64.AUDIV
 
 	case gc.ODIV<<16 | gc.TFLOAT32:
 		a = arm64.AFDIVS
