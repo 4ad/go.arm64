@@ -1088,7 +1088,7 @@ func optoas(op int, t *gc.Type) int {
 		a = arm64.AFDIVS
 
 	case gc.ODIV<<16 | gc.TFLOAT64:
-		a = arm64.AFDIV
+		a = arm64.AFDIVD
 	}
 
 	return a
