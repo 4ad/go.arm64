@@ -250,11 +250,11 @@ func cgen(n *gc.Node, res *gc.Node) {
 		gc.OGE,
 		gc.OGT,
 		gc.ONOT:
-		p1 := gc.Gbranch(arm64.ABR, nil, 0)
+		p1 := gc.Gbranch(arm64.AB, nil, 0)
 
 		p2 := gc.Pc
 		gmove(gc.Nodbool(true), res)
-		p3 := gc.Gbranch(arm64.ABR, nil, 0)
+		p3 := gc.Gbranch(arm64.AB, nil, 0)
 		gc.Patch(p1, gc.Pc)
 		bgen(n, true, 0, p2)
 		gmove(gc.Nodbool(false), res)
@@ -1161,7 +1161,7 @@ func bgen(n *gc.Node, true_ bool, likely int, to *obj.Prog) {
 		// need to ask if it is bool?
 	case gc.OLITERAL:
 		if !true_ == (n.Val.U.Bval == 0) {
-			gc.Patch(gc.Gbranch(arm64.ABR, nil, likely), to)
+			gc.Patch(gc.Gbranch(arm64.AB, nil, likely), to)
 		}
 		return
 
@@ -1218,15 +1218,15 @@ func bgen(n *gc.Node, true_ bool, likely int, to *obj.Prog) {
 		if !true_ {
 			if gc.Isfloat[nr.Type.Etype] {
 				// brcom is not valid on floats when NaN is involved.
-				p1 := gc.Gbranch(arm64.ABR, nil, 0)
+				p1 := gc.Gbranch(arm64.AB, nil, 0)
 
-				p2 := gc.Gbranch(arm64.ABR, nil, 0)
+				p2 := gc.Gbranch(arm64.AB, nil, 0)
 				gc.Patch(p1, gc.Pc)
 				ll := n.Ninit // avoid re-genning ninit
 				n.Ninit = nil
 				bgen(n, true, -likely, p2)
 				n.Ninit = ll
-				gc.Patch(gc.Gbranch(arm64.ABR, nil, 0), to)
+				gc.Patch(gc.Gbranch(arm64.AB, nil, 0), to)
 				gc.Patch(p2, gc.Pc)
 				return
 			}
