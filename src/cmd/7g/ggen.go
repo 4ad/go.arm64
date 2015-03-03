@@ -86,7 +86,8 @@ func zerorange(p *obj.Prog, frame int64, lo int64, hi int64) *obj.Prog {
 		p = appendpp(p, arm64.AMOVD, obj.TYPE_CONST, 0, cnt, obj.TYPE_REG, arm64.REGTMP, 0)
 		p = appendpp(p, arm64.AADD, obj.TYPE_REG, arm64.REGTMP, 0, obj.TYPE_REG, arm64.REGRT2, 0)
 		p.Reg = arm64.REGRT1
-		p = appendpp(p, arm64.AMOVDU, obj.TYPE_REG, arm64.REGZERO, 0, obj.TYPE_MEM, arm64.REGRT1, int64(gc.Widthptr))
+		p = appendpp(p, arm64.AMOVD, obj.TYPE_REG, arm64.REGZERO, 0, obj.TYPE_MEM, arm64.REGRT1, int64(gc.Widthptr))
+		p.Scond = arm64.C_XPRE
 		p1 := p
 		p = appendpp(p, arm64.ACMP, obj.TYPE_REG, arm64.REGRT1, 0, obj.TYPE_REG, arm64.REGRT2, 0)
 		p = appendpp(p, arm64.ABNE, obj.TYPE_NONE, 0, 0, obj.TYPE_BRANCH, 0, 0)
@@ -749,9 +750,10 @@ func clearfat(nl *gc.Node) {
 		p.From.Type = obj.TYPE_ADDR
 		p.From.Offset = int64(q * 8)
 
-		p = gins(arm64.AMOVDU, &r0, &dst)
+		p = gins(arm64.AMOVD, &r0, &dst)
 		p.To.Type = obj.TYPE_MEM
 		p.To.Offset = 8
+		p.Scond = arm64.C_XPRE
 		pl := (*obj.Prog)(p)
 
 		p = gins(arm64.ACMP, &dst, &end)
