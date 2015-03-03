@@ -32,7 +32,7 @@ package main
 
 import (
 	"cmd/internal/obj"
-	"cmd/internal/obj/ppc64"
+	"cmd/internal/obj/arm64"
 	"fmt"
 )
 import "cmd/internal/gc"
@@ -54,7 +54,7 @@ func excise(r *gc.Flow) {
 
 func regtyp(a *obj.Addr) bool {
 	// TODO(rsc): Floating point register exclusions?
-	return a.Type == obj.TYPE_REG && ppc64.REG_R0 <= a.Reg && a.Reg <= ppc64.REG_F31 && a.Reg != ppc64.REGZERO
+	return a.Type == obj.TYPE_REG && arm64.REG_R0 <= a.Reg && a.Reg <= arm64.REG_F31 && a.Reg != arm64.REGZERO
 }
 
 func sameaddr(a *obj.Addr, v *obj.Addr) bool {
@@ -77,5 +77,5 @@ func smallindir(a *obj.Addr, reg *obj.Addr) bool {
 }
 
 func stackaddr(a *obj.Addr) bool {
-	return a.Type == obj.TYPE_REG && a.Reg == ppc64.REGSP
+	return a.Type == obj.TYPE_REG && a.Reg == arm64.REGSP
 }

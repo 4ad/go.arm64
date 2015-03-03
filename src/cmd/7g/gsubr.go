@@ -32,7 +32,7 @@ package main
 
 import (
 	"cmd/internal/obj"
-	"cmd/internal/obj/ppc64"
+	"cmd/internal/obj/arm64"
 	"fmt"
 )
 import "cmd/internal/gc"
@@ -43,35 +43,35 @@ import "cmd/internal/gc"
 var unmappedzero int64 = 4096
 
 var resvd = []int{
-	ppc64.REGZERO,
-	ppc64.REGSP, // reserved for SP
+	arm64.REGZERO,
+	arm64.REGSP, // reserved for SP
 	// We need to preserve the C ABI TLS pointer because sigtramp
 	// may happen during C code and needs to access the g.  C
 	// clobbers REGG, so if Go were to clobber REGTLS, sigtramp
 	// won't know which convention to use.  By preserving REGTLS,
 	// we can just retrieve g from TLS when we aren't sure.
-	ppc64.REGTLS,
+	arm64.REGTLS,
 
 	// TODO(austin): Consolidate REGTLS and REGG?
-	ppc64.REGG,
-	ppc64.REGTMP, // REGTMP
-	ppc64.FREGCVI,
-	ppc64.FREGZERO,
-	ppc64.FREGHALF,
-	ppc64.FREGONE,
-	ppc64.FREGTWO,
+	arm64.REGG,
+	arm64.REGTMP, // REGTMP
+	arm64.FREGCVI,
+	arm64.FREGZERO,
+	arm64.FREGHALF,
+	arm64.FREGONE,
+	arm64.FREGTWO,
 }
 
 func ginit() {
 	for i := 0; i < len(reg); i++ {
 		reg[i] = 1
 	}
-	for i := 0; i < ppc64.NREG+ppc64.NFREG; i++ {
+	for i := 0; i < arm64.NREG+arm64.NFREG; i++ {
 		reg[i] = 0
 	}
 
 	for i := 0; i < len(resvd); i++ {
-		reg[resvd[i]-ppc64.REG_R0]++
+		reg[resvd[i]-arm64.REG_R0]++
 	}
 }
 
@@ -79,12 +79,12 @@ var regpc [len(reg)]uint32
 
 func gclean() {
 	for i := int(0); i < len(resvd); i++ {
-		reg[resvd[i]-ppc64.REG_R0]--
+		reg[resvd[i]-arm64.REG_R0]--
 	}
 
 	for i := int(0); i < len(reg); i++ {
 		if reg[i] != 0 {
-			gc.Yyerror("reg %v left allocated, %p\n", obj.Rconv(i+ppc64.REG_R0), regpc[i])
+			gc.Yyerror("reg %v left allocated, %p\n", obj.Rconv(i+arm64.REG_R0), regpc[i])
 		}
 	}
 }
@@ -122,9 +122,9 @@ func regalloc(n *gc.Node, t *gc.Type, o *gc.Node) {
 	if gc.Debug['r'] != 0 {
 		fixfree := int(0)
 		fltfree := int(0)
-		for i := int(ppc64.REG_R0); i < ppc64.REG_F31; i++ {
-			if reg[i-ppc64.REG_R0] == 0 {
-				if i < ppc64.REG_F0 {
+		for i := int(arm64.REG_R0); i < arm64.REG_F31; i++ {
+			if reg[i-arm64.REG_R0] == 0 {
+				if i < arm64.REG_F0 {
 					fixfree++
 				} else {
 					fltfree++
@@ -150,21 +150,21 @@ func regalloc(n *gc.Node, t *gc.Type, o *gc.Node) {
 		gc.TBOOL:
 		if o != nil && o.Op == gc.OREGISTER {
 			i = int(o.Val.U.Reg)
-			if i >= ppc64.REGMIN && i <= ppc64.REGMAX {
+			if i >= arm64.REGMIN && i <= arm64.REGMAX {
 				goto out
 			}
 		}
 
-		for i = ppc64.REGMIN; i <= ppc64.REGMAX; i++ {
-			if reg[i-ppc64.REG_R0] == 0 {
-				regpc[i-ppc64.REG_R0] = uint32(obj.Getcallerpc(&n))
+		for i = arm64.REGMIN; i <= arm64.REGMAX; i++ {
+			if reg[i-arm64.REG_R0] == 0 {
+				regpc[i-arm64.REG_R0] = uint32(obj.Getcallerpc(&n))
 				goto out
 			}
 		}
 
 		gc.Flusherrors()
-		for i := int(ppc64.REG_R0); i < ppc64.REG_R0+ppc64.NREG; i++ {
-			fmt.Printf("R%d %p\n", i, regpc[i-ppc64.REG_R0])
+		for i := int(arm64.REG_R0); i < arm64.REG_R0+arm64.NREG; i++ {
+			fmt.Printf("R%d %p\n", i, regpc[i-arm64.REG_R0])
 		}
 		gc.Fatal("out of fixed registers")
 
@@ -172,21 +172,21 @@ func regalloc(n *gc.Node, t *gc.Type, o *gc.Node) {
 		gc.TFLOAT64:
 		if o != nil && o.Op == gc.OREGISTER {
 			i = int(o.Val.U.Reg)
-			if i >= ppc64.FREGMIN && i <= ppc64.FREGMAX {
+			if i >= arm64.FREGMIN && i <= arm64.FREGMAX {
 				goto out
 			}
 		}
 
-		for i = ppc64.FREGMIN; i <= ppc64.FREGMAX; i++ {
-			if reg[i-ppc64.REG_R0] == 0 {
-				regpc[i-ppc64.REG_R0] = uint32(obj.Getcallerpc(&n))
+		for i = arm64.FREGMIN; i <= arm64.FREGMAX; i++ {
+			if reg[i-arm64.REG_R0] == 0 {
+				regpc[i-arm64.REG_R0] = uint32(obj.Getcallerpc(&n))
 				goto out
 			}
 		}
 
 		gc.Flusherrors()
-		for i := int(ppc64.REG_F0); i < ppc64.REG_F0+ppc64.NREG; i++ {
-			fmt.Printf("F%d %p\n", i, regpc[i-ppc64.REG_R0])
+		for i := int(arm64.REG_F0); i < arm64.REG_F0+arm64.NREG; i++ {
+			fmt.Printf("F%d %p\n", i, regpc[i-arm64.REG_R0])
 		}
 		gc.Fatal("out of floating registers")
 
@@ -200,7 +200,7 @@ func regalloc(n *gc.Node, t *gc.Type, o *gc.Node) {
 	return
 
 out:
-	reg[i-ppc64.REG_R0]++
+	reg[i-arm64.REG_R0]++
 	gc.Nodreg(n, t, i)
 }
 
@@ -211,8 +211,8 @@ func regfree(n *gc.Node) {
 	if n.Op != gc.OREGISTER && n.Op != gc.OINDREG {
 		gc.Fatal("regfree: not a register")
 	}
-	i := int(int(n.Val.U.Reg) - ppc64.REG_R0)
-	if i == ppc64.REGSP-ppc64.REG_R0 {
+	i := int(int(n.Val.U.Reg) - arm64.REG_R0)
+	if i == arm64.REGSP-arm64.REG_R0 {
 		return
 	}
 	if i < 0 || i >= len(reg) {
@@ -236,13 +236,13 @@ func ginscon(as int, c int64, n2 *gc.Node) {
 
 	gc.Nodconst(&n1, gc.Types[gc.TINT64], c)
 
-	if as != ppc64.AMOVD && (c < -ppc64.BIG || c > ppc64.BIG) {
+	if as != arm64.AMOVD && (c < -arm64.BIG || c > arm64.BIG) {
 		// cannot have more than 16-bit of immediate in ADD, etc.
 		// instead, MOV into register first.
 		var ntmp gc.Node
 		regalloc(&ntmp, gc.Types[gc.TINT64], nil)
 
-		gins(ppc64.AMOVD, &n1, &ntmp)
+		gins(arm64.AMOVD, &n1, &ntmp)
 		gins(as, &ntmp, n2)
 		regfree(&ntmp)
 		return
@@ -264,14 +264,14 @@ func ginscon2(as int, n2 *gc.Node, c int64) {
 	default:
 		gc.Fatal("ginscon2")
 
-	case ppc64.ACMP:
-		if -ppc64.BIG <= c && c <= ppc64.BIG {
+	case arm64.ACMP:
+		if -arm64.BIG <= c && c <= arm64.BIG {
 			gins(as, n2, &n1)
 			return
 		}
 
-	case ppc64.ACMPU:
-		if 0 <= c && c <= 2*ppc64.BIG {
+	case arm64.ACMPU:
+		if 0 <= c && c <= 2*arm64.BIG {
 			gins(as, n2, &n1)
 			return
 		}
@@ -281,7 +281,7 @@ func ginscon2(as int, n2 *gc.Node, c int64) {
 	var ntmp gc.Node
 	regalloc(&ntmp, gc.Types[gc.TINT64], nil)
 
-	gins(ppc64.AMOVD, &n1, &ntmp)
+	gins(arm64.AMOVD, &n1, &ntmp)
 	gins(as, n2, &ntmp)
 	regfree(&ntmp)
 }
@@ -352,7 +352,7 @@ func gmove(f *gc.Node, t *gc.Node) {
 			gc.Convconst(&con, gc.Types[gc.TINT64], &f.Val)
 			var r1 gc.Node
 			regalloc(&r1, con.Type, t)
-			gins(ppc64.AMOVD, &con, &r1)
+			gins(arm64.AMOVD, &con, &r1)
 			gmove(&r1, t)
 			regfree(&r1)
 			return
@@ -364,7 +364,7 @@ func gmove(f *gc.Node, t *gc.Node) {
 			gc.Convconst(&con, gc.Types[gc.TUINT64], &f.Val)
 			var r1 gc.Node
 			regalloc(&r1, con.Type, t)
-			gins(ppc64.AMOVD, &con, &r1)
+			gins(arm64.AMOVD, &con, &r1)
 			gmove(&r1, t)
 			regfree(&r1)
 			return
@@ -418,7 +418,7 @@ func gmove(f *gc.Node, t *gc.Node) {
 		gc.TUINT32<<16 | gc.TINT8,
 		gc.TINT64<<16 | gc.TINT8,
 		gc.TUINT64<<16 | gc.TINT8:
-		a = ppc64.AMOVB
+		a = arm64.AMOVB
 
 	case gc.TINT8<<16 | gc.TUINT8, // same size
 		gc.TUINT8<<16 | gc.TUINT8,
@@ -429,7 +429,7 @@ func gmove(f *gc.Node, t *gc.Node) {
 		gc.TUINT32<<16 | gc.TUINT8,
 		gc.TINT64<<16 | gc.TUINT8,
 		gc.TUINT64<<16 | gc.TUINT8:
-		a = ppc64.AMOVBZ
+		a = arm64.AMOVBZ
 
 	case gc.TINT16<<16 | gc.TINT16, // same size
 		gc.TUINT16<<16 | gc.TINT16,
@@ -438,7 +438,7 @@ func gmove(f *gc.Node, t *gc.Node) {
 		gc.TUINT32<<16 | gc.TINT16,
 		gc.TINT64<<16 | gc.TINT16,
 		gc.TUINT64<<16 | gc.TINT16:
-		a = ppc64.AMOVH
+		a = arm64.AMOVH
 
 	case gc.TINT16<<16 | gc.TUINT16, // same size
 		gc.TUINT16<<16 | gc.TUINT16,
@@ -447,26 +447,26 @@ func gmove(f *gc.Node, t *gc.Node) {
 		gc.TUINT32<<16 | gc.TUINT16,
 		gc.TINT64<<16 | gc.TUINT16,
 		gc.TUINT64<<16 | gc.TUINT16:
-		a = ppc64.AMOVHZ
+		a = arm64.AMOVHZ
 
 	case gc.TINT32<<16 | gc.TINT32, // same size
 		gc.TUINT32<<16 | gc.TINT32,
 		gc.TINT64<<16 | gc.TINT32,
 		// truncate
 		gc.TUINT64<<16 | gc.TINT32:
-		a = ppc64.AMOVW
+		a = arm64.AMOVW
 
 	case gc.TINT32<<16 | gc.TUINT32, // same size
 		gc.TUINT32<<16 | gc.TUINT32,
 		gc.TINT64<<16 | gc.TUINT32,
 		gc.TUINT64<<16 | gc.TUINT32:
-		a = ppc64.AMOVWZ
+		a = arm64.AMOVWZ
 
 	case gc.TINT64<<16 | gc.TINT64, // same size
 		gc.TINT64<<16 | gc.TUINT64,
 		gc.TUINT64<<16 | gc.TINT64,
 		gc.TUINT64<<16 | gc.TUINT64:
-		a = ppc64.AMOVD
+		a = arm64.AMOVD
 
 		/*
 		 * integer up-conversions
@@ -477,7 +477,7 @@ func gmove(f *gc.Node, t *gc.Node) {
 		gc.TINT8<<16 | gc.TUINT32,
 		gc.TINT8<<16 | gc.TINT64,
 		gc.TINT8<<16 | gc.TUINT64:
-		a = ppc64.AMOVB
+		a = arm64.AMOVB
 
 		goto rdst
 
@@ -487,7 +487,7 @@ func gmove(f *gc.Node, t *gc.Node) {
 		gc.TUINT8<<16 | gc.TUINT32,
 		gc.TUINT8<<16 | gc.TINT64,
 		gc.TUINT8<<16 | gc.TUINT64:
-		a = ppc64.AMOVBZ
+		a = arm64.AMOVBZ
 
 		goto rdst
 
@@ -495,7 +495,7 @@ func gmove(f *gc.Node, t *gc.Node) {
 		gc.TINT16<<16 | gc.TUINT32,
 		gc.TINT16<<16 | gc.TINT64,
 		gc.TINT16<<16 | gc.TUINT64:
-		a = ppc64.AMOVH
+		a = arm64.AMOVH
 
 		goto rdst
 
@@ -503,19 +503,19 @@ func gmove(f *gc.Node, t *gc.Node) {
 		gc.TUINT16<<16 | gc.TUINT32,
 		gc.TUINT16<<16 | gc.TINT64,
 		gc.TUINT16<<16 | gc.TUINT64:
-		a = ppc64.AMOVHZ
+		a = arm64.AMOVHZ
 
 		goto rdst
 
 	case gc.TINT32<<16 | gc.TINT64, // sign extend int32
 		gc.TINT32<<16 | gc.TUINT64:
-		a = ppc64.AMOVW
+		a = arm64.AMOVW
 
 		goto rdst
 
 	case gc.TUINT32<<16 | gc.TINT64, // zero extend uint32
 		gc.TUINT32<<16 | gc.TUINT64:
-		a = ppc64.AMOVWZ
+		a = arm64.AMOVWZ
 
 		goto rdst
 
@@ -551,9 +551,9 @@ func gmove(f *gc.Node, t *gc.Node) {
 		if tt == gc.TUINT64 {
 			regalloc(&r2, gc.Types[gc.TFLOAT64], nil)
 			gmove(&bigf, &r2)
-			gins(ppc64.AFCMPU, &r1, &r2)
+			gins(arm64.AFCMPU, &r1, &r2)
 			p1 := (*obj.Prog)(gc.Gbranch(optoas(gc.OLT, gc.Types[gc.TFLOAT64]), nil, +1))
-			gins(ppc64.AFSUB, &r2, &r1)
+			gins(arm64.AFSUB, &r2, &r1)
 			gc.Patch(p1, gc.Pc)
 			regfree(&r2)
 		}
@@ -561,22 +561,22 @@ func gmove(f *gc.Node, t *gc.Node) {
 		regalloc(&r2, gc.Types[gc.TFLOAT64], nil)
 		var r3 gc.Node
 		regalloc(&r3, gc.Types[gc.TINT64], t)
-		gins(ppc64.AFCTIDZ, &r1, &r2)
-		p1 := (*obj.Prog)(gins(ppc64.AFMOVD, &r2, nil))
+		gins(arm64.AFCTIDZ, &r1, &r2)
+		p1 := (*obj.Prog)(gins(arm64.AFMOVD, &r2, nil))
 		p1.To.Type = obj.TYPE_MEM
-		p1.To.Reg = ppc64.REGSP
+		p1.To.Reg = arm64.REGSP
 		p1.To.Offset = -8
-		p1 = gins(ppc64.AMOVD, nil, &r3)
+		p1 = gins(arm64.AMOVD, nil, &r3)
 		p1.From.Type = obj.TYPE_MEM
-		p1.From.Reg = ppc64.REGSP
+		p1.From.Reg = arm64.REGSP
 		p1.From.Offset = -8
 		regfree(&r2)
 		regfree(&r1)
 		if tt == gc.TUINT64 {
 			p1 := (*obj.Prog)(gc.Gbranch(optoas(gc.OLT, gc.Types[gc.TFLOAT64]), nil, +1)) // use CR0 here again
-			gc.Nodreg(&r1, gc.Types[gc.TINT64], ppc64.REGTMP)
-			gins(ppc64.AMOVD, &bigi, &r1)
-			gins(ppc64.AADD, &r1, &r3)
+			gc.Nodreg(&r1, gc.Types[gc.TINT64], arm64.REGTMP)
+			gins(arm64.AMOVD, &bigi, &r1)
+			gins(arm64.AADD, &r1, &r3)
 			gc.Patch(p1, gc.Pc)
 		}
 
@@ -614,31 +614,31 @@ func gmove(f *gc.Node, t *gc.Node) {
 		regalloc(&r1, gc.Types[gc.TINT64], nil)
 		gmove(f, &r1)
 		if ft == gc.TUINT64 {
-			gc.Nodreg(&r2, gc.Types[gc.TUINT64], ppc64.REGTMP)
+			gc.Nodreg(&r2, gc.Types[gc.TUINT64], arm64.REGTMP)
 			gmove(&bigi, &r2)
-			gins(ppc64.ACMPU, &r1, &r2)
+			gins(arm64.ACMPU, &r1, &r2)
 			p1 := (*obj.Prog)(gc.Gbranch(optoas(gc.OLT, gc.Types[gc.TUINT64]), nil, +1))
-			p2 := (*obj.Prog)(gins(ppc64.ASRD, nil, &r1))
+			p2 := (*obj.Prog)(gins(arm64.ASRD, nil, &r1))
 			p2.From.Type = obj.TYPE_CONST
 			p2.From.Offset = 1
 			gc.Patch(p1, gc.Pc)
 		}
 
 		regalloc(&r2, gc.Types[gc.TFLOAT64], t)
-		p1 := (*obj.Prog)(gins(ppc64.AMOVD, &r1, nil))
+		p1 := (*obj.Prog)(gins(arm64.AMOVD, &r1, nil))
 		p1.To.Type = obj.TYPE_MEM
-		p1.To.Reg = ppc64.REGSP
+		p1.To.Reg = arm64.REGSP
 		p1.To.Offset = -8
-		p1 = gins(ppc64.AFMOVD, nil, &r2)
+		p1 = gins(arm64.AFMOVD, nil, &r2)
 		p1.From.Type = obj.TYPE_MEM
-		p1.From.Reg = ppc64.REGSP
+		p1.From.Reg = arm64.REGSP
 		p1.From.Offset = -8
-		gins(ppc64.AFCFID, &r2, &r2)
+		gins(arm64.AFCFID, &r2, &r2)
 		regfree(&r1)
 		if ft == gc.TUINT64 {
 			p1 := (*obj.Prog)(gc.Gbranch(optoas(gc.OLT, gc.Types[gc.TUINT64]), nil, +1)) // use CR0 here again
-			gc.Nodreg(&r1, gc.Types[gc.TFLOAT64], ppc64.FREGTWO)
-			gins(ppc64.AFMUL, &r1, &r2)
+			gc.Nodreg(&r1, gc.Types[gc.TFLOAT64], arm64.FREGTWO)
+			gins(arm64.AFMUL, &r1, &r2)
 			gc.Patch(p1, gc.Pc)
 		}
 
@@ -650,17 +650,17 @@ func gmove(f *gc.Node, t *gc.Node) {
 		 * float to float
 		 */
 	case gc.TFLOAT32<<16 | gc.TFLOAT32:
-		a = ppc64.AFMOVS
+		a = arm64.AFMOVS
 
 	case gc.TFLOAT64<<16 | gc.TFLOAT64:
-		a = ppc64.AFMOVD
+		a = arm64.AFMOVD
 
 	case gc.TFLOAT32<<16 | gc.TFLOAT64:
-		a = ppc64.AFMOVS
+		a = arm64.AFMOVS
 		goto rdst
 
 	case gc.TFLOAT64<<16 | gc.TFLOAT32:
-		a = ppc64.AFRSP
+		a = arm64.AFRSP
 		goto rdst
 	}
 
@@ -716,26 +716,26 @@ func gins(as int, f *gc.Node, t *gc.Node) *obj.Prog {
 
 	w := int32(0)
 	switch as {
-	case ppc64.AMOVB,
-		ppc64.AMOVBU,
-		ppc64.AMOVBZ,
-		ppc64.AMOVBZU:
+	case arm64.AMOVB,
+		arm64.AMOVBU,
+		arm64.AMOVBZ,
+		arm64.AMOVBZU:
 		w = 1
 
-	case ppc64.AMOVH,
-		ppc64.AMOVHU,
-		ppc64.AMOVHZ,
-		ppc64.AMOVHZU:
+	case arm64.AMOVH,
+		arm64.AMOVHU,
+		arm64.AMOVHZ,
+		arm64.AMOVHZU:
 		w = 2
 
-	case ppc64.AMOVW,
-		ppc64.AMOVWU,
-		ppc64.AMOVWZ,
-		ppc64.AMOVWZU:
+	case arm64.AMOVW,
+		arm64.AMOVWU,
+		arm64.AMOVWZ,
+		arm64.AMOVWZU:
 		w = 4
 
-	case ppc64.AMOVD,
-		ppc64.AMOVDU:
+	case arm64.AMOVD,
+		arm64.AMOVDU:
 		if af.Type == obj.TYPE_CONST || af.Type == obj.TYPE_ADDR {
 			break
 		}
@@ -758,7 +758,7 @@ func fixlargeoffset(n *gc.Node) {
 	if n.Op != gc.OINDREG {
 		return
 	}
-	if n.Val.U.Reg == ppc64.REGSP { // stack offset cannot be large
+	if n.Val.U.Reg == arm64.REGSP { // stack offset cannot be large
 		return
 	}
 	if n.Xoffset != int64(int32(n.Xoffset)) {
@@ -802,7 +802,7 @@ func optoas(op int, t *gc.Type) int {
 		gc.OEQ<<16 | gc.TPTR64,
 		gc.OEQ<<16 | gc.TFLOAT32,
 		gc.OEQ<<16 | gc.TFLOAT64:
-		a = ppc64.ABEQ
+		a = arm64.ABEQ
 
 	case gc.ONE<<16 | gc.TBOOL,
 		gc.ONE<<16 | gc.TINT8,
@@ -817,7 +817,7 @@ func optoas(op int, t *gc.Type) int {
 		gc.ONE<<16 | gc.TPTR64,
 		gc.ONE<<16 | gc.TFLOAT32,
 		gc.ONE<<16 | gc.TFLOAT64:
-		a = ppc64.ABNE
+		a = arm64.ABNE
 
 	case gc.OLT<<16 | gc.TINT8, // ACMP
 		gc.OLT<<16 | gc.TINT16,
@@ -831,7 +831,7 @@ func optoas(op int, t *gc.Type) int {
 		gc.OLT<<16 | gc.TFLOAT32,
 		// AFCMPU
 		gc.OLT<<16 | gc.TFLOAT64:
-		a = ppc64.ABLT
+		a = arm64.ABLT
 
 	case gc.OLE<<16 | gc.TINT8, // ACMP
 		gc.OLE<<16 | gc.TINT16,
@@ -845,7 +845,7 @@ func optoas(op int, t *gc.Type) int {
 		gc.OLE<<16 | gc.TFLOAT32,
 		// AFCMPU
 		gc.OLE<<16 | gc.TFLOAT64:
-		a = ppc64.ABLE
+		a = arm64.ABLE
 
 	case gc.OGT<<16 | gc.TINT8,
 		gc.OGT<<16 | gc.TINT16,
@@ -857,7 +857,7 @@ func optoas(op int, t *gc.Type) int {
 		gc.OGT<<16 | gc.TUINT64,
 		gc.OGT<<16 | gc.TFLOAT32,
 		gc.OGT<<16 | gc.TFLOAT64:
-		a = ppc64.ABGT
+		a = arm64.ABGT
 
 	case gc.OGE<<16 | gc.TINT8,
 		gc.OGE<<16 | gc.TINT16,
@@ -869,7 +869,7 @@ func optoas(op int, t *gc.Type) int {
 		gc.OGE<<16 | gc.TUINT64,
 		gc.OGE<<16 | gc.TFLOAT32,
 		gc.OGE<<16 | gc.TFLOAT64:
-		a = ppc64.ABGE
+		a = arm64.ABGE
 
 	case gc.OCMP<<16 | gc.TBOOL,
 		gc.OCMP<<16 | gc.TINT8,
@@ -877,49 +877,49 @@ func optoas(op int, t *gc.Type) int {
 		gc.OCMP<<16 | gc.TINT32,
 		gc.OCMP<<16 | gc.TPTR32,
 		gc.OCMP<<16 | gc.TINT64:
-		a = ppc64.ACMP
+		a = arm64.ACMP
 
 	case gc.OCMP<<16 | gc.TUINT8,
 		gc.OCMP<<16 | gc.TUINT16,
 		gc.OCMP<<16 | gc.TUINT32,
 		gc.OCMP<<16 | gc.TUINT64,
 		gc.OCMP<<16 | gc.TPTR64:
-		a = ppc64.ACMPU
+		a = arm64.ACMPU
 
 	case gc.OCMP<<16 | gc.TFLOAT32,
 		gc.OCMP<<16 | gc.TFLOAT64:
-		a = ppc64.AFCMPU
+		a = arm64.AFCMPU
 
 	case gc.OAS<<16 | gc.TBOOL,
 		gc.OAS<<16 | gc.TINT8:
-		a = ppc64.AMOVB
+		a = arm64.AMOVB
 
 	case gc.OAS<<16 | gc.TUINT8:
-		a = ppc64.AMOVBZ
+		a = arm64.AMOVBZ
 
 	case gc.OAS<<16 | gc.TINT16:
-		a = ppc64.AMOVH
+		a = arm64.AMOVH
 
 	case gc.OAS<<16 | gc.TUINT16:
-		a = ppc64.AMOVHZ
+		a = arm64.AMOVHZ
 
 	case gc.OAS<<16 | gc.TINT32:
-		a = ppc64.AMOVW
+		a = arm64.AMOVW
 
 	case gc.OAS<<16 | gc.TUINT32,
 		gc.OAS<<16 | gc.TPTR32:
-		a = ppc64.AMOVWZ
+		a = arm64.AMOVWZ
 
 	case gc.OAS<<16 | gc.TINT64,
 		gc.OAS<<16 | gc.TUINT64,
 		gc.OAS<<16 | gc.TPTR64:
-		a = ppc64.AMOVD
+		a = arm64.AMOVD
 
 	case gc.OAS<<16 | gc.TFLOAT32:
-		a = ppc64.AFMOVS
+		a = arm64.AFMOVS
 
 	case gc.OAS<<16 | gc.TFLOAT64:
-		a = ppc64.AFMOVD
+		a = arm64.AFMOVD
 
 	case gc.OADD<<16 | gc.TINT8,
 		gc.OADD<<16 | gc.TUINT8,
@@ -931,13 +931,13 @@ func optoas(op int, t *gc.Type) int {
 		gc.OADD<<16 | gc.TINT64,
 		gc.OADD<<16 | gc.TUINT64,
 		gc.OADD<<16 | gc.TPTR64:
-		a = ppc64.AADD
+		a = arm64.AADD
 
 	case gc.OADD<<16 | gc.TFLOAT32:
-		a = ppc64.AFADDS
+		a = arm64.AFADDS
 
 	case gc.OADD<<16 | gc.TFLOAT64:
-		a = ppc64.AFADD
+		a = arm64.AFADD
 
 	case gc.OSUB<<16 | gc.TINT8,
 		gc.OSUB<<16 | gc.TUINT8,
@@ -949,13 +949,13 @@ func optoas(op int, t *gc.Type) int {
 		gc.OSUB<<16 | gc.TINT64,
 		gc.OSUB<<16 | gc.TUINT64,
 		gc.OSUB<<16 | gc.TPTR64:
-		a = ppc64.ASUB
+		a = arm64.ASUB
 
 	case gc.OSUB<<16 | gc.TFLOAT32:
-		a = ppc64.AFSUBS
+		a = arm64.AFSUBS
 
 	case gc.OSUB<<16 | gc.TFLOAT64:
-		a = ppc64.AFSUB
+		a = arm64.AFSUB
 
 	case gc.OMINUS<<16 | gc.TINT8,
 		gc.OMINUS<<16 | gc.TUINT8,
@@ -967,7 +967,7 @@ func optoas(op int, t *gc.Type) int {
 		gc.OMINUS<<16 | gc.TINT64,
 		gc.OMINUS<<16 | gc.TUINT64,
 		gc.OMINUS<<16 | gc.TPTR64:
-		a = ppc64.ANEG
+		a = arm64.ANEG
 
 	case gc.OAND<<16 | gc.TINT8,
 		gc.OAND<<16 | gc.TUINT8,
@@ -979,7 +979,7 @@ func optoas(op int, t *gc.Type) int {
 		gc.OAND<<16 | gc.TINT64,
 		gc.OAND<<16 | gc.TUINT64,
 		gc.OAND<<16 | gc.TPTR64:
-		a = ppc64.AAND
+		a = arm64.AAND
 
 	case gc.OOR<<16 | gc.TINT8,
 		gc.OOR<<16 | gc.TUINT8,
@@ -991,7 +991,7 @@ func optoas(op int, t *gc.Type) int {
 		gc.OOR<<16 | gc.TINT64,
 		gc.OOR<<16 | gc.TUINT64,
 		gc.OOR<<16 | gc.TPTR64:
-		a = ppc64.AOR
+		a = arm64.AOR
 
 	case gc.OXOR<<16 | gc.TINT8,
 		gc.OXOR<<16 | gc.TUINT8,
@@ -1003,7 +1003,7 @@ func optoas(op int, t *gc.Type) int {
 		gc.OXOR<<16 | gc.TINT64,
 		gc.OXOR<<16 | gc.TUINT64,
 		gc.OXOR<<16 | gc.TPTR64:
-		a = ppc64.AXOR
+		a = arm64.AXOR
 
 		// TODO(minux): handle rotates
 	//case CASE(OLROT, TINT8):
@@ -1029,7 +1029,7 @@ func optoas(op int, t *gc.Type) int {
 		gc.OLSH<<16 | gc.TINT64,
 		gc.OLSH<<16 | gc.TUINT64,
 		gc.OLSH<<16 | gc.TPTR64:
-		a = ppc64.ASLD
+		a = arm64.ASLD
 
 	case gc.ORSH<<16 | gc.TUINT8,
 		gc.ORSH<<16 | gc.TUINT16,
@@ -1037,13 +1037,13 @@ func optoas(op int, t *gc.Type) int {
 		gc.ORSH<<16 | gc.TPTR32,
 		gc.ORSH<<16 | gc.TUINT64,
 		gc.ORSH<<16 | gc.TPTR64:
-		a = ppc64.ASRD
+		a = arm64.ASRD
 
 	case gc.ORSH<<16 | gc.TINT8,
 		gc.ORSH<<16 | gc.TINT16,
 		gc.ORSH<<16 | gc.TINT32,
 		gc.ORSH<<16 | gc.TINT64:
-		a = ppc64.ASRAD
+		a = arm64.ASRAD
 
 		// TODO(minux): handle rotates
 	//case CASE(ORROTC, TINT8):
@@ -1058,17 +1058,17 @@ func optoas(op int, t *gc.Type) int {
 	//	break;
 
 	case gc.OHMUL<<16 | gc.TINT64:
-		a = ppc64.AMULHD
+		a = arm64.AMULHD
 
 	case gc.OHMUL<<16 | gc.TUINT64,
 		gc.OHMUL<<16 | gc.TPTR64:
-		a = ppc64.AMULHDU
+		a = arm64.AMULHDU
 
 	case gc.OMUL<<16 | gc.TINT8,
 		gc.OMUL<<16 | gc.TINT16,
 		gc.OMUL<<16 | gc.TINT32,
 		gc.OMUL<<16 | gc.TINT64:
-		a = ppc64.AMULLD
+		a = arm64.AMULLD
 
 	case gc.OMUL<<16 | gc.TUINT8,
 		gc.OMUL<<16 | gc.TUINT16,
@@ -1078,20 +1078,20 @@ func optoas(op int, t *gc.Type) int {
 		// fallthrough
 		gc.OMUL<<16 | gc.TUINT64,
 		gc.OMUL<<16 | gc.TPTR64:
-		a = ppc64.AMULLD
+		a = arm64.AMULLD
 		// for 64-bit multiplies, signedness doesn't matter.
 
 	case gc.OMUL<<16 | gc.TFLOAT32:
-		a = ppc64.AFMULS
+		a = arm64.AFMULS
 
 	case gc.OMUL<<16 | gc.TFLOAT64:
-		a = ppc64.AFMUL
+		a = arm64.AFMUL
 
 	case gc.ODIV<<16 | gc.TINT8,
 		gc.ODIV<<16 | gc.TINT16,
 		gc.ODIV<<16 | gc.TINT32,
 		gc.ODIV<<16 | gc.TINT64:
-		a = ppc64.ADIVD
+		a = arm64.ADIVD
 
 	case gc.ODIV<<16 | gc.TUINT8,
 		gc.ODIV<<16 | gc.TUINT16,
@@ -1099,13 +1099,13 @@ func optoas(op int, t *gc.Type) int {
 		gc.ODIV<<16 | gc.TPTR32,
 		gc.ODIV<<16 | gc.TUINT64,
 		gc.ODIV<<16 | gc.TPTR64:
-		a = ppc64.ADIVDU
+		a = arm64.ADIVDU
 
 	case gc.ODIV<<16 | gc.TFLOAT32:
-		a = ppc64.AFDIVS
+		a = arm64.AFDIVS
 
 	case gc.ODIV<<16 | gc.TFLOAT64:
-		a = ppc64.AFDIV
+		a = arm64.AFDIV
 	}
 
 	return a

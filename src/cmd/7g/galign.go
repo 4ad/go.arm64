@@ -6,23 +6,23 @@ package main
 
 import (
 	"cmd/internal/obj"
-	"cmd/internal/obj/ppc64"
+	"cmd/internal/obj/arm64"
 )
 import "cmd/internal/gc"
 
 var thechar int = '9'
 
-var thestring string = "ppc64"
+var thestring string = "arm64"
 
 var thelinkarch *obj.LinkArch
 
 func linkarchinit() {
 	thestring = obj.Getgoarch()
 	gc.Thearch.Thestring = thestring
-	if thestring == "ppc64le" {
-		thelinkarch = &ppc64.Linkppc64le
+	if thestring == "arm64le" {
+		thelinkarch = &arm64.Linkarm64le
 	} else {
-		thelinkarch = &ppc64.Linkppc64
+		thelinkarch = &arm64.Linkarm64
 	}
 	gc.Thearch.Thelinkarch = thelinkarch
 }
@@ -51,8 +51,8 @@ func main() {
 	gc.Thearch.Thestring = thestring
 	gc.Thearch.Thelinkarch = thelinkarch
 	gc.Thearch.Typedefs = typedefs
-	gc.Thearch.REGSP = ppc64.REGSP
-	gc.Thearch.REGCTXT = ppc64.REGCTXT
+	gc.Thearch.REGSP = arm64.REGSP
+	gc.Thearch.REGCTXT = arm64.REGCTXT
 	gc.Thearch.MAXWIDTH = MAXWIDTH
 	gc.Thearch.Anyregalloc = anyregalloc
 	gc.Thearch.Betypeinit = betypeinit
