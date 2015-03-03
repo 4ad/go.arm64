@@ -363,21 +363,13 @@ func gmove(f *gc.Node, t *gc.Node) {
 		}
 	}
 
-	// float constants come from memory.
-	//if(isfloat[tt])
-	//	goto hard;
-
-	// 64-bit immediates are also from memory.
-	//if(isint[tt])
-	//	goto hard;
-	//// 64-bit immediates are really 32-bit sign-extended
-	//// unless moving into a register.
-	//if(isint[tt]) {
-	//	if(mpcmpfixfix(con.val.u.xval, minintval[TINT32]) < 0)
-	//		goto hard;
-	//	if(mpcmpfixfix(con.val.u.xval, maxintval[TINT32]) > 0)
-	//		goto hard;
-	//}
+	// value -> value copy, first operand in memory.
+	// any floating point operand requires register
+	// src, so goto hard to copy to register first.
+	if (gc.Ismem(f) && ft != tt && (gc.Isfloat[ft] || gc.Isfloat[tt])) {
+		cvt = gc.Types[ft]
+		goto hard
+	}
 
 	// value -> value copy, only one memory operand.
 	// figure out the instruction to use.
@@ -502,8 +494,6 @@ func gmove(f *gc.Node, t *gc.Node) {
 		a = arm64.AMOVWU
 
 		goto rdst
-
-		//warn("gmove: convert float to int not implemented: %N -> %N\n", f, t);
 
 	/*
 	* float to integer
