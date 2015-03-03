@@ -920,7 +920,7 @@ func optoas(op int, t *gc.Type) int {
 		a = arm64.AFADDS
 
 	case gc.OADD<<16 | gc.TFLOAT64:
-		a = arm64.AFADD
+		a = arm64.AFADDD
 
 	case gc.OSUB<<16 | gc.TINT8,
 		gc.OSUB<<16 | gc.TUINT8,
