@@ -280,20 +280,10 @@ func cgen(n *gc.Node, res *gc.Node) {
 		return
 
 	case gc.OMINUS:
-		if gc.Isfloat[nl.Type.Etype] {
-			nr = gc.Nodintconst(-1)
-			gc.Convlit(&nr, n.Type)
-			a = optoas(gc.OMUL, nl.Type)
-			goto sbop
-		}
-
-		a := optoas(int(n.Op), nl.Type)
-		// unary
 		var n1 gc.Node
-		regalloc(&n1, nl.Type, res)
-
+		regalloc(&n1, nl.Type, nil)
 		cgen(nl, &n1)
-		gins(a, nil, &n1)
+		gins(optoas(gc.OMINUS, nl.Type), &n1, &n1)
 		gmove(&n1, res)
 		regfree(&n1)
 		return
@@ -1566,6 +1556,7 @@ func sgen(n *gc.Node, ns *gc.Node, w int64) {
 		p := gins(op, &src, &tmp)
 		p.From.Type = obj.TYPE_MEM
 		p.From.Offset = int64(dir)
+		p.Scond = arm64.C_XPRE
 		ploop := p
 
 		p = gins(op, &tmp, &dst)
