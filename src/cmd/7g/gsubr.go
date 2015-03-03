@@ -271,31 +271,6 @@ func ginscon2(as int, n2 *gc.Node, c int64) {
 }
 
 /*
- * set up nodes representing 2^63
- */
-var bigi gc.Node
-
-var bigf gc.Node
-
-var bignodes_did int
-
-func bignodes() {
-	if bignodes_did != 0 {
-		return
-	}
-	bignodes_did = 1
-
-	gc.Nodconst(&bigi, gc.Types[gc.TUINT64], 1)
-	gc.Mpshiftfix(bigi.Val.U.Xval, 63)
-
-	bigf = bigi
-	bigf.Type = gc.Types[gc.TFLOAT64]
-	bigf.Val.Ctype = gc.CTFLT
-	bigf.Val.U.Fval = new(gc.Mpflt)
-	gc.Mpmovefixflt(bigf.Val.U.Fval, bigi.Val.U.Xval)
-}
-
-/*
  * generate move:
  *	t = f
  * hard part is conversions.
