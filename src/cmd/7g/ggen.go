@@ -113,20 +113,6 @@ func appendpp(p *obj.Prog, as int, ftype int, freg int, foffset int64, ttype int
 }
 
 /*
- * generate: BL reg, f
- * where both reg and f are registers.
- * On power, f must be moved to CTR first.
- */
-func ginsBL(reg *gc.Node, f *gc.Node) {
-	p := gins(arm64.AMOVD, f, nil)
-	p.To.Type = obj.TYPE_REG
-	p.To.Reg = arm64.REG_CTR
-	p = gins(arm64.ABL, reg, nil)
-	p.To.Type = obj.TYPE_REG
-	p.To.Reg = arm64.REG_CTR
-}
-
-/*
  * generate:
  *	call f
  *	proc=-1	normal call but no return
@@ -183,10 +169,10 @@ func ginscall(f *gc.Node, proc int) {
 		reg.Op = gc.OINDREG
 		gmove(&reg, &r1)
 		reg.Op = gc.OREGISTER
-		ginsBL(&reg, &r1)
+		gins(arm64.ABL, nil, &r1)
 
 	case 3: // normal call of c function pointer
-		ginsBL(nil, f)
+		gins(arm64.ABL, nil, f)
 
 	case 1, // call in new proc (go)
 		2: // deferred call (defer)
