@@ -167,11 +167,11 @@ func ginscall(f *gc.Node, proc int) {
 		var reg gc.Node
 		gc.Nodreg(&reg, gc.Types[gc.Tptr], arm64.REGCTXT)
 		var r1 gc.Node
-		gc.Nodreg(&r1, gc.Types[gc.Tptr], arm64.REG_R3)
+		gc.Nodreg(&r1, gc.Types[gc.Tptr], arm64.REGRT1)
 		gmove(f, &reg)
 		reg.Op = gc.OINDREG
 		gmove(&reg, &r1)
-		reg.Op = gc.OREGISTER
+		reg.Op = gc.OINDREG
 		gins(arm64.ABL, nil, &r1)
 
 	case 3: // normal call of c function pointer
@@ -183,9 +183,9 @@ func ginscall(f *gc.Node, proc int) {
 		gc.Nodconst(&con, gc.Types[gc.TINT64], int64(gc.Argsize(f.Type)))
 
 		var reg gc.Node
-		gc.Nodreg(&reg, gc.Types[gc.TINT64], arm64.REG_R3)
+		gc.Nodreg(&reg, gc.Types[gc.TINT64], arm64.REGRT1)
 		var reg2 gc.Node
-		gc.Nodreg(&reg2, gc.Types[gc.TINT64], arm64.REG_R4)
+		gc.Nodreg(&reg2, gc.Types[gc.TINT64], arm64.REGRT2)
 		gmove(f, &reg)
 
 		gmove(&con, &reg2)
@@ -209,9 +209,9 @@ func ginscall(f *gc.Node, proc int) {
 		}
 
 		if proc == 2 {
-			gc.Nodreg(&reg, gc.Types[gc.TINT64], arm64.REG_R3)
+			gc.Nodreg(&reg, gc.Types[gc.TINT64], arm64.REG_R0) // R0 should match runtime.return0
 			p := gins(arm64.ACMP, &reg, nil)
-			p.Reg = arm64.REG_R0
+			p.Reg = arm64.REGZERO
 			p = gc.Gbranch(arm64.ABEQ, nil, +1)
 			cgen_ret(nil)
 			gc.Patch(p, gc.Pc)
