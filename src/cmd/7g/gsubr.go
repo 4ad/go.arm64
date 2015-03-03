@@ -623,7 +623,7 @@ func gmove(f *gc.Node, t *gc.Node) {
 		if ft == gc.TUINT64 {
 			p1 := (*obj.Prog)(gc.Gbranch(optoas(gc.OLT, gc.Types[gc.TUINT64]), nil, +1)) // use CR0 here again
 			gc.Nodreg(&r1, gc.Types[gc.TFLOAT64], arm64.FREGTWO)
-			gins(arm64.AFMUL, &r1, &r2)
+			gins(arm64.AFMULD, &r1, &r2)
 			gc.Patch(p1, gc.Pc)
 		}
 
@@ -1068,7 +1068,7 @@ func optoas(op int, t *gc.Type) int {
 		a = arm64.AFMULS
 
 	case gc.OMUL<<16 | gc.TFLOAT64:
-		a = arm64.AFMUL
+		a = arm64.AFMULD
 
 	case gc.ODIV<<16 | gc.TINT8,
 		gc.ODIV<<16 | gc.TINT16,
