@@ -609,7 +609,7 @@ func gmove(f *gc.Node, t *gc.Node) {
 			gmove(&bigi, &r2)
 			gins(arm64.ACMPU, &r1, &r2)
 			p1 := (*obj.Prog)(gc.Gbranch(optoas(gc.OLT, gc.Types[gc.TUINT64]), nil, +1))
-			p2 := (*obj.Prog)(gins(arm64.ASRD, nil, &r1))
+			p2 := (*obj.Prog)(gins(arm64.ALSR, nil, &r1))
 			p2.From.Type = obj.TYPE_CONST
 			p2.From.Offset = 1
 			gc.Patch(p1, gc.Pc)
@@ -1028,13 +1028,13 @@ func optoas(op int, t *gc.Type) int {
 		gc.ORSH<<16 | gc.TPTR32,
 		gc.ORSH<<16 | gc.TUINT64,
 		gc.ORSH<<16 | gc.TPTR64:
-		a = arm64.ASRD
+		a = arm64.ALSR
 
 	case gc.ORSH<<16 | gc.TINT8,
 		gc.ORSH<<16 | gc.TINT16,
 		gc.ORSH<<16 | gc.TINT32,
 		gc.ORSH<<16 | gc.TINT64:
-		a = arm64.ASRAD
+		a = arm64.AASR
 
 		// TODO(minux): handle rotates
 	//case CASE(ORROTC, TINT8):
