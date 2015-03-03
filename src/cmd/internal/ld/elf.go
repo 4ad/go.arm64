@@ -1645,7 +1645,7 @@ func doelf() {
 			Addstring(shstrtab, ".rela.gopclntab")
 			Addstring(shstrtab, ".rela.noptrdata")
 			Addstring(shstrtab, ".rela.data")
-		
+
 		default:
 			Addstring(shstrtab, ".rel.text")
 			Addstring(shstrtab, ".rel.rodata")

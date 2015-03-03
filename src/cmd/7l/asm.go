@@ -95,7 +95,7 @@ func archreloc(r *ld.Reloc, s *ld.LSym, val *int64) int {
 		return 0
 
 	case ld.R_CALLARM64:
-		*val = int64((0xfc000000 & uint32(r.Add)) | uint32((ld.Symaddr(r.Sym) + r.Add * 4 - (s.Value + int64(r.Off))) / 4))
+		*val = int64((0xfc000000 & uint32(r.Add)) | uint32((ld.Symaddr(r.Sym)+r.Add*4-(s.Value+int64(r.Off)))/4))
 		return 0
 	}
 
