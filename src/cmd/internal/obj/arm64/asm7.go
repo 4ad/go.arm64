@@ -1809,7 +1809,8 @@ func buildop(ctxt *obj.Link) {
 			oprange[ASHA256H2] = t
 			oprange[ASHA256SU1] = t
 
-		case obj.AUNDEF,
+		case obj.ANOP,
+			obj.AUNDEF,
 			obj.AUSEFIELD,
 			obj.AFUNCDATA,
 			obj.APCDATA,
