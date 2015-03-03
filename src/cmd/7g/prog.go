@@ -120,6 +120,7 @@ var progtable = [arm64.ALAST]gc.ProgInfo{
 	arm64.ABHI:    gc.ProgInfo{gc.Cjmp, 0, 0, 0},
 	arm64.ABHS:    gc.ProgInfo{gc.Cjmp, 0, 0, 0},
 	arm64.ARETURN: gc.ProgInfo{gc.Break, 0, 0, 0},
+	obj.ARET: gc.ProgInfo{gc.Break, 0, 0, 0},
 	obj.ADUFFZERO: gc.ProgInfo{gc.Call, 0, 0, 0},
 	obj.ADUFFCOPY: gc.ProgInfo{gc.Call, 0, 0, 0},
 }

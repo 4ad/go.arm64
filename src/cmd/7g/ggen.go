@@ -419,7 +419,7 @@ func cgen_ret(n *gc.Node) {
 		ginscall(gc.Deferreturn, 0)
 	}
 	gc.Genlist(gc.Curfn.Exit)
-	p := gins(obj.ARET, nil, nil)
+	p := gins(arm64.ARETURN, nil, nil)
 	if n != nil && n.Op == gc.ORETJMP {
 		p.To.Name = obj.NAME_EXTERN
 		p.To.Type = obj.TYPE_ADDR
