@@ -672,22 +672,16 @@ func fixlargeoffset(n *gc.Node) {
 	if n.Op != gc.OINDREG {
 		return
 	}
-	if n.Val.U.Reg == arm64.REGSP { // stack offset cannot be large
+	if -4096 <= n.Xoffset && n.Xoffset < 4096 {
 		return
 	}
-	if n.Xoffset != int64(int32(n.Xoffset)) {
-		// TODO(minux): offset too large, move into R31 and add to R31 instead.
-		// this is used only in test/fixedbugs/issue6036.go.
-		gc.Fatal("offset too large: %v", gc.Nconv(n, 0))
-
-		a := gc.Node(*n)
-		a.Op = gc.OREGISTER
-		a.Type = gc.Types[gc.Tptr]
-		a.Xoffset = 0
-		gc.Cgen_checknil(&a)
-		ginscon(optoas(gc.OADD, gc.Types[gc.Tptr]), n.Xoffset, &a)
-		n.Xoffset = 0
-	}
+	a := gc.Node(*n)
+	a.Op = gc.OREGISTER
+	a.Type = gc.Types[gc.Tptr]
+	a.Xoffset = 0
+	gc.Cgen_checknil(&a)
+	ginscon(optoas(gc.OADD, gc.Types[gc.Tptr]), n.Xoffset, &a)
+	n.Xoffset = 0
 }
 
 /*
