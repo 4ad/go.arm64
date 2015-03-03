@@ -62,12 +62,12 @@ package main
 // THE SOFTWARE.
 
 const (
-	thechar   = '9'
+	thechar   = '7'
 	PtrSize   = 8
 	IntSize   = 8
 	RegSize   = 8
 	MaxAlign  = 32
-	FuncAlign = 8
+	FuncAlign = 16
 	MINLC     = 4
 )
 
