@@ -38,6 +38,7 @@ var progtable = [arm64.ALAST]gc.ProgInfo{
 	// NOP is an internal no-op that also stands
 	// for USED and SET annotations, not the Power opcode.
 	obj.ANOP: gc.ProgInfo{gc.LeftRead | gc.RightWrite, 0, 0, 0},
+	arm64.AHINT: gc.ProgInfo{gc.OK, 0, 0, 0},
 
 	// Integer
 	arm64.AADD:    gc.ProgInfo{gc.SizeQ | gc.LeftRead | gc.RegRead | gc.RightWrite, 0, 0, 0},
