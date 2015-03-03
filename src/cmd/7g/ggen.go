@@ -816,26 +816,10 @@ func expandchecks(firstp *obj.Prog) {
 			gc.Fatal("invalid nil check %v\n", p)
 		}
 
-		/*
-			// check is
-			//	TD $4, R0, arg (R0 is always zero)
-			// eqv. to:
-			// 	tdeq r0, arg
-			// NOTE: this needs special runtime support to make SIGTRAP recoverable.
-			reg = p->from.reg;
-			p->as = ATD;
-			p->from = p->to = p->from3 = zprog.from;
-			p->from.type = TYPE_CONST;
-			p->from.offset = 4;
-			p->from.reg = 0;
-			p->reg = REG_R0;
-			p->to.type = TYPE_REG;
-			p->to.reg = reg;
-		*/
 		// check is
-		//	CMP arg, R0
+		//	CMP arg, ZR
 		//	BNE 2(PC) [likely]
-		//	MOVD R0, 0(R0)
+		//	MOVD ZR, 0(arg)
 		p1 = gc.Ctxt.NewProg()
 
 		p2 = gc.Ctxt.NewProg()
@@ -858,13 +842,13 @@ func expandchecks(firstp *obj.Prog) {
 
 		p1.To.U.Branch = p2.Link
 
-		// crash by write to memory address 0.
+		// We cannot crash by jumping to memory address 0, that will
+		// destroy the current PC which is vital to the backtrace
 		p2.As = arm64.AMOVD
-
 		p2.From.Type = obj.TYPE_REG
-		p2.From.Reg = arm64.REG_R0
+		p2.From.Reg = arm64.REGZERO
 		p2.To.Type = obj.TYPE_MEM
-		p2.To.Reg = arm64.REG_R0
+		p2.To.Reg = p.From.Reg
 		p2.To.Offset = 0
 	}
 }
