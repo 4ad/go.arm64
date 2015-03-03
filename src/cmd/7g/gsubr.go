@@ -840,9 +840,11 @@ func optoas(op int, t *gc.Type) int {
 		gc.OCMP<<16 | gc.TPTR64:
 		a = arm64.ACMP
 
-	case gc.OCMP<<16 | gc.TFLOAT32,
-		gc.OCMP<<16 | gc.TFLOAT64:
-		a = arm64.AFCMPU
+	case gc.OCMP<<16 | gc.TFLOAT32:
+		a = arm64.AFCMPS
+
+	case gc.OCMP<<16 | gc.TFLOAT64:
+		a = arm64.AFCMPD
 
 	case gc.OAS<<16 | gc.TBOOL,
 		gc.OAS<<16 | gc.TINT8:
