@@ -219,9 +219,21 @@ func progedit(ctxt *obj.Link, p *obj.Prog) {
 	p.From.Class = 0
 	p.To.Class = 0
 
+	// $0 results in C_ZCON, which matches both C_REG and various
+	// C_xCON, however the C_REG cases in asmout don't expect a
+	// constant, so they will use the register fields and assemble
+	// a R0. To prevent that, rewrite $0 as ZR.
+	if p.From.Type == obj.TYPE_CONST && p.From.Offset == 0 {
+		p.From.Type = obj.TYPE_REG
+		p.From.Reg = REGZERO
+	}
+	if p.To.Type == obj.TYPE_CONST && p.To.Offset == 0 {
+		p.To.Type = obj.TYPE_REG
+		p.To.Reg = REGZERO
+	}
+
 	// Rewrite BR/BL to symbol as TYPE_BRANCH.
 	switch p.As {
-
 	case AB,
 		ABL,
 		ARETURN,
@@ -235,7 +247,6 @@ func progedit(ctxt *obj.Link, p *obj.Prog) {
 
 	// Rewrite float constants to values stored in memory.
 	switch p.As {
-
 	case AFMOVS:
 		if p.From.Type == obj.TYPE_FCONST {
 			var i32 uint32
@@ -270,7 +281,6 @@ func progedit(ctxt *obj.Link, p *obj.Prog) {
 	// Rewrite negative immediates as positive immediates with
 	// complementary instruction.
 	switch p.As {
-
 	case AADD,
 		AADDW,
 		ASUB,
