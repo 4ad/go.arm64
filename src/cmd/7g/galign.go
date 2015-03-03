@@ -10,21 +10,13 @@ import (
 )
 import "cmd/internal/gc"
 
-var thechar int = '9'
+var thechar int = '7'
 
 var thestring string = "arm64"
 
-var thelinkarch *obj.LinkArch
+var thelinkarch *obj.LinkArch = &arm64.Linkarm64
 
 func linkarchinit() {
-	thestring = obj.Getgoarch()
-	gc.Thearch.Thestring = thestring
-	if thestring == "arm64le" {
-		thelinkarch = &arm64.Linkarm64le
-	} else {
-		thelinkarch = &arm64.Linkarm64
-	}
-	gc.Thearch.Thelinkarch = thelinkarch
 }
 
 var MAXWIDTH int64 = 1 << 50
@@ -43,7 +35,6 @@ func betypeinit() {
 	gc.Widthptr = 8
 	gc.Widthint = 8
 	gc.Widthreg = 8
-
 }
 
 func main() {
