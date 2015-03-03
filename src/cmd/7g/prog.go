@@ -44,7 +44,7 @@ var progtable = [arm64.ALAST]gc.ProgInfo{
 	arm64.ASUB:    gc.ProgInfo{gc.SizeQ | gc.LeftRead | gc.RegRead | gc.RightWrite, 0, 0, 0},
 	arm64.ANEG:    gc.ProgInfo{gc.SizeQ | gc.LeftRead | gc.RegRead | gc.RightWrite, 0, 0, 0},
 	arm64.AAND:    gc.ProgInfo{gc.SizeQ | gc.LeftRead | gc.RegRead | gc.RightWrite, 0, 0, 0},
-	arm64.AOR:     gc.ProgInfo{gc.SizeQ | gc.LeftRead | gc.RegRead | gc.RightWrite, 0, 0, 0},
+	arm64.AORR:    gc.ProgInfo{gc.SizeQ | gc.LeftRead | gc.RegRead | gc.RightWrite, 0, 0, 0},
 	arm64.AEOR:    gc.ProgInfo{gc.SizeQ | gc.LeftRead | gc.RegRead | gc.RightWrite, 0, 0, 0},
 	arm64.AMULLD:  gc.ProgInfo{gc.SizeQ | gc.LeftRead | gc.RegRead | gc.RightWrite, 0, 0, 0},
 	arm64.AMULLW:  gc.ProgInfo{gc.SizeL | gc.LeftRead | gc.RegRead | gc.RightWrite, 0, 0, 0},

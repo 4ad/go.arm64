@@ -991,7 +991,7 @@ func optoas(op int, t *gc.Type) int {
 		gc.OOR<<16 | gc.TINT64,
 		gc.OOR<<16 | gc.TUINT64,
 		gc.OOR<<16 | gc.TPTR64:
-		a = arm64.AOR
+		a = arm64.AORR
 
 	case gc.OXOR<<16 | gc.TINT8,
 		gc.OXOR<<16 | gc.TUINT8,

@@ -164,7 +164,7 @@ func ginscall(f *gc.Node, proc int) {
 				var reg gc.Node
 				gc.Nodreg(&reg, gc.Types[gc.TINT], arm64.REG_R0)
 
-				gins(arm64.AOR, &reg, &reg)
+				gins(arm64.AORR, &reg, &reg)
 			}
 
 			p := gins(arm64.ABL, nil, f)
