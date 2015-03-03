@@ -206,7 +206,7 @@ func stacksplit(ctxt *obj.Link, p *obj.Prog, framesize int32, noctxt int) *obj.P
 	// placeholder for q1's jump target
 	p = obj.Appendp(ctxt, p)
 
-	p.As = ANOP
+	p.As = obj.ANOP
 	q1.Pcond = p
 
 	return p
@@ -371,7 +371,7 @@ loop:
 				break
 			}
 			a = int(q.As)
-			if a == ANOP {
+			if a == obj.ANOP {
 				i--
 				continue
 			}
@@ -521,7 +521,7 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym) {
 		case ARETURN:
 			break
 
-		case ANOP:
+		case obj.ANOP:
 			q1 = p.Link
 			q.Link = q1 /* q is non-nop */
 			q1.Mark |= p.Mark
@@ -562,7 +562,7 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym) {
 			q1 = p.Pcond
 
 			if q1 != nil {
-				for q1.As == ANOP {
+				for q1.As == obj.ANOP {
 					q1 = q1.Link
 					p.Pcond = q1
 				}
@@ -729,7 +729,7 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym) {
 
 				q = obj.Appendp(ctxt, q)
 
-				q.As = ANOP
+				q.As = obj.ANOP
 				q1.Pcond = q
 				q2.Pcond = q
 			}

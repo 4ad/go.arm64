@@ -444,7 +444,6 @@ const (
 	ANGCS
 	ANGCSW
 	ANGCW
-	ANOP
 	AORN
 	AORNW
 	AORR

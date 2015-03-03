@@ -157,7 +157,6 @@ var Anames = []string{
 	"NGCS",
 	"NGCSW",
 	"NGCW",
-	"NOP",
 	"ORN",
 	"ORNW",
 	"ORR",

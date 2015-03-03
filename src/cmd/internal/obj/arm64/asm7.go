@@ -491,6 +491,7 @@ var optab = []Optab{
 	{obj.AUSEFIELD, C_ADDR, C_NONE, C_NONE, 0, 0, 0, 0, 0},
 	{obj.APCDATA, C_VCON, C_NONE, C_VCON, 0, 0, 0, 0, 0},
 	{obj.AFUNCDATA, C_VCON, C_NONE, C_ADDR, 0, 0, 0, 0, 0},
+	{obj.ANOP, C_NONE, C_NONE, C_NONE, 0, 0, 0, 0, 0},
 	{obj.ADUFFZERO, C_NONE, C_NONE, C_SBRA, 5, 4, 0, 0, 0}, // same as AB/ABL
 	{obj.ADUFFCOPY, C_NONE, C_NONE, C_SBRA, 5, 4, 0, 0, 0}, // same as AB/ABL
 
@@ -1633,7 +1634,6 @@ func buildop(ctxt *obj.Link) {
 			break
 
 		case AERET:
-			oprange[ANOP] = t
 			oprange[AWFE] = t
 			oprange[AWFI] = t
 			oprange[AYIELD] = t
@@ -3917,8 +3917,8 @@ func op0(ctxt *obj.Link, a int) uint32 {
 	case AERET:
 		return 0x6B<<25 | 4<<21 | 0x1F<<16 | 0<<10 | 0x1F<<5
 
-	case ANOP:
-		return SYSHINT(0)
+	// case ANOP:
+	// 	return SYSHINT(0)
 
 	case AYIELD:
 		return SYSHINT(1)
