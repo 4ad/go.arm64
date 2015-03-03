@@ -63,13 +63,7 @@ type Oprang struct {
 	stop  []Optab
 }
 
-type Opcross [32][2][32]uint8
-
 var oprange [ALAST]Oprang
-
-var opcross [8]Opcross
-
-var repop [ALAST]uint8
 
 var xcmp [C_NCLASS][C_NCLASS]uint8
 
@@ -492,12 +486,13 @@ var optab = []Optab{
 
 	{AAESD, C_VREG, C_NONE, C_VREG, 29, 4, 0, 0, 0},
 	{ASHA1C, C_VREG, C_REG, C_VREG, 1, 4, 0, 0, 0},
-	{AUNDEF, C_NONE, C_NONE, C_NONE, 90, 4, 0, 0, 0},
-	{AUSEFIELD, C_ADDR, C_NONE, C_NONE, 0, 0, 0, 0, 0},
-	{APCDATA, C_VCON, C_NONE, C_VCON, 0, 0, 0, 0, 0},
-	{AFUNCDATA, C_VCON, C_NONE, C_ADDR, 0, 0, 0, 0, 0},
-	{ADUFFZERO, C_NONE, C_NONE, C_SBRA, 5, 4, 0, 0, 0}, // same as AB/ABL
-	{ADUFFCOPY, C_NONE, C_NONE, C_SBRA, 5, 4, 0, 0, 0}, // same as AB/ABL
+
+	{obj.AUNDEF, C_NONE, C_NONE, C_NONE, 90, 4, 0, 0, 0},
+	{obj.AUSEFIELD, C_ADDR, C_NONE, C_NONE, 0, 0, 0, 0, 0},
+	{obj.APCDATA, C_VCON, C_NONE, C_VCON, 0, 0, 0, 0, 0},
+	{obj.AFUNCDATA, C_VCON, C_NONE, C_ADDR, 0, 0, 0, 0, 0},
+	{obj.ADUFFZERO, C_NONE, C_NONE, C_SBRA, 5, 4, 0, 0, 0}, // same as AB/ABL
+	{obj.ADUFFCOPY, C_NONE, C_NONE, C_SBRA, 5, 4, 0, 0, 0}, // same as AB/ABL
 
 	{obj.AXXX, C_NONE, C_NONE, C_NONE, 0, 4, 0, 0, 0},
 }
@@ -569,7 +564,7 @@ func span7(ctxt *obj.Link, cursym *obj.LSym) {
 		o = oplook(ctxt, p)
 		m = int(o.size)
 		if m == 0 {
-			if p.As != ANOP && p.As != AFUNCDATA && p.As != APCDATA {
+			if p.As != obj.ANOP && p.As != obj.AFUNCDATA && p.As != obj.APCDATA {
 				ctxt.Diag("zero-width instruction\n%v", p)
 			}
 			continue
@@ -641,7 +636,7 @@ func span7(ctxt *obj.Link, cursym *obj.LSym) {
 			m = int(o.size)
 
 			if m == 0 {
-				if p.As != ANOP && p.As != AFUNCDATA && p.As != APCDATA {
+				if p.As != obj.ANOP && p.As != obj.AFUNCDATA && p.As != obj.APCDATA {
 					ctxt.Diag("zero-width instruction\n%v", p)
 				}
 				continue
@@ -1152,12 +1147,6 @@ func oplook(ctxt *obj.Link, p *obj.Prog) *Optab {
 	r = int(p.As)
 	o = oprange[r].start
 	if o == nil {
-		a1 = int(opcross[repop[r]][a1][a2][a3])
-		if a1 != 0 {
-			p.Optab = uint16(a1 + 1)
-			return &optab[a1:][0]
-		}
-
 		o = oprange[r].stop /* just generate an error */
 	}
 
@@ -1820,12 +1809,12 @@ func buildop(ctxt *obj.Link) {
 			oprange[ASHA256H2] = t
 			oprange[ASHA256SU1] = t
 
-		case AUNDEF,
-			AUSEFIELD,
-			AFUNCDATA,
-			APCDATA,
-			ADUFFZERO,
-			ADUFFCOPY:
+		case obj.AUNDEF,
+			obj.AUSEFIELD,
+			obj.AFUNCDATA,
+			obj.APCDATA,
+			obj.ADUFFZERO,
+			obj.ADUFFCOPY:
 			break
 		}
 	}
