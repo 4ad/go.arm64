@@ -1003,7 +1003,7 @@ func optoas(op int, t *gc.Type) int {
 		gc.OXOR<<16 | gc.TINT64,
 		gc.OXOR<<16 | gc.TUINT64,
 		gc.OXOR<<16 | gc.TPTR64:
-		a = arm64.AXOR
+		a = arm64.AEOR
 
 		// TODO(minux): handle rotates
 	//case CASE(OLROT, TINT8):

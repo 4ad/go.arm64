@@ -45,7 +45,7 @@ var progtable = [arm64.ALAST]gc.ProgInfo{
 	arm64.ANEG:    gc.ProgInfo{gc.SizeQ | gc.LeftRead | gc.RegRead | gc.RightWrite, 0, 0, 0},
 	arm64.AAND:    gc.ProgInfo{gc.SizeQ | gc.LeftRead | gc.RegRead | gc.RightWrite, 0, 0, 0},
 	arm64.AOR:     gc.ProgInfo{gc.SizeQ | gc.LeftRead | gc.RegRead | gc.RightWrite, 0, 0, 0},
-	arm64.AXOR:    gc.ProgInfo{gc.SizeQ | gc.LeftRead | gc.RegRead | gc.RightWrite, 0, 0, 0},
+	arm64.AEOR:    gc.ProgInfo{gc.SizeQ | gc.LeftRead | gc.RegRead | gc.RightWrite, 0, 0, 0},
 	arm64.AMULLD:  gc.ProgInfo{gc.SizeQ | gc.LeftRead | gc.RegRead | gc.RightWrite, 0, 0, 0},
 	arm64.AMULLW:  gc.ProgInfo{gc.SizeL | gc.LeftRead | gc.RegRead | gc.RightWrite, 0, 0, 0},
 	arm64.AMULHD:  gc.ProgInfo{gc.SizeL | gc.LeftRead | gc.RegRead | gc.RightWrite, 0, 0, 0},
@@ -265,7 +265,7 @@ var varianttable = [arm64.ALAST][4]int{
 	arm64.ASUBE:    [4]int{arm64.ASUBE, arm64.ASUBECC, arm64.ASUBEV, arm64.ASUBEVCC},
 	arm64.ASUBME:   [4]int{arm64.ASUBME, arm64.ASUBMECC, arm64.ASUBMEV, arm64.ASUBMEVCC},
 	arm64.ASUBZE:   [4]int{arm64.ASUBZE, arm64.ASUBZECC, arm64.ASUBZEV, arm64.ASUBZEVCC},
-	arm64.AXOR:     [4]int{arm64.AXOR, arm64.AXORCC, 0, 0},
+	arm64.AEOR:     [4]int{arm64.AEOR, arm64.AXORCC, 0, 0},
 }
 
 var initvariants_initialized int
