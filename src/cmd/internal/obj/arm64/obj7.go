@@ -830,6 +830,7 @@ var unaryDst = map[int]bool{
 	AWORD:  true,
 	ADWORD: true,
 	ABL:    true,
+	AB:     true,
 }
 
 var Linkarm64 = obj.LinkArch{

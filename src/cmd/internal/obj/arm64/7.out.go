@@ -324,7 +324,6 @@ const (
 	AASR
 	AASRW
 	AAT
-	AB
 	ABFI
 	ABFIW
 	ABFM
@@ -335,7 +334,6 @@ const (
 	ABICS
 	ABICSW
 	ABICW
-	ABL
 	ABRK
 	ACBNZ
 	ACBNZW
@@ -627,7 +625,6 @@ const (
 	ADWORD
 	ASIGNAME
 	AGOK
-	ARETURN
 	AEND
 	AFCSELS
 	AFCSELD
@@ -692,4 +689,7 @@ const (
 	ADUFFCOPY
 	ADUFFZERO
 	ALAST
+	AB = obj.AJMP
+	ABL = obj.ACALL
+	ARETURN = obj.ARET
 )
