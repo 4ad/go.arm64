@@ -414,7 +414,7 @@ func gmove(f *gc.Node, t *gc.Node) {
 		gc.TUINT32<<16 | gc.TUINT8,
 		gc.TINT64<<16 | gc.TUINT8,
 		gc.TUINT64<<16 | gc.TUINT8:
-		a = arm64.AMOVBZ
+		a = arm64.AMOVBU
 
 	case gc.TINT16<<16 | gc.TINT16, // same size
 		gc.TUINT16<<16 | gc.TINT16,
@@ -432,7 +432,7 @@ func gmove(f *gc.Node, t *gc.Node) {
 		gc.TUINT32<<16 | gc.TUINT16,
 		gc.TINT64<<16 | gc.TUINT16,
 		gc.TUINT64<<16 | gc.TUINT16:
-		a = arm64.AMOVHZ
+		a = arm64.AMOVHU
 
 	case gc.TINT32<<16 | gc.TINT32, // same size
 		gc.TUINT32<<16 | gc.TINT32,
@@ -445,7 +445,7 @@ func gmove(f *gc.Node, t *gc.Node) {
 		gc.TUINT32<<16 | gc.TUINT32,
 		gc.TINT64<<16 | gc.TUINT32,
 		gc.TUINT64<<16 | gc.TUINT32:
-		a = arm64.AMOVWZ
+		a = arm64.AMOVWU
 
 	case gc.TINT64<<16 | gc.TINT64, // same size
 		gc.TINT64<<16 | gc.TUINT64,
@@ -472,7 +472,7 @@ func gmove(f *gc.Node, t *gc.Node) {
 		gc.TUINT8<<16 | gc.TUINT32,
 		gc.TUINT8<<16 | gc.TINT64,
 		gc.TUINT8<<16 | gc.TUINT64:
-		a = arm64.AMOVBZ
+		a = arm64.AMOVBU
 
 		goto rdst
 
@@ -488,7 +488,7 @@ func gmove(f *gc.Node, t *gc.Node) {
 		gc.TUINT16<<16 | gc.TUINT32,
 		gc.TUINT16<<16 | gc.TINT64,
 		gc.TUINT16<<16 | gc.TUINT64:
-		a = arm64.AMOVHZ
+		a = arm64.AMOVHU
 
 		goto rdst
 
@@ -500,7 +500,7 @@ func gmove(f *gc.Node, t *gc.Node) {
 
 	case gc.TUINT32<<16 | gc.TINT64, // zero extend uint32
 		gc.TUINT32<<16 | gc.TUINT64:
-		a = arm64.AMOVWZ
+		a = arm64.AMOVWU
 
 		goto rdst
 
@@ -703,19 +703,16 @@ func gins(as int, f *gc.Node, t *gc.Node) *obj.Prog {
 	switch as {
 	case arm64.AMOVB,
 		arm64.AMOVBU,
-		arm64.AMOVBZ,
 		arm64.AMOVBZU:
 		w = 1
 
 	case arm64.AMOVH,
 		arm64.AMOVHU,
-		arm64.AMOVHZ,
 		arm64.AMOVHZU:
 		w = 2
 
 	case arm64.AMOVW,
 		arm64.AMOVWU,
-		arm64.AMOVWZ,
 		arm64.AMOVWZU:
 		w = 4
 
@@ -881,20 +878,20 @@ func optoas(op int, t *gc.Type) int {
 		a = arm64.AMOVB
 
 	case gc.OAS<<16 | gc.TUINT8:
-		a = arm64.AMOVBZ
+		a = arm64.AMOVBU
 
 	case gc.OAS<<16 | gc.TINT16:
 		a = arm64.AMOVH
 
 	case gc.OAS<<16 | gc.TUINT16:
-		a = arm64.AMOVHZ
+		a = arm64.AMOVHU
 
 	case gc.OAS<<16 | gc.TINT32:
 		a = arm64.AMOVW
 
 	case gc.OAS<<16 | gc.TUINT32,
 		gc.OAS<<16 | gc.TPTR32:
-		a = arm64.AMOVWZ
+		a = arm64.AMOVWU
 
 	case gc.OAS<<16 | gc.TINT64,
 		gc.OAS<<16 | gc.TUINT64,
