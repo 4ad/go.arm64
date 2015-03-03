@@ -614,11 +614,11 @@ func gmove(f *gc.Node, t *gc.Node) {
 		a = arm64.AFMOVD
 
 	case gc.TFLOAT32<<16 | gc.TFLOAT64:
-		a = arm64.AFMOVS
+		a = arm64.AFCVTSD
 		goto rdst
 
 	case gc.TFLOAT64<<16 | gc.TFLOAT32:
-		a = arm64.AFRSP
+		a = arm64.AFCVTDS
 		goto rdst
 	}
 
