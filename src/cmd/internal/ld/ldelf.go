@@ -75,6 +75,7 @@ const (
 	ElfMachSH
 	ElfMachSparc9
 	ElfMachAmd64  = 62
+	ElfMachArm64  = 183
 	ElfAbiNone    = 0
 	ElfAbiSystemV = 0 + iota - 39
 	ElfAbiHPUX
@@ -400,6 +401,12 @@ func ldelf(f *Biobuf, pkg string, length int64, pn string) {
 	case '6':
 		if e != binary.LittleEndian || elfobj.machine != ElfMachAmd64 || hdr.Ident[4] != ElfClass64 {
 			Diag("%s: elf object but not amd64", pn)
+			return
+		}
+
+	case '7':
+		if e != binary.LittleEndian || elfobj.machine != ElfMachArm64 || hdr.Ident[4] != ElfClass64 {
+			Diag("%s: elf object but not arm64", pn)
 			return
 		}
 
