@@ -198,7 +198,7 @@ const (
 	REGPR  = REG_R18 // ARM64 platform register, unused
 	REGMAX = REG_R25
 
-	REGENV  = REG_R26 // environment for closures
+	REGCTXT = REG_R26 // environment for closures
 	REGTMP  = REG_R27 // reserved for liblink
 	REGG    = REG_R28 // G
 	REGFP   = REG_R29 // frame pointer, unused in the Go toolchain
