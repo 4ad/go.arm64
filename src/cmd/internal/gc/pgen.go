@@ -286,7 +286,7 @@ func allocauto(ptxt *obj.Prog) {
 		if haspointers(n.Type) {
 			stkptrsize = Stksize
 		}
-		if Thearch.Thechar == '5' || Thearch.Thechar == '9' {
+		if Thearch.Thechar == '5' || Thearch.Thechar == '7' || Thearch.Thechar == '9' {
 			Stksize = Rnd(Stksize, int64(Widthptr))
 		}
 		if Stksize >= 1<<31 {

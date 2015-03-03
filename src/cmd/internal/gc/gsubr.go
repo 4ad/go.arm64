@@ -83,7 +83,7 @@ func Gbranch(as int, t *Type, likely int) *obj.Prog {
 	p := Prog(as)
 	p.To.Type = obj.TYPE_BRANCH
 	p.To.U.Branch = nil
-	if as != obj.AJMP && likely != 0 && Thearch.Thechar != '9' {
+	if as != obj.AJMP && likely != 0 && (Thearch.Thechar != '9' || Thearch.Thechar != '7') {
 		p.From.Type = obj.TYPE_CONST
 		p.From.Offset = int64(bool2int(likely > 0))
 	}
@@ -424,7 +424,7 @@ func Naddr(n *Node, a *obj.Addr, canemitcode int) {
 	case OADDR:
 		Naddr(n.Left, a, canemitcode)
 		a.Etype = uint8(Tptr)
-		if Thearch.Thechar != '5' && Thearch.Thechar != '9' { // TODO(rsc): Do this even for arm, ppc64.
+		if Thearch.Thechar != '5' && Thearch.Thechar != '7' && Thearch.Thechar != '9' { // TODO(rsc): Do this even for arm, ppc64.
 			a.Width = int64(Widthptr)
 		}
 		if a.Type != obj.TYPE_MEM {
@@ -461,7 +461,7 @@ func Naddr(n *Node, a *obj.Addr, canemitcode int) {
 			break // len(nil)
 		}
 		a.Etype = Simtype[TUINT]
-		if Thearch.Thechar == '9' {
+		if Thearch.Thechar == '7' || Thearch.Thechar == '9' {
 			a.Etype = Simtype[TINT]
 		}
 		a.Offset += int64(Array_nel)
@@ -477,7 +477,7 @@ func Naddr(n *Node, a *obj.Addr, canemitcode int) {
 			break // cap(nil)
 		}
 		a.Etype = Simtype[TUINT]
-		if Thearch.Thechar == '9' {
+		if Thearch.Thechar == '7' || Thearch.Thechar == '9' {
 			a.Etype = Simtype[TINT]
 		}
 		a.Offset += int64(Array_cap)
@@ -559,7 +559,7 @@ fp:
 		if Thearch.Thechar == '5' {
 			n.Xoffset += 4
 		}
-		if Thearch.Thechar == '9' {
+		if Thearch.Thechar == '7' || Thearch.Thechar == '9' {
 			n.Xoffset += 8
 		}
 

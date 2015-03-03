@@ -3758,7 +3758,7 @@ func walkdiv(np **Node, init **NodeList) {
 	// if >= 0, nr is 1<<pow // 1 if nr is negative.
 
 	// TODO(minux)
-	if Thearch.Thechar == '9' {
+	if Thearch.Thechar == '7' || Thearch.Thechar == '9' {
 		return
 	}
 
