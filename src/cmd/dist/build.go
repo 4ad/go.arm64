@@ -351,6 +351,7 @@ func isGitRepo() bool {
 var oldtool = []string{
 	"5a", "5c", "5g", "5l",
 	"6a", "6c", "6g", "6l",
+	"7a", "7c", "7g", "7l",
 	"8a", "8c", "8g", "8l",
 	"9a", "9c", "9g", "9l",
 	"6cov",
@@ -910,6 +911,7 @@ var cleantab = []string{
 	"cmd/5l",
 	"cmd/6g",
 	"cmd/6l",
+	"cmd/7g",
 	"cmd/7l",
 	"cmd/8g",
 	"cmd/8l",
