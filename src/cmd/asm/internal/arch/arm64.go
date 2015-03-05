@@ -56,6 +56,17 @@ func IsARM64CMP(op int) bool {
 	return false
 }
 
+// IsARM64STLXR reports whether the op (as defined by an arm64.A*
+// constant) is one of the STLXR-like instructions that require special
+// handling.
+func IsARM64STLXR(op int) bool {
+	switch op {
+	case arm64.ASTLXRB, arm64.ASTLXRH, arm64.ASTLXRW, arm64.ASTLXR:
+		return true
+	}
+	return false
+}
+
 // ARM64Suffix handles the special suffix for the ARM64.
 // It returns a boolean to indicate success; failure means
 // cond was unrecognized.

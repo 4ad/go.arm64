@@ -511,6 +511,13 @@ func (p *Parser) asmInstruction(op int, cond string, a []obj.Addr) {
 			prog.Reg = p.getRegister(prog, op, &a[1])
 			prog.To = a[2]
 		case '7':
+			// One input, two outputs instructions.
+			if arch.IsARM64STLXR(op) {
+				prog.From = a[0]
+				prog.To = a[1]
+				prog.To3 = a[2]
+				break
+			}
 			prog.From = a[0]
 			prog.Reg = p.getRegister(prog, op, &a[1])
 			prog.To = a[2]
