@@ -508,7 +508,7 @@ func dodiv(op int, nl *gc.Node, nr *gc.Node, res *gc.Node) {
 		p1 := gc.Gbranch(optoas(gc.ONE, t), nil, +1)
 		if op == gc.ODIV {
 			// a / (-1) is -a.
-			gins(optoas(gc.OMINUS, t), nil, &tl)
+			gins(optoas(gc.OMINUS, t), &tl, &tl)
 
 			gmove(&tl, res)
 		} else {
