@@ -276,6 +276,7 @@ func archArm64() *Arch {
 	for i := arm64.REG_V0; i <= arm64.REG_V31; i++ {
 		register[arm64.Rconv(i)] = int16(i)
 	}
+	register["LR"] = arm64.REGLINK
 	register["DAIF"] = arm64.REG_DAIF
 	register["NZCV"] = arm64.REG_NZCV
 	register["FPSR"] = arm64.REG_FPSR
