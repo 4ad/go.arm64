@@ -314,13 +314,13 @@ func archArm64() *Arch {
 	instructions["RET"] = arm64.ARETURN
 
 	return &Arch{
-		LinkArch:         &arm64.Linkarm64,
-		Instructions:     instructions,
-		Register:         register,
-		RegisterPrefix:   registerPrefix,
-		RegisterNumber:   arm64RegisterNumber,
-		IsJump:           jumpArm64,
-		Aconv:            arm64.Aconv,
+		LinkArch:       &arm64.Linkarm64,
+		Instructions:   instructions,
+		Register:       register,
+		RegisterPrefix: registerPrefix,
+		RegisterNumber: arm64RegisterNumber,
+		IsJump:         jumpArm64,
+		Aconv:          arm64.Aconv,
 	}
 
 }

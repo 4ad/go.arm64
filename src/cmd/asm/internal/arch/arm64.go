@@ -16,8 +16,8 @@ import (
 )
 
 var arm64LS = map[string]uint8{
-	"P":  arm64.C_XPOST,
-	"W":  arm64.C_XPRE,
+	"P": arm64.C_XPOST,
+	"W": arm64.C_XPRE,
 }
 
 var arm64Jump = map[string]bool{
@@ -50,7 +50,8 @@ func jumpArm64(word string) bool {
 // one of the comparison instructions that require special handling.
 func IsARM64CMP(op int) bool {
 	switch op {
-	case arm64.ACMN, arm64.ACMP, arm64.ATST:
+	case arm64.ACMN, arm64.ACMP, arm64.ATST,
+		arm64.ACMNW, arm64.ACMPW, arm64.ATSTW:
 		return true
 	}
 	return false
