@@ -83,7 +83,7 @@ func Gbranch(as int, t *Type, likely int) *obj.Prog {
 	p := Prog(as)
 	p.To.Type = obj.TYPE_BRANCH
 	p.To.U.Branch = nil
-	if as != obj.AJMP && likely != 0 && (Thearch.Thechar != '9' || Thearch.Thechar != '7') {
+	if as != obj.AJMP && likely != 0 && Thearch.Thechar != '9' && Thearch.Thechar != '7' {
 		p.From.Type = obj.TYPE_CONST
 		p.From.Offset = int64(bool2int(likely > 0))
 	}
