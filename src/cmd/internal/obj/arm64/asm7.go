@@ -170,8 +170,8 @@ var optab = []Optab{
 	// {AADD, C_MBCON, C_RSP, C_RSP, 2, 4, 0, 0, 0},
 	// {AADD, C_MBCON, C_NONE, C_RSP, 2, 4, 0, 0, 0},
 	// {ACMP, C_MBCON, C_RSP, C_NONE, 2, 4, 0, 0, 0},
-	{AADD, C_VCON, C_REG, C_REG, 13, 8, 0, LFROM, 0},
-	{AADD, C_VCON, C_NONE, C_REG, 13, 8, 0, LFROM, 0},
+	{AADD, C_VCON, C_REG, C_RSP, 13, 8, 0, LFROM, 0},
+	{AADD, C_VCON, C_NONE, C_RSP, 13, 8, 0, LFROM, 0},
 	{ACMP, C_VCON, C_REG, C_NONE, 13, 8, 0, LFROM, 0},
 	{AADD, C_SHIFT, C_REG, C_REG, 3, 4, 0, 0, 0},
 	{AADD, C_SHIFT, C_NONE, C_REG, 3, 4, 0, 0, 0},
@@ -2099,12 +2099,10 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 			r = rt
 		}
 		if p.To.Type != obj.TYPE_NONE && (p.To.Reg == REGSP || r == REGSP) {
-			o2 = opxrrr(ctxt, int(p.As))
-			o2 |= REGTMP << 16
+			o2 |= REGTMP&31 << 16
 			o2 |= LSL0_64
 		} else {
-			o2 = oprrr(ctxt, int(p.As))
-			o2 |= REGTMP << 16 /* shift is 0 */
+			o2 |= REGTMP&31 << 16 /* shift is 0 */
 		}
 
 		o2 |= uint32(r&31) << 5
@@ -3736,7 +3734,6 @@ func opbit(ctxt *obj.Link, a int) uint32 {
  * add/subtract extended register
  */
 func opxrrr(ctxt *obj.Link, a int) uint32 {
-
 	switch a {
 	case AADD:
 		return S64 | 0<<30 | 0<<29 | 0x0b<<24 | 0<<22 | 1<<21 | LSL0_64
