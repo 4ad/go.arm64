@@ -224,10 +224,10 @@ nocgo:
 	// create a new goroutine to start program
 	MOVD	$runtime·main·f(SB), R0		// entry
 	MOVD	RSP, R7
-	MOVD	$0, -8(R7)!
-	MOVD	R0, -8(R7)!
-	MOVD	$0, -8(R7)!
-	MOVD	$0, -8(R7)!
+	MOVD.W	$0, -8(R7)
+	MOVD.W	R0, -8(R7)
+	MOVD.W	$0, -8(R7)
+	MOVD.W	$0, -8(R7)
 	MOVD	R7, RSP
 	BL	runtime·newproc(SB)
 	ADD	$32, RSP
@@ -261,8 +261,8 @@ TEXT runtime·memeq(SB),NOSPLIT,$-8-25
 loop:
 	CMP	R1, R6
 	BEQ	done
-	MOVBU	(R1)1!, R4
-	MOVBU	(R2)1!, R5
+	MOVBU.P	1(R1), R4
+	MOVBU.P	1(R2), R5
 	CMP	R4, R5
 	BEQ	loop
 
@@ -485,134 +485,134 @@ TEXT runtime·jmpdefer(SB), NOSPLIT, $-8-16
 // R16 (aka REGRT1): ptr to memory to be zeroed - 8
 // On return, R16 points to the last zeroed dword.
 TEXT runtime·duffzero(SB), NOSPLIT, $-8-0
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
-	MOVD	ZR, 8(R16)!
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
+	MOVD.W	ZR, 8(R16)
 	RET
 
 TEXT runtime·return0(SB), NOSPLIT, $0
@@ -688,8 +688,8 @@ TEXT NAME(SB), WRAPPER, $MAXSIZE-24;		\
 	ADD	R5, R4;				\
 	CMP	R5, R4;				\
 	BEQ	4(PC);				\
-	MOVBU	1(R3)!, R6;			\
-	MOVBU	R6, 1(R5)!;			\
+	MOVBU.W	1(R3), R6;			\
+	MOVBU.W	R6, 1(R5);			\
 	B	-4(PC);				\
 	/* call function */			\
 	MOVD	f+8(FP), R26;			\
@@ -710,8 +710,8 @@ TEXT NAME(SB), WRAPPER, $MAXSIZE-24;		\
 loop:						\
 	CMP	R5, R4;				\
 	BEQ	end;				\
-	MOVBU	1(R5)!, R6;			\
-	MOVBU	R6, 1(R3)!;			\
+	MOVBU.W	1(R5), R6;			\
+	MOVBU.W	R6, 1(R3);			\
 	B	loop;				\
 end:						\
 	/* execute write barrier updates */	\

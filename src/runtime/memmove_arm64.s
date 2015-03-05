@@ -19,8 +19,8 @@ check:
 
 	ADD	R3, R5
 loop:
-	MOVBU	(R4)1!, R6
-	MOVBU	R6, (R3)1!
+	MOVBU.P	1(R4), R6
+	MOVBU.P	R6, 1(R3)
 	CMP	R3, R5
 	BNE	loop
 	RET
@@ -29,8 +29,8 @@ backward:
 	ADD	R5, R4
 	ADD	R3, R5
 loop1:
-	MOVBU	-1(R4)!, R6
-	MOVBU	R6, -1(R5)!
+	MOVBU.W	-1(R4), R6
+	MOVBU.W	R6, -1(R5)
 	CMP	R3, R5
 	BNE	loop1
 	RET

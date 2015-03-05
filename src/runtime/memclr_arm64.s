@@ -11,7 +11,7 @@ TEXT runtime·memclr(SB),NOSPLIT,$0-16
 	CMP	$0, R4
 	BEQ	done
 	ADD	R3, R4, R4
-	MOVBU	$0, (R3)1!
+	MOVBU.P	$0, 1(R3)
 	CMP	R3, R4
 	BNE	-2(PC)
 done:
