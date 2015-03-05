@@ -976,6 +976,8 @@ func rclass(r int16) int {
 		return C_FREG
 	case REG_V0 <= r && r <= REG_V31:
 		return C_VREG
+	case COND_EQ <= r && r <= COND_NV:
+		return C_COND
 	case r == REGSP:
 		return C_RSP
 	case r&REG_EXT != 0:

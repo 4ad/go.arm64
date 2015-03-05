@@ -145,6 +145,24 @@ const (
 	REG_V30
 	REG_V31
 
+	// not really registers, but kept in Prog.Reg too
+	COND_EQ
+	COND_NE
+	COND_HS
+	COND_LO
+	COND_MI
+	COND_PL
+	COND_VS
+	COND_VC
+	COND_HI
+	COND_LS
+	COND_GE
+	COND_LT
+	COND_GT
+	COND_LE
+	COND_AL
+	COND_NV
+
 	REG_RSP = REG_V31 + 32 // to differentiate ZR/SP, REG_RSP&0x1f = 31
 )
 
@@ -243,7 +261,7 @@ const (
 	C_SHIFT  // Rn<<2
 	C_EXTREG // Rn.UXTB<<3
 	C_SPR    // REG_NZCV
-	C_COND   // TODO(aram): remove
+	C_COND   // EQ, NE, etc
 
 	C_ZCON     // $0 or ZR
 	C_ADDCON0  // 12-bit unsigned, unshifted

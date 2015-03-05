@@ -136,6 +136,8 @@ func Rconv(r int) string {
 		return fmt.Sprintf("F%d", r-REG_F0)
 	case REG_V0 <= r && r <= REG_V31:
 		return fmt.Sprintf("V%d", r-REG_F0)
+	case COND_EQ <= r && r <= COND_NV:
+		return strcond[r-COND_EQ]
 	case r == REGSP:
 		return "RSP"
 	case r == REG_DAIF:
