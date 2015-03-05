@@ -313,7 +313,7 @@ func (p *Parser) asmJump(op int, cond string, a []obj.Addr) {
 	case 1:
 		target = &a[0]
 	case 2:
-		if p.arch.Thechar == '9' {
+		if p.arch.Thechar == '7' || p.arch.Thechar == '9' {
 			// Special 2-operand jumps.
 			target = &a[1]
 			prog.From = a[0]
