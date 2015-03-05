@@ -6,8 +6,8 @@
 
 // void runtime·memclr(void*, uintptr)
 TEXT runtime·memclr(SB),NOSPLIT,$0-16
-	MOV	ptr+0(FP), R3
-	MOV	n+8(FP), R4
+	MOVD	ptr+0(FP), R3
+	MOVD	n+8(FP), R4
 	CMP	$0, R4
 	BEQ	done
 	ADD	R3, R4, R4
@@ -15,4 +15,4 @@ TEXT runtime·memclr(SB),NOSPLIT,$0-16
 	CMP	R3, R4
 	BNE	-2(PC)
 done:
-	RETURN
+	RET

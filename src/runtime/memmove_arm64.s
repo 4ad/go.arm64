@@ -6,12 +6,12 @@
 
 // void runtime·memmove(void*, void*, uintptr)
 TEXT runtime·memmove(SB), NOSPLIT, $-8-24
-	MOV	to+0(FP), R3
-	MOV	from+8(FP), R4
-	MOV	n+16(FP), R5
+	MOVD	to+0(FP), R3
+	MOVD	from+8(FP), R4
+	MOVD	n+16(FP), R5
 	CMP	$0, R5
 	BNE	check
-	RETURN
+	RET
 
 check:
 	CMP	R3, R4
@@ -23,7 +23,7 @@ loop:
 	MOVBU	R6, (R3)1!
 	CMP	R3, R5
 	BNE	loop
-	RETURN
+	RET
 
 backward:
 	ADD	R5, R4
@@ -33,4 +33,4 @@ loop1:
 	MOVBU	R6, -1(R5)!
 	CMP	R3, R5
 	BNE	loop1
-	RETURN
+	RET
