@@ -89,8 +89,8 @@ TEXT runtime·mcall(SB), NOSPLIT, $-8-8
 	MOVD	0(R26), R4			// code pointer
 	MOVD	(g_sched+gobuf_sp)(g), R0
 	MOVD	R0, RSP	// sp = m->g0->sched.sp
-	MOVD	R3, -8(SP)
-	MOVD	$0, -16(SP)
+	MOVD	R3, -8(RSP)
+	MOVD	$0, -16(RSP)
 	SUB	$16, RSP
 	BL	(R4)
 	B	runtime·badmcall2(SB)
@@ -176,8 +176,8 @@ TEXT runtime·rt0_go(SB),NOSPLIT,$0
 	BL	runtime·reginit(SB)
 
 	SUB	$32, RSP
-	MOVW	R0, 8(SP) // argc
-	MOVD	R1, 16(SP) // argv
+	MOVW	R0, 8(RSP) // argc
+	MOVD	R1, 16(RSP) // argv
 
 	// create istack out of the given (operating system) stack.
 	// _cgo_init may update stackguard.
@@ -213,10 +213,10 @@ nocgo:
 
 	BL	runtime·check(SB)
 
-	MOVW	8(SP), R0	// copy argc
-	MOVW	R0, -8(SP)
-	MOVD	16(SP), R0		// copy argv
-	MOVD	R0, 0(SP)
+	MOVW	8(RSP), R0	// copy argc
+	MOVW	R0, -8(RSP)
+	MOVD	16(RSP), R0		// copy argv
+	MOVD	R0, 0(RSP)
 	BL	runtime·args(SB)
 	BL	runtime·osinit(SB)
 	BL	runtime·schedinit(SB)
@@ -363,9 +363,9 @@ havem:
 	BL	runtime·cgocallbackg(SB)
 
 	// Restore g->sched (== m->curg->sched) from saved values.
-	MOVD	0(SP), R5
+	MOVD	0(RSP), R5
 	MOVD	R5, (g_sched+gobuf_pc)(g)
-	MOVD	$24(SP), R4
+	MOVD	$24(RSP), R4
 	MOVD	R4, (g_sched+gobuf_sp)(g)
 
 	// Switch back to m->g0's stack and restore m->g0->sched.sp.
@@ -392,13 +392,13 @@ droppedm:
 	RET
 
 TEXT runtime·getcallerpc(SB),NOSPLIT,$-8-16
-	MOVD	0(SP), R0
+	MOVD	0(RSP), R0
 	MOVD	R0, ret+8(FP)
 	RET
 
 TEXT runtime·setcallerpc(SB),NOSPLIT,$-8-16
 	MOVD	pc+8(FP), R0
-	MOVD	R0, 0(SP)		// set calling pc
+	MOVD	R0, 0(RSP)		// set calling pc
 	RET
 
 TEXT runtime·getcallersp(SB),NOSPLIT,$0-16
@@ -465,7 +465,7 @@ TEXT runtime·getg(SB),NOSPLIT,$-8-8
 // 2. sub 4 bytes to get back to BL deferreturn
 // 3. BR to fn
 TEXT runtime·jmpdefer(SB), NOSPLIT, $-8-16
-	MOVD	0(SP), R0
+	MOVD	0(RSP), R0
 	SUB	$4, R0
 	MOVD	R0, LR
 
@@ -805,11 +805,11 @@ g0:
 	SUB	$48, R13
 	AND	$~15, R13	// 16-byte alignment for gcc ABI
 	MOVD	R13, RSP
-	MOVD	R5, 40(SP)	// save old g on stack
+	MOVD	R5, 40(RSP)	// save old g on stack
 	MOVD	(g_stack+stack_hi)(R5), R5
 	SUB	R2, R5
 	MOVD	R5, 32(RSP)	// save depth in old g stack (can't just save RSP, as stack might be copied during a callback)
-	MOVD	R0, 0(SP)	// clear back chain pointer (TODO can we give it real back trace information?)
+	MOVD	R0, 0(RSP)	// clear back chain pointer (TODO can we give it real back trace information?)
 	// This is a "global call", so put the global entry point in r12
 	MOVD	R3, R12
 	MOVD	R4, R0
