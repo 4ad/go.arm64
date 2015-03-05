@@ -303,7 +303,7 @@ TEXT runtime·clone(SB),NOSPLIT,$-8
 child:
 
 	// In child, on new stack.
-	MOVD	-32(SP), R10
+	MOVD	-32(RSP), R10
 	MOVD	$1234, R0
 	CMP	R0, R10
 	BEQ	good
@@ -314,9 +314,9 @@ good:
 	MOVD	$SYS_gettid, R8
 	SVC
 
-	MOVD	-24(SP), R12
-	MOVD	-16(SP), R11
-	MOVD	-8(SP), R10
+	MOVD	-24(RSP), R12
+	MOVD	-16(RSP), R11
+	MOVD	-8(RSP), R10
 
 	MOVD	R0, m_procid(R10)
 

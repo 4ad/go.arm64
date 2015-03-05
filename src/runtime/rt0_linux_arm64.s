@@ -11,7 +11,7 @@ TEXT _rt0_arm64_linux(SB),NOSPLIT,$-8
 	MOVD	$dummynoptrdata(SB), R11
 	MOVD	$dummybss(SB), R11
 	MOVD	$dummynoptrbss(SB), R11
-	MOVD	0(SP), R0	// argc
+	MOVD	0(RSP), R0	// argc
 	ADD	$8, RSP, R1	// argv
 	BL	main(SB)
 
