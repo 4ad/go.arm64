@@ -162,7 +162,7 @@ var optab = []Optab{
 	{AADC, C_REG, C_NONE, C_REG, 1, 4, 0, 0, 0},
 	{ANEG, C_REG, C_NONE, C_REG, 25, 4, 0, 0, 0},
 	{ANGC, C_REG, C_NONE, C_REG, 17, 4, 0, 0, 0},
-	{ACMP, C_REG, C_RSP, C_NONE, 1, 4, 0, 0, 0},
+	{ACMP, C_REG, C_REG, C_NONE, 1, 4, 0, 0, 0},
 	{AADD, C_ADDCON, C_RSP, C_RSP, 2, 4, 0, 0, 0},
 	{AADD, C_ADDCON, C_NONE, C_RSP, 2, 4, 0, 0, 0},
 	{ACMP, C_ADDCON, C_RSP, C_NONE, 2, 4, 0, 0, 0},
@@ -180,6 +180,7 @@ var optab = []Optab{
 	{ANEG, C_SHIFT, C_NONE, C_REG, 26, 4, 0, 0, 0},
 	{AADD, C_REG, C_RSP, C_RSP, 27, 4, 0, 0, 0},
 	{AADD, C_REG, C_NONE, C_RSP, 27, 4, 0, 0, 0},
+	{ACMP, C_REG, C_RSP, C_NONE, 27, 4, 0, 0, 0},
 	{AADD, C_EXTREG, C_RSP, C_RSP, 27, 4, 0, 0, 0},
 	{AADD, C_EXTREG, C_NONE, C_RSP, 27, 4, 0, 0, 0},
 	{AMVN, C_EXTREG, C_NONE, C_RSP, 27, 4, 0, 0, 0},
@@ -2102,7 +2103,6 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 			o2 |= REGTMP << 16
 			o2 |= LSL0_64
 		} else {
-
 			o2 = oprrr(ctxt, int(p.As))
 			o2 |= REGTMP << 16 /* shift is 0 */
 		}
@@ -2112,7 +2112,6 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 
 	case 14: /* word */
 		if aclass(ctxt, &p.To) == C_ADDR {
-
 			ctxt.Diag("address constant needs DWORD\n%v", p)
 		}
 		o1 = uint32(ctxt.Instoffset)
@@ -2318,23 +2317,24 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		rt = int(p.To.Reg)
 		o1 |= (REGZERO & 31 << 5) | uint32(rt&31)
 
-		//	case 27: /* op Rm<<n[,Rn],Rd (extended register) */
-		//		o1 = opxrrr(ctxt, int(p.As))
-		//
-		//		if p.From.Type == D_EXTREG {
-		//			o1 |= uint32(p.From.Offset) /* includes reg, op, etc */
-		//		} else {
-		//			o1 |= uint32(p.From.Reg&31) << 16
-		//		}
-		//		rt = int(p.To.Reg)
-		//		if p.To.Type == obj.TYPE_NONE {
-		//			rt = REGZERO
-		//		}
-		//		r = int(p.Reg)
-		//		if r == NREG {
-		//			r = rt
-		//		}
-		//		o1 |= (uint32(r&31) << 5) | uint32(rt&31)
+	case 27: /* op Rm<<n[,Rn],Rd (extended register) */
+		o1 = opxrrr(ctxt, int(p.As))
+
+		if (p.From.Reg - obj.RBaseARM64) & REG_EXT != 0 {
+			ctxt.Diag("extended register not implemented\n%v", p)
+			// o1 |= uint32(p.From.Offset) /* includes reg, op, etc */
+		} else {
+			o1 |= uint32(p.From.Reg&31) << 16
+		}
+		rt = int(p.To.Reg)
+		if p.To.Type == obj.TYPE_NONE {
+			rt = REGZERO
+		}
+		r = int(p.Reg)
+		if r == 0 {
+			r = rt
+		}
+		o1 |= (uint32(r&31) << 5) | uint32(rt&31)
 
 	case 28: /* logop $vcon, [R], R (64 bit literal) */
 		o1 = omovlit(ctxt, AMOVD, p, &p.From, REGTMP)
