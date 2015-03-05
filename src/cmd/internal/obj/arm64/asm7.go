@@ -2101,9 +2101,11 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 			r = rt
 		}
 		if p.To.Type != obj.TYPE_NONE && (p.To.Reg == REGSP || r == REGSP) {
+			o2 = opxrrr(ctxt, int(p.As))
 			o2 |= REGTMP&31 << 16
 			o2 |= LSL0_64
 		} else {
+			o2 = oprrr(ctxt, int(p.As))
 			o2 |= REGTMP&31 << 16 /* shift is 0 */
 		}
 
