@@ -538,8 +538,8 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym) {
 			continue
 
 		case ABL,
-			ADUFFZERO,
-			ADUFFCOPY:
+			obj.ADUFFZERO,
+			obj.ADUFFCOPY:
 			cursym.Text.Mark &^= LEAF
 			fallthrough
 

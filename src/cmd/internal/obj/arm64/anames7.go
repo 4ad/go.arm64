@@ -398,8 +398,6 @@ var Anames = []string{
 	"CHECKNIL",
 	"VARDEF",
 	"VARKILL",
-	"DUFFCOPY",
-	"DUFFZERO",
 	"LAST",
 }
 
