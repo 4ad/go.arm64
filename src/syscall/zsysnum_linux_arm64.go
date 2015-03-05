@@ -268,4 +268,11 @@ const (
 	SYS_SCHED_GETATTR          = 275
 	SYS_RENAMEAT2              = 276
 	SYS_SECCOMP                = 277
+	SYS_GETRANDOM              = 278
+	SYS_MEMFD_CREATE           = 279
+	SYS_BPF                    = 280
+	SYS_EXECVEAT               = 281
+
+	SYS_EPOLL_CREATE = 1042
+	SYS_EPOLL_WAIT = 1069
 )
