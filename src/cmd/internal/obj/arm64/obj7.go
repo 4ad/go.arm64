@@ -237,8 +237,8 @@ func progedit(ctxt *obj.Link, p *obj.Prog) {
 	case AB,
 		ABL,
 		ARETURN,
-		ADUFFZERO,
-		ADUFFCOPY:
+		obj.ADUFFZERO,
+		obj.ADUFFCOPY:
 		if p.To.Sym != nil {
 			p.To.Type = obj.TYPE_BRANCH
 		}
