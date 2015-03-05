@@ -390,7 +390,6 @@ var Anames = []string{
 	"SHA256H2",
 	"SHA256SU0",
 	"SHA256SU1",
-	"UNDEF",
 	"USEFIELD",
 	"TYPE",
 	"FUNCDATA",
