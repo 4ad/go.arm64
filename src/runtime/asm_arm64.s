@@ -816,10 +816,10 @@ g0:
 	BL	(R12)
 
 	// Restore g, stack pointer.  R0 is errno, so don't touch it
-	MOVD	40(SP), g
+	MOVD	40(RSP), g
 	BL	runtime·save_g(SB)
 	MOVD	(g_stack+stack_hi)(g), R5
-	MOVD	32(SP), R6
+	MOVD	32(RSP), R6
 	SUB	R6, R5
 	MOVD	R5, RSP
 	RET
