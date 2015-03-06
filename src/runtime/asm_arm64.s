@@ -11,8 +11,7 @@ DATA	runtime·main·f+0(SB)/8,$runtime·main(SB)
 GLOBL	runtime·main·f(SB),RODATA,$8
 
 TEXT runtime·breakpoint(SB),NOSPLIT,$-8-0
-	MOVD	$0, R0
-	MOVD	R0, (R0) // TODO: TD
+	BRK
 	RET
 
 TEXT runtime·asminit(SB),NOSPLIT,$-8-0
