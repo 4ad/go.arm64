@@ -291,6 +291,8 @@ func scanframeworker(frame *stkframe, unused unsafe.Pointer, gcw *gcWorkProducer
 	var minsize uintptr
 	if thechar != '6' && thechar != '8' {
 		minsize = ptrSize
+	} else if thechar == '7' {
+		minsize = spAlign
 	} else {
 		minsize = 0
 	}
