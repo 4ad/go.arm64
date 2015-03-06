@@ -611,7 +611,7 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym) {
 			}
 
 			if !(p.From3.Offset&obj.NOSPLIT != 0) {
-				p = stacksplit(ctxt, p, ctxt.Autosize, bool2int(!(cursym.Text.Reg&obj.NEEDCTXT != 0))) // emit split check
+				p = stacksplit(ctxt, p, ctxt.Autosize, bool2int(cursym.Text.From3.Offset&obj.NEEDCTXT == 0)) // emit split check
 			}
 
 			aoffset = ctxt.Autosize

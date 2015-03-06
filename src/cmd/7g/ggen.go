@@ -171,7 +171,7 @@ func ginscall(f *gc.Node, proc int) {
 		gmove(f, &reg)
 		reg.Op = gc.OINDREG
 		gmove(&reg, &r1)
-		reg.Op = gc.OINDREG
+		r1.Op = gc.OINDREG
 		gins(arm64.ABL, nil, &r1)
 
 	case 3: // normal call of c function pointer
