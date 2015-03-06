@@ -660,7 +660,7 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym) {
 				// if(g->panic != nil && g->panic->argp == FP) g->panic->argp = bottom-of-frame
 				//
 				//	MOV g_panic(g), R1
-				//	CMP $0, R1
+				//	CMP ZR, R1
 				//	BEQ end
 				//	MOV panic_argp(R1), R2
 				//	ADD $(autosize+8), RSP, R3
@@ -685,8 +685,8 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym) {
 
 				q = obj.Appendp(ctxt, q)
 				q.As = ACMP
-				q.From.Type = obj.TYPE_CONST
-				q.From.Offset = 0
+				q.From.Type = obj.TYPE_REG
+				q.From.Reg = REGZERO
 				q.Reg = REG_R1
 
 				q = obj.Appendp(ctxt, q)
