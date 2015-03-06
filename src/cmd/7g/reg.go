@@ -136,7 +136,7 @@ func doregbits(r int) uint64 {
  *	32+31	F31
  */
 func RtoB(r int) uint64 {
-	if r > arm64.REG_R0 && r <= arm64.REG_R31 {
+	if r >= arm64.REG_R0 && r <= arm64.REG_R31 {
 		return 1 << uint(r-arm64.REG_R0)
 	}
 	if r >= arm64.REG_F0 && r <= arm64.REG_F31 {
