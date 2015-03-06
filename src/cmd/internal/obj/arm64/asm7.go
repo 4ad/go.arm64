@@ -170,7 +170,7 @@ var optab = []Optab{
 	// {AADD, C_MBCON, C_RSP, C_RSP, 2, 4, 0, 0, 0},
 	// {AADD, C_MBCON, C_NONE, C_RSP, 2, 4, 0, 0, 0},
 	// {ACMP, C_MBCON, C_RSP, C_NONE, 2, 4, 0, 0, 0},
-	{AADD, C_VCON, C_REG, C_RSP, 13, 8, 0, LFROM, 0},
+	{AADD, C_VCON, C_RSP, C_RSP, 13, 8, 0, LFROM, 0},
 	{AADD, C_VCON, C_NONE, C_RSP, 13, 8, 0, LFROM, 0},
 	{ACMP, C_VCON, C_REG, C_NONE, 13, 8, 0, LFROM, 0},
 	{AADD, C_SHIFT, C_REG, C_REG, 3, 4, 0, 0, 0},
