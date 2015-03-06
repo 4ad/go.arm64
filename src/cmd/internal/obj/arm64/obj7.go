@@ -656,7 +656,7 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym) {
 			q1.Spadj = aoffset
 			q.Link = q1
 
-			if cursym.Text.Reg&obj.WRAPPER != 0 {
+			if cursym.Text.From3.Offset&obj.WRAPPER != 0 {
 				// if(g->panic != nil && g->panic->argp == FP) g->panic->argp = bottom-of-frame
 				//
 				//	MOV g_panic(g), R1
@@ -713,7 +713,7 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym) {
 				q = obj.Appendp(ctxt, q)
 				q.As = ACMP
 				q.From.Type = obj.TYPE_REG
-				q.From.Reg = 2
+				q.From.Reg = REG_R2
 				q.Reg = REG_R3
 
 				q = obj.Appendp(ctxt, q)
@@ -732,7 +732,7 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym) {
 				q = obj.Appendp(ctxt, q)
 				q.As = AMOVD
 				q.From.Type = obj.TYPE_REG
-				q.From.Reg = 4
+				q.From.Reg = REG_R4
 				q.To.Type = obj.TYPE_MEM
 				q.To.Reg = REG_R1
 				q.To.Offset = 0 // Panic.argp
