@@ -16,7 +16,6 @@ package syscall
 //sysnb	Getuid() (uid int)
 //sys	Lchown(path string, uid int, gid int) (err error)
 //sys	Listen(s int, n int) (err error)
-//sys	Lstat(path string, stat *Stat_t) (err error)
 //sys	Pread(fd int, p []byte, offset int64) (n int, err error) = SYS_PREAD64
 //sys	Pwrite(fd int, p []byte, offset int64) (n int, err error) = SYS_PWRITE64
 //sys	Seek(fd int, offset int64, whence int) (off int64, err error) = SYS_LSEEK
@@ -31,8 +30,13 @@ package syscall
 //sysnb	Setreuid(ruid int, euid int) (err error)
 //sys	Shutdown(fd int, how int) (err error)
 //sys	Splice(rfd int, roff *int64, wfd int, woff *int64, len int, flags int) (n int64, err error)
+
 func Stat(path string, stat *Stat_t) (err error) {
 	return Fstatat(_AT_FDCWD, path, stat, 0)
+}
+
+func Lstat(path string, stat *Stat_t) (err error) {
+	return Fstatat(_AT_FDCWD, path, stat, _AT_SYMLINK_NOFOLLOW)
 }
 
 //sys	Statfs(path string, buf *Statfs_t) (err error)
@@ -121,25 +125,15 @@ func (cmsg *Cmsghdr) SetLen(length int) {
 // TODO(dfc) constants that should be in zsysnum_linux_arm64.go, remove these when the
 // depricated syscalls that the syscall package relies on are removed.
 const (
-	SYS_LINK         = 1025
-	SYS_MKDIR        = 1030
-	SYS_MKNOD        = 1027
 	SYS_INOTIFY_INIT = 1043
 	SYS_GETPGRP      = 1060
-	SYS_CREAT        = 1064
-	SYS_CHMOD        = 1028
 	SYS_UTIMES       = 1037
 	SYS_FUTIMESAT    = 1066
 	SYS_PAUSE        = 1061
-	SYS_READLINK     = 1035
-	SYS_RENAME       = 1034
-	SYS_RMDIR        = 1031
-	SYS_SYMLINK      = 1036
-	SYS_UNLINK       = 1026
 	SYS_USTAT        = 1070
 	SYS_UTIME        = 1063
-	SYS_CHOWN        = 1029
 	SYS_LCHOWN       = 1032
-	SYS_LSTAT        = 1050
 	SYS_TIME         = 1062
+	SYS_EPOLL_CREATE = 1042
+	SYS_EPOLL_WAIT   = 1069
 )
