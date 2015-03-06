@@ -1927,7 +1927,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		if r == 0 {
 			r = rt
 		}
-		o1 |= (uint32(rf) << 16) | (uint32(r&31) << 5) | uint32(rt&31)
+		o1 |= (uint32(rf&31) << 16) | (uint32(r&31) << 5) | uint32(rt&31)
 
 	case 2: /* add/sub $(uimm12|uimm24)[,R],R; cmp $(uimm12|uimm24),R */
 		o1 = opirr(ctxt, int(p.As))
