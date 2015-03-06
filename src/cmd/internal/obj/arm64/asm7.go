@@ -1040,7 +1040,7 @@ func aclass(ctxt *obj.Link, a *obj.Addr) int {
 		switch a.Name {
 		case obj.TYPE_NONE:
 			ctxt.Instoffset = a.Offset
-			if a.Reg == REGSP {
+			if a.Reg != 0 && a.Reg != REGZERO {
 				goto aconsize
 			}
 			v := ctxt.Instoffset
@@ -2473,7 +2473,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 			break
 		}
 		o2 = opxrrr(ctxt, AADD)
-		o2 |= REGTMP << 16
+		o2 |= REGTMP&31 << 16
 		o2 |= LSL0_64
 		r = int(p.From.Reg)
 		if r == 0 {
