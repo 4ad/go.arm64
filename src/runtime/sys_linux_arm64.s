@@ -182,8 +182,10 @@ TEXT runtime·rtsigprocmask(SB),NOSPLIT,$-8-28
 	MOVW	size+24(FP), R3
 	MOVD	$SYS_rt_sigprocmask, R8
 	SVC
-	BVC	done
-	B	(ZR)	// crash
+	CMN	$4095, R0
+	BCC	done
+	MOVD	$0, R0
+	MOVD	R0, (R0)	// crash
 done:
 	RET
 
@@ -249,7 +251,8 @@ TEXT runtime·munmap(SB),NOSPLIT,$-8
 	MOVD	n+8(FP), R1
 	MOVD	$SYS_munmap, R8
 	SVC
-	BVC	cool
+	CMN	$4095, R0
+	BCC	cool
 	MOVD	R0, 0xf0(R0)
 cool:
 	RET
@@ -273,6 +276,7 @@ TEXT runtime·futex(SB),NOSPLIT,$-8
 	MOVD	addr2+24(FP), R4
 	MOVW	val3+32(FP), R5
 	MOVD	$SYS_futex, R8
+	SVC
 	MOVW	R0, ret+40(FP)
 	RET
 
@@ -307,7 +311,8 @@ child:
 	MOVD	$1234, R0
 	CMP	R0, R10
 	BEQ	good
-	B	(ZR) // crash
+	MOVD	$0, R0
+	MOVD	R0, (R0)	// crash
 
 	// Initialize m->procid to Linux tid
 good:
@@ -343,8 +348,10 @@ TEXT runtime·sigaltstack(SB),NOSPLIT,$-8
 	MOVD	old+8(FP), R1
 	MOVD	$SYS_sigaltstack, R8
 	SVC
-	BVC	ok
-	B	(ZR)  // crash
+	CMN	$4095, R0
+	BCC	ok
+	MOVD	$0, R0
+	MOVD	R0, (R0)	// crash
 ok:
 	RET
 
