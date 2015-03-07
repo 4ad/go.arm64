@@ -91,6 +91,7 @@ var progtable = [arm64.ALAST]gc.ProgInfo{
 	arm64.ASCVTFD: gc.ProgInfo{gc.SizeQ | gc.LeftRead | gc.RightWrite | gc.Conv, 0, 0, 0},
 	arm64.ASCVTFS: gc.ProgInfo{gc.SizeQ | gc.LeftRead | gc.RightWrite | gc.Conv, 0, 0, 0},
 	arm64.ASCVTFWD: gc.ProgInfo{gc.SizeL | gc.LeftRead | gc.RightWrite | gc.Conv, 0, 0, 0},
+	arm64.ASCVTFWS: gc.ProgInfo{gc.SizeL | gc.LeftRead | gc.RightWrite | gc.Conv, 0, 0, 0},
 	arm64.AUCVTFD: gc.ProgInfo{gc.SizeQ | gc.LeftRead | gc.RightWrite | gc.Conv, 0, 0, 0},
 	arm64.AUCVTFS: gc.ProgInfo{gc.SizeQ | gc.LeftRead | gc.RightWrite | gc.Conv, 0, 0, 0},
 	arm64.AUCVTFWD: gc.ProgInfo{gc.SizeL | gc.LeftRead | gc.RightWrite | gc.Conv, 0, 0, 0},
