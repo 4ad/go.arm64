@@ -133,7 +133,8 @@ type itimerval struct {
 
 type epollevent struct {
 	events uint32
-	data   [8]byte // unaligned uintptr
+	_pad   uint32
+	data   [8]byte // to match amd64
 }
 
 // Created by cgo -cdefs and then converted to Go by hand
