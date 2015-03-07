@@ -11,14 +11,14 @@ TEXT ·SwapUint32(SB),NOSPLIT,$0-20
 again:
 	MOVD	addr+0(FP), R0
 	MOVW	new+8(FP), R1
-	LDAXR	(R0), R2
+	LDAXRW	(R0), R2
 	STLXRW	R1, (R0), R3
 	CBNZ	R3, again
 	MOVW	R2, old+16(FP)
 	RET
 
 TEXT ·SwapInt64(SB),NOSPLIT,$0-24
-	B	·SwapUint32(SB)
+	B	·SwapUint64(SB)
 
 TEXT ·SwapUint64(SB),NOSPLIT,$0-24
 again:

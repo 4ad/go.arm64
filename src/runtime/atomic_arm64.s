@@ -44,7 +44,7 @@ TEXT runtime·xchg(SB), NOSPLIT, $0-20
 again:
 	MOVD	ptr+0(FP), R0
 	MOVW	new+8(FP), R1
-	LDAXR	(R0), R2
+	LDAXRW	(R0), R2
 	STLXRW	R1, (R0), R3
 	CBNZ	R3, again
 	MOVW	R2, ret+16(FP)
