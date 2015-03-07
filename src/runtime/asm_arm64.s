@@ -954,7 +954,7 @@ TEXT runtime·morestack_noctxt(SB),NOSPLIT,$-4-0
 //
 // functions for other packages
 //
-TEXT bytes·IndexByte(SB),NOSPLIT,$0
+TEXT bytes·IndexByte(SB),NOSPLIT,$0-40
 	MOVD	b+0(FP), R0
 	MOVD	b_len+8(FP), R1
 	MOVBU	c+24(FP), R2	// byte to find
@@ -978,7 +978,7 @@ notfound:
 	RET
 
 // TODO: share code with memeq?
-TEXT bytes·Equal(SB),NOSPLIT,$0
+TEXT bytes·Equal(SB),NOSPLIT,$0-49
 	MOVD	a_len+8(FP), R1
 	MOVD	b_len+32(FP), R3
 	CMP	R1, R3		// unequal lengths are not equal
@@ -1001,7 +1001,7 @@ equal:
 	MOVB	R0, ret+48(FP)
 	RET
 
-TEXT strings·IndexByte(SB),NOSPLIT,$0
+TEXT strings·IndexByte(SB),NOSPLIT,$0-32
 	MOVD	s+0(FP), R0
 	MOVD	s_len+8(FP), R1
 	MOVBU	c+16(FP), R2	// byte to find
