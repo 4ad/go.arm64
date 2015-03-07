@@ -263,7 +263,7 @@ TestCases:
 			fmt.Fprintf(&buf, "#define CALL BL\n#define REGISTER (R0)\n")
 		case "arm64":
 			ptrSize = 8
-			fmt.Fprintf(&buf, "#define CALL BL\n#define REGISTER (R0)\n#define RET RETURN\n")
+			fmt.Fprintf(&buf, "#define CALL BL\n#define REGISTER (R0)\n\n")
 		case "amd64":
 			ptrSize = 8
 			fmt.Fprintf(&buf, "#define REGISTER AX\n")
