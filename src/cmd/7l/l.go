@@ -73,5 +73,5 @@ const (
 
 /* Used by ../ld/dwarf.c */
 const (
-	DWARFREGSP = 1
+	DWARFREGSP = 31
 )
