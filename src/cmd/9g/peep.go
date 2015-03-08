@@ -31,11 +31,11 @@
 package main
 
 import (
+	"cmd/internal/gc"
 	"cmd/internal/obj"
 	"cmd/internal/obj/ppc64"
 	"fmt"
 )
-import "cmd/internal/gc"
 
 var gactive uint32
 
@@ -416,7 +416,7 @@ func subprop(r0 *gc.Flow) bool {
 		if p.As == obj.AVARDEF || p.As == obj.AVARKILL {
 			continue
 		}
-		proginfo(&info, p)
+		info = proginfo(p)
 		if info.Flags&gc.Call != 0 {
 			return false
 		}
@@ -615,7 +615,7 @@ func copyu(p *obj.Prog, v *obj.Addr, s *obj.Addr) int {
 
 	switch p.As {
 	default:
-		fmt.Printf("copyu: can't find %v\n", ppc64.Aconv(int(p.As)))
+		fmt.Printf("copyu: can't find %v\n", obj.Aconv(int(p.As)))
 		return 2
 
 	case obj.ANOP, /* read p->from, write p->to */

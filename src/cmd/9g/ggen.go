@@ -5,11 +5,11 @@
 package main
 
 import (
+	"cmd/internal/gc"
 	"cmd/internal/obj"
 	"cmd/internal/obj/ppc64"
 	"fmt"
 )
-import "cmd/internal/gc"
 
 func defframe(ptxt *obj.Prog) {
 	var n *gc.Node
@@ -32,7 +32,7 @@ func defframe(ptxt *obj.Prog) {
 	// iterate through declarations - they are sorted in decreasing xoffset order.
 	for l := gc.Curfn.Dcl; l != nil; l = l.Next {
 		n = l.N
-		if n.Needzero == 0 {
+		if !n.Needzero {
 			continue
 		}
 		if n.Class != gc.PAUTO {
@@ -76,7 +76,7 @@ func zerorange(p *obj.Prog, frame int64, lo int64, hi int64) *obj.Prog {
 		p.Reg = ppc64.REGSP
 		p = appendpp(p, obj.ADUFFZERO, obj.TYPE_NONE, 0, 0, obj.TYPE_MEM, 0, 0)
 		f := gc.Sysfunc("duffzero")
-		gc.Naddr(f, &p.To, 1)
+		p.To = gc.Naddr(f, 1)
 		gc.Afunclit(&p.To, f)
 		p.To.Offset = 4 * (128 - cnt/int64(gc.Widthptr))
 	} else {
@@ -374,7 +374,7 @@ func cgen_callret(n *gc.Node, res *gc.Node) {
 		gc.Fatal("cgen_callret: nil")
 	}
 
-	nod := gc.Node{}
+	var nod gc.Node
 	nod.Op = gc.OINDREG
 	nod.Val.U.Reg = ppc64.REGSP
 	nod.Addable = 1
@@ -401,7 +401,7 @@ func cgen_aret(n *gc.Node, res *gc.Node) {
 		gc.Fatal("cgen_aret: nil")
 	}
 
-	nod1 := gc.Node{}
+	var nod1 gc.Node
 	nod1.Op = gc.OINDREG
 	nod1.Val.U.Reg = ppc64.REGSP
 	nod1.Addable = 1

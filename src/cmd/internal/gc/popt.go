@@ -79,16 +79,25 @@ const (
 )
 
 type Reg struct {
-	set       Bits
-	use1      Bits
-	use2      Bits
+	set  Bits // regopt variables written by this instruction.
+	use1 Bits // regopt variables read by prog->from.
+	use2 Bits // regopt variables read by prog->to.
+
+	// refahead/refbehind are the regopt variables whose current
+	// value may be used in the following/preceding instructions
+	// up to a CALL (or the value is clobbered).
 	refbehind Bits
 	refahead  Bits
+
+	// calahead/calbehind are similar, but for variables in
+	// instructions that are reachable after hitting at least one
+	// CALL.
 	calbehind Bits
 	calahead  Bits
-	regdiff   Bits
-	act       Bits
-	regu      uint64
+
+	regdiff Bits
+	act     Bits
+	regu    uint64 // register used bitmap
 }
 
 type Rgn struct {
@@ -283,7 +292,7 @@ func fixjmp(firstp *obj.Prog) {
 	mark(firstp)
 
 	// pass 3: delete dead code (mostly JMPs).
-	last := (*obj.Prog)(nil)
+	var last *obj.Prog
 
 	for p := firstp; p != nil; p = p.Link {
 		if p.Opt == dead {
@@ -315,7 +324,7 @@ func fixjmp(firstp *obj.Prog) {
 	// pass 4: elide JMP to next instruction.
 	// only safe if there are no jumps to JMPs anymore.
 	if jmploop == 0 {
-		last := (*obj.Prog)(nil)
+		var last *obj.Prog
 		for p := firstp; p != nil; p = p.Link {
 			if p.As == obj.AJMP && p.To.Type == obj.TYPE_BRANCH && p.To.U.Branch == p.Link {
 				if Debug['R'] != 0 && Debug['v'] != 0 {
@@ -362,6 +371,8 @@ func fixjmp(firstp *obj.Prog) {
 // to allocate in every f->data field, for use by the client.
 // If size == 0, f->data will be nil.
 
+var flowmark int
+
 func Flowstart(firstp *obj.Prog, newData func() interface{}) *Graph {
 	var info ProgInfo
 
@@ -370,11 +381,11 @@ func Flowstart(firstp *obj.Prog, newData func() interface{}) *Graph {
 
 	for p := firstp; p != nil; p = p.Link {
 		p.Opt = nil // should be already, but just in case
-		Thearch.Proginfo(&info, p)
+		info = Thearch.Proginfo(p)
 		if info.Flags&Skip != 0 {
 			continue
 		}
-		p.Opt = interface{}(1)
+		p.Opt = &flowmark
 		nf++
 	}
 
@@ -417,7 +428,7 @@ func Flowstart(firstp *obj.Prog, newData func() interface{}) *Graph {
 	var p *obj.Prog
 	for f := start; f != nil; f = f.Link {
 		p = f.Prog
-		Thearch.Proginfo(&info, p)
+		info = Thearch.Proginfo(p)
 		if info.Flags&Break == 0 {
 			f1 = f.Link
 			f.S1 = f1
@@ -637,14 +648,14 @@ func Uniqs(r *Flow) *Flow {
 
 type TempVar struct {
 	node     *Node
-	def      *Flow
-	use      *Flow
-	freelink *TempVar
-	merge    *TempVar
-	start    int64
-	end      int64
-	addr     uint8
-	removed  uint8
+	def      *Flow    // definition of temp var
+	use      *Flow    // use list, chained through Flow.data
+	freelink *TempVar // next free temp in Type.opt list
+	merge    *TempVar // merge var with this one
+	start    int64    // smallest Prog.pc in live range
+	end      int64    // largest Prog.pc in live range
+	addr     uint8    // address taken - no accurate end
+	removed  uint8    // removed from program
 }
 
 type startcmp []*TempVar
@@ -726,7 +737,7 @@ func mergetemp(firstp *obj.Prog) {
 	var info ProgInfo
 	for f := g.Start; f != nil; f = f.Link {
 		p = f.Prog
-		Thearch.Proginfo(&info, p)
+		info = Thearch.Proginfo(p)
 
 		if p.From.Node != nil && ((p.From.Node).(*Node)).Opt != nil && p.To.Node != nil && ((p.To.Node).(*Node)).Opt != nil {
 			Fatal("double node %v", p)
@@ -774,7 +785,7 @@ func mergetemp(firstp *obj.Prog) {
 		f = v.use
 		if f != nil && f.Data.(*Flow) == nil {
 			p = f.Prog
-			Thearch.Proginfo(&info, p)
+			info = Thearch.Proginfo(p)
 			if p.To.Node == v.node && (info.Flags&RightWrite != 0) && info.Flags&RightRead == 0 {
 				p.As = obj.ANOP
 				p.To = obj.Addr{}
@@ -794,9 +805,9 @@ func mergetemp(firstp *obj.Prog) {
 		f = v.use
 		if f != nil && f.Link == f.Data.(*Flow) && (f.Data.(*Flow)).Data.(*Flow) == nil && Uniqp(f.Link) == f {
 			p = f.Prog
-			Thearch.Proginfo(&info, p)
+			info = Thearch.Proginfo(p)
 			p1 = f.Link.Prog
-			Thearch.Proginfo(&info1, p1)
+			info1 = Thearch.Proginfo(p1)
 			const (
 				SizeAny = SizeB | SizeW | SizeL | SizeQ | SizeF | SizeD
 			)
@@ -882,7 +893,7 @@ func mergetemp(firstp *obj.Prog) {
 		for j = nfree; j < len(var_); j++ {
 			v1 = inuse[j]
 			if debugmerge > 0 && Debug['v'] != 0 {
-				fmt.Printf("consider %v: maybe %v: type=%v,%v addrtaken=%d,%d\n", Nconv(v.node, obj.FmtSharp), Nconv(v1.node, obj.FmtSharp), Tconv(t, 0), Tconv(v1.node.Type, 0), v.node.Addrtaken, v1.node.Addrtaken)
+				fmt.Printf("consider %v: maybe %v: type=%v,%v addrtaken=%v,%v\n", Nconv(v.node, obj.FmtSharp), Nconv(v1.node, obj.FmtSharp), Tconv(t, 0), Tconv(v1.node.Type, 0), v.node.Addrtaken, v1.node.Addrtaken)
 			}
 
 			// Require the types to match but also require the addrtaken bits to match.
@@ -1122,7 +1133,7 @@ func nilwalkback(fcheck *Flow) {
 
 	for f := fcheck; f != nil; f = Uniqp(f) {
 		p = f.Prog
-		Thearch.Proginfo(&info, p)
+		info = Thearch.Proginfo(p)
 		if (info.Flags&RightWrite != 0) && Thearch.Sameaddr(&p.To, &fcheck.Prog.From) {
 			// Found initialization of value we're checking for nil.
 			// without first finding the check, so this one is unchecked.
@@ -1187,11 +1198,11 @@ func nilwalkfwd(fcheck *Flow) {
 	// avoid problems like:
 	//	_ = *x // should panic
 	//	for {} // no writes but infinite loop may be considered visible
-	last := (*Flow)(nil)
+	var last *Flow
 
 	for f := Uniqs(fcheck); f != nil; f = Uniqs(f) {
 		p = f.Prog
-		Thearch.Proginfo(&info, p)
+		info = Thearch.Proginfo(p)
 
 		if (info.Flags&LeftRead != 0) && Thearch.Smallindir(&p.From, &fcheck.Prog.From) {
 			fcheck.Data = &killed

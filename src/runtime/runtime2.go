@@ -314,7 +314,9 @@ type p struct {
 	syscalltick uint32 // incremented on every system call
 	m           *m     // back-link to associated m (nil if idle)
 	mcache      *mcache
-	deferpool   [5]*_defer // pool of available defer structs of different sizes (see panic.c)
+
+	deferpool    [5][]*_defer // pool of available defer structs of different sizes (see panic.c)
+	deferpoolbuf [5][32]*_defer
 
 	// Cache of goroutine ids, amortizes accesses to runtime·sched.goidgen.
 	goidcache    uint64
@@ -328,6 +330,9 @@ type p struct {
 	// Available G's (status == Gdead)
 	gfree    *g
 	gfreecnt int32
+
+	sudogcache []*sudog
+	sudogbuf   [128]*sudog
 
 	tracebuf *traceBuf
 
@@ -364,6 +369,14 @@ type schedt struct {
 	gflock mutex
 	gfree  *g
 	ngfree int32
+
+	// Central cache of sudog structs.
+	sudoglock  mutex
+	sudogcache *sudog
+
+	// Central pool of available defer structs of different sizes.
+	deferlock mutex
+	deferpool [5]*_defer
 
 	gcwaiting  uint32 // gc is waiting to run
 	stopwait   int32

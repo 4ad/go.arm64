@@ -77,6 +77,7 @@ type Prog struct {
 	Optab    uint16
 	Back     uint8
 	Ft       uint8
+	F3t      uint8
 	Tt       uint8
 	Isize    uint8
 	Printed  uint8
@@ -153,14 +154,6 @@ type Auto struct {
 	Aoffset int32
 	Name    int16
 	Gotype  *LSym
-}
-
-type Hist struct {
-	Link    *Hist
-	Name    string
-	Line    int32
-	Offset  int32
-	Printed uint8
 }
 
 type Link struct {
@@ -242,7 +235,6 @@ type Plist struct {
 }
 
 type LinkArch struct {
-	Pconv      func(*Prog) string
 	ByteOrder  binary.ByteOrder
 	Name       string
 	Thechar    int
@@ -390,7 +382,16 @@ type Pciter struct {
 //			offset = bit mask of registers in list; R0 is low bit.
 //
 //	reg, reg
-//		TYPE_REGREG2, to be removed.
+//		Register pair for ARM.
+//		TYPE_REGREG2
+//
+//	(reg+reg)
+//		Register pair for PPC64.
+//		Encoding:
+//			type = TYPE_MEM
+//			reg = first register
+//			index = second register
+//			scale = 1
 //
 
 const (
@@ -402,8 +403,11 @@ const (
 )
 
 const (
-	TYPE_NONE   = 0
-	TYPE_BRANCH = 5 + iota - 1
+	TYPE_NONE = 0
+)
+
+const (
+	TYPE_BRANCH = 5 + iota
 	TYPE_TEXTSIZE
 	TYPE_MEM
 	TYPE_CONST
@@ -425,6 +429,10 @@ const (
 // These are the portable opcodes, common to all architectures.
 // Each architecture defines many more arch-specific opcodes,
 // with values starting at A_ARCHSPECIFIC.
+// Each architecture adds an offset to this so each machine has
+// distinct space for its instructions. The offset is a power of
+// two so it can be masked to return to origin zero.
+// See the definitions of ABase386 etc.
 const (
 	AXXX = 0 + iota
 	ACALL
@@ -571,31 +579,5 @@ const (
 	LinkInternal
 	LinkExternal
 )
-
-// asm5.c
-
-// asm6.c
-
-// asm8.c
-
-// asm9.c
-
-// data.c
-
-// go.c
-
-// ld.c
-
-// list[5689].c
-
-// obj.c
-
-// objfile.c
-
-// pass.c
-
-// pcln.c
-
-// sym.c
 
 var linkbasepointer int

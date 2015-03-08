@@ -132,14 +132,14 @@ func testdclstack() {
 
 func redeclare(s *Sym, where string) {
 	if s.Lastlineno == 0 {
-		var tmp *Strlit
+		var tmp string
 		if s.Origpkg != nil {
 			tmp = s.Origpkg.Path
 		} else {
 			tmp = s.Pkg.Path
 		}
 		pkgstr := tmp
-		Yyerror("%v redeclared %s\n"+"\tprevious declaration during import \"%v\"", Sconv(s, 0), where, Zconv(pkgstr, 0))
+		Yyerror("%v redeclared %s\n"+"\tprevious declaration during import %q", Sconv(s, 0), where, pkgstr)
 	} else {
 		line1 := parserline()
 		line2 := int(s.Lastlineno)
@@ -247,7 +247,7 @@ func addvar(n *Node, t *Type, ctxt int) {
  * new_name_list (type | [type] = expr_list)
  */
 func variter(vl *NodeList, t *Node, el *NodeList) *NodeList {
-	init := (*NodeList)(nil)
+	var init *NodeList
 	doexpr := el != nil
 
 	if count(el) == 1 && count(vl) > 1 {
@@ -313,7 +313,6 @@ func variter(vl *NodeList, t *Node, el *NodeList) *NodeList {
  * new_name_list [[type] = expr_list]
  */
 func constiter(vl *NodeList, t *Node, cl *NodeList) *NodeList {
-	vv := (*NodeList)(nil)
 	if cl == nil {
 		if t != nil {
 			Yyerror("const declaration cannot have type without expression")
@@ -329,6 +328,7 @@ func constiter(vl *NodeList, t *Node, cl *NodeList) *NodeList {
 
 	var v *Node
 	var c *Node
+	var vv *NodeList
 	for ; vl != nil; vl = vl.Next {
 		if cl == nil {
 			Yyerror("missing value in const declaration")
@@ -823,7 +823,8 @@ func structfield(n *Node) *Type {
 
 	switch n.Val.Ctype {
 	case CTSTR:
-		f.Note = n.Val.U.Sval
+		f.Note = new(string)
+		*f.Note = n.Val.U.Sval
 
 	default:
 		Yyerror("field annotation must be string")
@@ -1081,7 +1082,7 @@ func checkarglist(all *NodeList, input int) *NodeList {
 	}
 
 	if named != 0 {
-		n := (*Node)(nil)
+		var n *Node
 		var l *NodeList
 		for l = all; l != nil; l = l.Next {
 			n = l.N
@@ -1096,7 +1097,7 @@ func checkarglist(all *NodeList, input int) *NodeList {
 		}
 	}
 
-	nextt := (*Node)(nil)
+	var nextt *Node
 	var t *Node
 	var n *Node
 	for l := all; l != nil; l = l.Next {
@@ -1195,7 +1196,7 @@ func isifacemethod(f *Type) bool {
 func functype(this *Node, in *NodeList, out *NodeList) *Type {
 	t := typ(TFUNC)
 
-	rcvr := (*NodeList)(nil)
+	var rcvr *NodeList
 	if this != nil {
 		rcvr = list1(this)
 	}
@@ -1284,7 +1285,7 @@ func methodsym(nsym *Sym, t0 *Type, iface int) *Sym {
 
 	if spkg == nil {
 		if methodsym_toppkg == nil {
-			methodsym_toppkg = mkpkg(newstrlit("go"))
+			methodsym_toppkg = mkpkg("go")
 		}
 		spkg = methodsym_toppkg
 	}
@@ -1413,7 +1414,7 @@ func addmethod(sf *Sym, t *Type, local bool, nointerface bool) {
 	n := Nod(ODCLFIELD, newname(sf), nil)
 	n.Type = t
 
-	d := (*Type)(nil) // last found
+	var d *Type // last found
 	for f := pa.Method; f != nil; f = f.Down {
 		d = f
 		if f.Etype != TFIELD {

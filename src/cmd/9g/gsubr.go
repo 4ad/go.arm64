@@ -31,11 +31,11 @@
 package main
 
 import (
+	"cmd/internal/gc"
 	"cmd/internal/obj"
 	"cmd/internal/obj/ppc64"
 	"fmt"
 )
-import "cmd/internal/gc"
 
 // TODO(rsc): Can make this bigger if we move
 // the text segment up higher in 6l for all GOOS.
@@ -669,12 +669,14 @@ func gmove(f *gc.Node, t *gc.Node) {
 
 	// requires register destination
 rdst:
-	regalloc(&r1, t.Type, t)
+	{
+		regalloc(&r1, t.Type, t)
 
-	gins(a, f, &r1)
-	gmove(&r1, t)
-	regfree(&r1)
-	return
+		gins(a, f, &r1)
+		gmove(&r1, t)
+		regfree(&r1)
+		return
+	}
 
 	// requires register intermediate
 hard:
@@ -698,10 +700,10 @@ func gins(as int, f *gc.Node, t *gc.Node) *obj.Prog {
 
 	at := obj.Addr(obj.Addr{})
 	if f != nil {
-		gc.Naddr(f, &af, 1)
+		af = gc.Naddr(f, 1)
 	}
 	if t != nil {
-		gc.Naddr(t, &at, 1)
+		at = gc.Naddr(t, 1)
 	}
 	p := (*obj.Prog)(gc.Prog(as))
 	if f != nil {

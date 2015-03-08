@@ -176,6 +176,16 @@ func gcinit() {
 	memstats.next_gc = heapminimum
 }
 
+// gcenable is called after the bulk of the runtime initialization,
+// just before we're about to start letting user code run.
+// It kicks off the background sweeper goroutine and enables GC.
+func gcenable() {
+	c := make(chan int, 1)
+	go bgsweep(c)
+	<-c
+	memstats.enablegc = true // now that runtime is initialized, GC is okay
+}
+
 func setGCPercent(in int32) (out int32) {
 	lock(&mheap_.lock)
 	out = gcpercent
@@ -568,10 +578,7 @@ func gcSweep(mode int) {
 
 	// Background sweep.
 	lock(&sweep.lock)
-	if !sweep.started {
-		go bgsweep()
-		sweep.started = true
-	} else if sweep.parked {
+	if sweep.parked {
 		sweep.parked = false
 		ready(sweep.g)
 	}
@@ -628,6 +635,34 @@ func clearpools() {
 		poolcleanup()
 	}
 
+	// Clear central sudog cache.
+	// Leave per-P caches alone, they have strictly bounded size.
+	// Disconnect cached list before dropping it on the floor,
+	// so that a dangling ref to one entry does not pin all of them.
+	lock(&sched.sudoglock)
+	var sg, sgnext *sudog
+	for sg = sched.sudogcache; sg != nil; sg = sgnext {
+		sgnext = sg.next
+		sg.next = nil
+	}
+	sched.sudogcache = nil
+	unlock(&sched.sudoglock)
+
+	// Clear central defer pools.
+	// Leave per-P pools alone, they have strictly bounded size.
+	lock(&sched.deferlock)
+	for i := range sched.deferpool {
+		// disconnect cached list before dropping it on the floor,
+		// so that a dangling ref to one entry does not pin all of them.
+		var d, dlink *_defer
+		for d = sched.deferpool[i]; d != nil; d = dlink {
+			dlink = d.link
+			d.link = nil
+		}
+		sched.deferpool[i] = nil
+	}
+	unlock(&sched.deferlock)
+
 	for _, p := range &allp {
 		if p == nil {
 			break
@@ -636,27 +671,6 @@ func clearpools() {
 		if c := p.mcache; c != nil {
 			c.tiny = nil
 			c.tinyoffset = 0
-
-			// disconnect cached list before dropping it on the floor,
-			// so that a dangling ref to one entry does not pin all of them.
-			var sg, sgnext *sudog
-			for sg = c.sudogcache; sg != nil; sg = sgnext {
-				sgnext = sg.next
-				sg.next = nil
-			}
-			c.sudogcache = nil
-		}
-
-		// clear defer pools
-		for i := range p.deferpool {
-			// disconnect cached list before dropping it on the floor,
-			// so that a dangling ref to one entry does not pin all of them.
-			var d, dlink *_defer
-			for d = p.deferpool[i]; d != nil; d = dlink {
-				dlink = d.link
-				d.link = nil
-			}
-			p.deferpool[i] = nil
 		}
 	}
 }

@@ -58,7 +58,7 @@ const (
 	IMAGE_SYM_CLASS_MEMBER_OF_ENUM   = 16
 	IMAGE_SYM_CLASS_REGISTER_PARAM   = 17
 	IMAGE_SYM_CLASS_BIT_FIELD        = 18
-	IMAGE_SYM_CLASS_FAR_EXTERNAL     = 68
+	IMAGE_SYM_CLASS_FAR_EXTERNAL     = 68 /* Not in PECOFF v8 spec */
 	IMAGE_SYM_CLASS_BLOCK            = 100
 	IMAGE_SYM_CLASS_FUNCTION         = 101
 	IMAGE_SYM_CLASS_END_OF_STRUCT    = 102
@@ -131,7 +131,7 @@ func ldpe(f *Biobuf, pkg string, length int64, pn string) {
 		fmt.Fprintf(&Bso, "%5.2f ldpe %s\n", obj.Cputime(), pn)
 	}
 
-	sect := (*PeSect)(nil)
+	var sect *PeSect
 	Ctxt.Version++
 	base := int32(Boffset(f))
 

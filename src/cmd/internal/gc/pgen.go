@@ -6,6 +6,7 @@ package gc
 
 import (
 	"cmd/internal/obj"
+	"crypto/md5"
 	"fmt"
 	"strings"
 )
@@ -130,12 +131,7 @@ func gcsymdup(s *Sym) {
 	if len(ls.R) > 0 {
 		Fatal("cannot rosymdup %s with relocations", ls.Name)
 	}
-	var d MD5
-	md5reset(&d)
-	md5write(&d, ls.P, len(ls.P))
-	var hi uint64
-	lo := md5sum(&d, &hi)
-	ls.Name = fmt.Sprintf("gclocals·%016x%016x", lo, hi)
+	ls.Name = fmt.Sprintf("gclocals·%x", md5.Sum(ls.P))
 	ls.Dupok = 1
 }
 
@@ -211,8 +207,8 @@ func cmpstackvar(a *Node, b *Node) int {
 		return bp - ap
 	}
 
-	ap = int(a.Needzero)
-	bp = int(b.Needzero)
+	ap = bool2int(a.Needzero)
+	bp = bool2int(b.Needzero)
 	if ap != bp {
 		return bp - ap
 	}
@@ -446,10 +442,10 @@ func compile(fn *Node) {
 		nam = nil
 	}
 	ptxt = Thearch.Gins(obj.ATEXT, nam, &nod1)
-	if fn.Dupok != 0 {
+	if fn.Dupok {
 		ptxt.From3.Offset |= obj.DUPOK
 	}
-	if fn.Wrapper != 0 {
+	if fn.Wrapper {
 		ptxt.From3.Offset |= obj.WRAPPER
 	}
 	if fn.Needctxt {

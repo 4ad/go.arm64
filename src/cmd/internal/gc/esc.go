@@ -206,20 +206,32 @@ const (
 )
 
 type EscState struct {
-	theSink   Node
+	// Fake node that all
+	//   - return values and output variables
+	//   - parameters on imported functions not marked 'safe'
+	//   - assignments to global variables
+	// flow to.
+	theSink Node
+
+	// If an analyzed function is recorded to return
+	// pieces obtained via indirection from a parameter,
+	// and later there is a call f(x) to that function,
+	// we create a link funcParam <- x to record that fact.
+	// The funcParam node is handled specially in escflood.
 	funcParam Node
-	dsts      *NodeList
-	loopdepth int
-	pdepth    int
-	dstcount  int
-	edgecount int
-	noesc     *NodeList
-	recursive bool
+
+	dsts      *NodeList // all dst nodes
+	loopdepth int       // for detecting nested loop scopes
+	pdepth    int       // for debug printing in recursions.
+	dstcount  int       // diagnostic
+	edgecount int       // diagnostic
+	noesc     *NodeList // list of possible non-escaping nodes, for printing
+	recursive bool      // recursive function or group of mutually recursive functions.
 }
 
-var tags [16]*Strlit
+var tags [16]*string
 
-func mktag(mask int) *Strlit {
+func mktag(mask int) *string {
 	switch mask & EscMask {
 	case EscNone,
 		EscReturn:
@@ -235,22 +247,18 @@ func mktag(mask int) *Strlit {
 		return tags[mask]
 	}
 
-	buf := fmt.Sprintf("esc:0x%x", mask)
-	s := newstrlit(buf)
+	s := fmt.Sprintf("esc:0x%x", mask)
 	if mask < len(tags) {
-		tags[mask] = s
+		tags[mask] = &s
 	}
-	return s
+	return &s
 }
 
-func parsetag(note *Strlit) int {
-	if note == nil {
+func parsetag(note *string) int {
+	if note == nil || !strings.HasPrefix(*note, "esc:") {
 		return EscUnknown
 	}
-	if !strings.HasPrefix(note.S, "esc:") {
-		return EscUnknown
-	}
-	em := atoi(note.S[4:])
+	em := atoi((*note)[4:])
 	if em == 0 {
 		return EscNone
 	}
@@ -258,7 +266,7 @@ func parsetag(note *Strlit) int {
 }
 
 func escAnalyze(all *NodeList, recursive bool) {
-	es := EscState{}
+	var es EscState
 	e := &es
 	e.theSink.Op = ONAME
 	e.theSink.Orig = &e.theSink
@@ -534,7 +542,10 @@ func esc(e *EscState, n *Node, up *Node) {
 	// However, without this special case b will escape, because we assign to OIND/ODOTPTR.
 	case OAS,
 		OASOP:
-		if (n.Left.Op == OIND || n.Left.Op == ODOTPTR) && n.Left.Left.Op == ONAME && (n.Right.Op == OSLICE || n.Right.Op == OSLICE3 || n.Right.Op == OSLICESTR) && (n.Right.Left.Op == OIND || n.Right.Left.Op == ODOTPTR) && n.Right.Left.Left.Op == ONAME && n.Left.Left == n.Right.Left.Left { // dst is ONAME dereference // src is slice operation // slice is applied to ONAME dereference // dst and src reference the same base ONAME
+		if (n.Left.Op == OIND || n.Left.Op == ODOTPTR) && n.Left.Left.Op == ONAME && // dst is ONAME dereference
+			(n.Right.Op == OSLICE || n.Right.Op == OSLICE3 || n.Right.Op == OSLICESTR) && // src is slice operation
+			(n.Right.Left.Op == OIND || n.Right.Left.Op == ODOTPTR) && n.Right.Left.Left.Op == ONAME && // slice is applied to ONAME dereference
+			n.Left.Left == n.Right.Left.Left { // dst and src reference the same base ONAME
 
 			// Here we also assume that the statement will not contain calls,
 			// that is, that order will move any calls to init.
@@ -582,13 +593,12 @@ func esc(e *EscState, n *Node, up *Node) {
 		if e.loopdepth == 1 { // top level
 			break
 		}
+		// arguments leak out of scope
+		// TODO: leak to a dummy node instead
 		fallthrough
 
-		// go f(x) - f and x escape
-	// arguments leak out of scope
-	// TODO: leak to a dummy node instead
-	// fallthrough
 	case OPROC:
+		// go f(x) - f and x escape
 		escassign(e, &e.theSink, n.Left.Left)
 
 		escassign(e, &e.theSink, n.Left.Right) // ODDDARG for call
@@ -709,7 +719,7 @@ func esc(e *EscState, n *Node, up *Node) {
 				continue
 			}
 			a = v.Closure
-			if v.Byval == 0 {
+			if !v.Byval {
 				a = Nod(OADDR, a, nil)
 				a.Lineno = v.Lineno
 				a.Escloopdepth = e.loopdepth
@@ -903,14 +913,15 @@ func escassign(e *EscState, dst *Node, src *Node) {
 		OSLICEARR,
 		OSLICE3ARR,
 		OSLICESTR:
+		// Conversions, field access, slice all preserve the input value.
 		escassign(e, dst, src.Left)
 
-		// Append returns first argument.
 	case OAPPEND:
+		// Append returns first argument.
 		escassign(e, dst, src.List.N)
 
-		// Index of array preserves input value.
 	case OINDEX:
+		// Index of array preserves input value.
 		if Isfixedarray(src.Left.Type) {
 			escassign(e, dst, src.Left)
 		}
@@ -941,7 +952,7 @@ func escassign(e *EscState, dst *Node, src *Node) {
 	lineno = int32(lno)
 }
 
-func escassignfromtag(e *EscState, note *Strlit, dsts *NodeList, src *Node) int {
+func escassignfromtag(e *EscState, note *string, dsts *NodeList, src *Node) int {
 	var em int
 
 	em = parsetag(note)
@@ -969,7 +980,7 @@ func escassignfromtag(e *EscState, note *Strlit, dsts *NodeList, src *Node) int 
 	}
 
 	if em != 0 && dsts == nil {
-		Fatal("corrupt esc tag %v or messed up escretval list\n", Zconv(note, 0))
+		Fatal("corrupt esc tag %q or messed up escretval list\n", note)
 	}
 	return em0
 }
@@ -985,7 +996,7 @@ func esccall(e *EscState, n *Node, up *Node) {
 	var lr *NodeList
 	var fntype *Type
 
-	fn := (*Node)(nil)
+	var fn *Node
 	switch n.Op {
 	default:
 		Fatal("esccall")

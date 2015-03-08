@@ -84,8 +84,8 @@ func typecheckclosure(func_ *Node, top int) {
 
 	for l := func_.Cvars; l != nil; l = l.Next {
 		n = l.N.Closure
-		if n.Captured == 0 {
-			n.Captured = 1
+		if !n.Captured {
+			n.Captured = true
 			if n.Decldepth == 0 {
 				Fatal("typecheckclosure: var %v does not have decldepth assigned", Nconv(n, obj.FmtShort))
 			}
@@ -93,7 +93,7 @@ func typecheckclosure(func_ *Node, top int) {
 			// Ignore assignments to the variable in straightline code
 			// preceding the first capturing by a closure.
 			if n.Decldepth == decldepth {
-				n.Assigned = 0
+				n.Assigned = false
 			}
 		}
 	}
@@ -254,23 +254,23 @@ func capturevars(xfunc *Node) {
 		v.Outerexpr = nil
 
 		// out parameters will be assigned to implicitly upon return.
-		if outer.Class != PPARAMOUT && v.Closure.Addrtaken == 0 && v.Closure.Assigned == 0 && v.Type.Width <= 128 {
-			v.Byval = 1
+		if outer.Class != PPARAMOUT && !v.Closure.Addrtaken && !v.Closure.Assigned && v.Type.Width <= 128 {
+			v.Byval = true
 		} else {
-			v.Closure.Addrtaken = 1
+			v.Closure.Addrtaken = true
 			outer = Nod(OADDR, outer, nil)
 		}
 
 		if Debug['m'] > 1 {
-			name := (*Sym)(nil)
+			var name *Sym
 			if v.Curfn != nil && v.Curfn.Nname != nil {
 				name = v.Curfn.Nname.Sym
 			}
 			how := "ref"
-			if v.Byval != 0 {
+			if v.Byval {
 				how = "value"
 			}
-			Warnl(int(v.Lineno), "%v capturing by %s: %v (addr=%d assign=%d width=%d)", Sconv(name, 0), how, Sconv(v.Sym, 0), v.Closure.Addrtaken, v.Closure.Assigned, int32(v.Type.Width))
+			Warnl(int(v.Lineno), "%v capturing by %s: %v (addr=%v assign=%v width=%d)", Sconv(name, 0), how, Sconv(v.Sym, 0), v.Closure.Addrtaken, v.Closure.Assigned, int32(v.Type.Width))
 		}
 
 		typecheck(&outer, Erv)
@@ -322,7 +322,7 @@ func transformclosure(xfunc *Node) {
 			}
 			fld = typ(TFIELD)
 			fld.Funarg = 1
-			if v.Byval != 0 {
+			if v.Byval {
 				// If v is captured by value, we merely downgrade it to PPARAM.
 				v.Class = PPARAM
 
@@ -362,7 +362,7 @@ func transformclosure(xfunc *Node) {
 		// The closure is not called, so it is going to stay as closure.
 		nvar := 0
 
-		body := (*NodeList)(nil)
+		var body *NodeList
 		offset := int64(Widthptr)
 		var addr *Node
 		var v *Node
@@ -378,14 +378,14 @@ func transformclosure(xfunc *Node) {
 			cv = Nod(OCLOSUREVAR, nil, nil)
 
 			cv.Type = v.Type
-			if v.Byval == 0 {
+			if !v.Byval {
 				cv.Type = Ptrto(v.Type)
 			}
 			offset = Rnd(offset, int64(cv.Type.Align))
 			cv.Xoffset = offset
 			offset += cv.Type.Width
 
-			if v.Byval != 0 && v.Type.Width <= int64(2*Widthptr) && Thearch.Thechar == '6' {
+			if v.Byval && v.Type.Width <= int64(2*Widthptr) && Thearch.Thechar == '6' {
 				//  If it is a small variable captured by value, downgrade it to PAUTO.
 				// This optimization is currently enabled only for amd64, see:
 				// https://github.com/golang/go/issues/9865
@@ -406,7 +406,7 @@ func transformclosure(xfunc *Node) {
 				addr.Curfn = xfunc
 				xfunc.Dcl = list(xfunc.Dcl, addr)
 				v.Heapaddr = addr
-				if v.Byval != 0 {
+				if v.Byval {
 					cv = Nod(OADDR, cv, nil)
 				}
 				body = list(body, Nod(OAS, addr, cv))
@@ -453,7 +453,7 @@ func walkclosure(func_ *Node, init **NodeList) *Node {
 			continue
 		}
 		typ1 = typenod(v.Type)
-		if v.Byval == 0 {
+		if !v.Byval {
 			typ1 = Nod(OIND, typ1, nil)
 		}
 		typ.List = list(typ.List, Nod(ODCLFIELD, newname(v.Sym), typ1))
@@ -526,13 +526,13 @@ func makepartialcall(fn *Node, t0 *Type, meth *Node) *Node {
 		Fatal("missing base type for %v", Tconv(rcvrtype, 0))
 	}
 
-	spkg := (*Pkg)(nil)
+	var spkg *Pkg
 	if basetype.Sym != nil {
 		spkg = basetype.Sym.Pkg
 	}
 	if spkg == nil {
 		if makepartialcall_gopkg == nil {
-			makepartialcall_gopkg = mkpkg(newstrlit("go"))
+			makepartialcall_gopkg = mkpkg("go")
 		}
 		spkg = makepartialcall_gopkg
 	}
@@ -549,8 +549,8 @@ func makepartialcall(fn *Node, t0 *Type, meth *Node) *Node {
 
 	xtype := Nod(OTFUNC, nil, nil)
 	i := 0
-	l := (*NodeList)(nil)
-	callargs := (*NodeList)(nil)
+	var l *NodeList
+	var callargs *NodeList
 	ddd := 0
 	xfunc := Nod(ODCLFUNC, nil, nil)
 	Curfn = xfunc
@@ -575,7 +575,7 @@ func makepartialcall(fn *Node, t0 *Type, meth *Node) *Node {
 	xtype.List = l
 	i = 0
 	l = nil
-	retargs := (*NodeList)(nil)
+	var retargs *NodeList
 	for t := getoutargx(t0).Type; t != nil; t = t.Down {
 		namebuf = fmt.Sprintf("r%d", i)
 		i++
@@ -588,7 +588,7 @@ func makepartialcall(fn *Node, t0 *Type, meth *Node) *Node {
 
 	xtype.Rlist = l
 
-	xfunc.Dupok = 1
+	xfunc.Dupok = true
 	xfunc.Nname = newname(sym)
 	xfunc.Nname.Sym.Flags |= SymExported // disable export
 	xfunc.Nname.Ntype = xtype
@@ -596,7 +596,6 @@ func makepartialcall(fn *Node, t0 *Type, meth *Node) *Node {
 	declare(xfunc.Nname, PFUNC)
 
 	// Declare and initialize variable holding receiver.
-	body := (*NodeList)(nil)
 
 	xfunc.Needctxt = true
 	cv := Nod(OCLOSUREVAR, nil, nil)
@@ -613,6 +612,7 @@ func makepartialcall(fn *Node, t0 *Type, meth *Node) *Node {
 	ptr.Used = 1
 	ptr.Curfn = xfunc
 	xfunc.Dcl = list(xfunc.Dcl, ptr)
+	var body *NodeList
 	if Isptr[rcvrtype.Etype] || Isinter(rcvrtype) {
 		ptr.Ntype = typenod(rcvrtype)
 		body = list(body, Nod(OAS, ptr, cv))

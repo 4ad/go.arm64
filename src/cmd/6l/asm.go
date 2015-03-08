@@ -31,11 +31,11 @@
 package main
 
 import (
+	"cmd/internal/ld"
 	"cmd/internal/obj"
 	"fmt"
 	"log"
 )
-import "cmd/internal/ld"
 
 func PADDR(x uint32) uint32 {
 	return x &^ 0x80000000
@@ -134,11 +134,11 @@ func adddynrel(s *ld.LSym, r *ld.Reloc) {
 		r.Type = ld.R_ADDR
 		return
 
-		// TODO: What is the difference between all these?
 	// Handle relocations found in Mach-O object files.
 	case 512 + ld.MACHO_X86_64_RELOC_UNSIGNED*2 + 0,
 		512 + ld.MACHO_X86_64_RELOC_SIGNED*2 + 0,
 		512 + ld.MACHO_X86_64_RELOC_BRANCH*2 + 0:
+		// TODO: What is the difference between all these?
 		r.Type = ld.R_ADDR
 
 		if targ.Type == ld.SDYNIMPORT {
@@ -288,6 +288,13 @@ func elfreloc1(r *ld.Reloc, sectoff int64) int {
 	case ld.R_TLS_LE:
 		if r.Siz == 4 {
 			ld.Thearch.Vput(ld.R_X86_64_TPOFF32 | uint64(elfsym)<<32)
+		} else {
+			return -1
+		}
+
+	case ld.R_TLS_IE:
+		if r.Siz == 4 {
+			ld.Thearch.Vput(ld.R_X86_64_GOTTPOFF | uint64(elfsym)<<32)
 		} else {
 			return -1
 		}

@@ -21,6 +21,12 @@ func skipServerTest(net, unixsotype, addr string, ipv6, ipv4map, linuxOnly bool)
 		if net == unixsotype {
 			return true
 		}
+	case "darwin":
+		if net == unixsotype {
+			if runtime.GOARCH == "arm" || linuxOnly {
+				return true
+			}
+		}
 	default:
 		if net == unixsotype && linuxOnly {
 			return true

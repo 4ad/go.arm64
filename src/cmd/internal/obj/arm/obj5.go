@@ -187,8 +187,6 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym) {
 		ctxt.Symmorestack[1] = obj.Linklookup(ctxt, "runtime.morestack_noctxt", 0)
 	}
 
-	q := (*obj.Prog)(nil)
-
 	ctxt.Cursym = cursym
 
 	if cursym.Text == nil || cursym.Text.Link == nil {
@@ -271,6 +269,7 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym) {
 	 * expand BECOME pseudo
 	 */
 	var q1 *obj.Prog
+	var q *obj.Prog
 	for p := cursym.Text; p != nil; p = p.Link {
 		switch p.As {
 		case ACASE:
@@ -1046,7 +1045,6 @@ var unaryDst = map[int]bool{
 
 var Linkarm = obj.LinkArch{
 	ByteOrder:  binary.LittleEndian,
-	Pconv:      Pconv,
 	Name:       "arm",
 	Thechar:    '5',
 	Preprocess: preprocess,

@@ -41,8 +41,8 @@ const (
 
 type LdMachoObj struct {
 	f          *Biobuf
-	base       int64
-	length     int64
+	base       int64 // off in f where Mach-O begins
+	length     int64 // length of Mach-O
 	is64       bool
 	name       string
 	e          binary.ByteOrder
@@ -719,6 +719,7 @@ func ldmacho(f *Biobuf, pkg string, length int64, pn string) {
 		}
 		r = make([]Reloc, sect.nreloc)
 		rpi = 0
+	Reloc:
 		for j = 0; uint32(j) < sect.nreloc; j++ {
 			rp = &r[rpi]
 			rel = &sect.rel[j]
@@ -806,7 +807,7 @@ func ldmacho(f *Biobuf, pkg string, length int64, pn string) {
 						// skip #1 of 2 rel; continue skips #2 of 2.
 						j++
 
-						continue
+						continue Reloc
 					}
 				}
 

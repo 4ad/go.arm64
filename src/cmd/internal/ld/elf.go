@@ -779,6 +779,7 @@ func Elfinit() {
 		// we use EABI on both linux/arm and freebsd/arm.
 	// 32-bit architectures
 	case '5':
+		// we use EABI on both linux/arm and freebsd/arm.
 		if HEADTYPE == Hlinux || HEADTYPE == Hfreebsd {
 			ehdr.flags = 0x5000002 // has entry point, Version5 EABI
 		}
@@ -1074,7 +1075,7 @@ const (
 	ELF_NOTE_NETBSD_NAMESZ  = 7
 	ELF_NOTE_NETBSD_DESCSZ  = 4
 	ELF_NOTE_NETBSD_TAG     = 1
-	ELF_NOTE_NETBSD_VERSION = 599000000
+	ELF_NOTE_NETBSD_VERSION = 599000000 /* NetBSD 5.99 */
 )
 
 var ELF_NOTE_NETBSD_NAME = []byte("NetBSD\x00")
@@ -1263,7 +1264,7 @@ func elfdynhash() {
 		i >>= 1
 	}
 
-	needlib := (*Elflib)(nil)
+	var needlib *Elflib
 	need := make([]*Elfaux, nsym)
 	chain := make([]uint32, nsym)
 	buckets := make([]uint32, nbucket)
@@ -1677,7 +1678,7 @@ func doelf() {
 
 	Addstring(shstrtab, ".shstrtab")
 
-	if Debug['d'] == 0 {
+	if Debug['d'] == 0 { /* -d suppresses dynamic loader format */
 		Addstring(shstrtab, ".interp")
 		Addstring(shstrtab, ".hash")
 		Addstring(shstrtab, ".got")
@@ -1897,7 +1898,7 @@ func Asmbelf(symo int64) {
 	startva := INITTEXT - int64(HEADR)
 	resoff := int64(ELFRESERVE)
 
-	pph := (*ElfPhdr)(nil)
+	var pph *ElfPhdr
 	var pnote *ElfPhdr
 	if Linkmode == LinkExternal {
 		/* skip program headers */
@@ -1931,7 +1932,7 @@ func Asmbelf(symo int64) {
 		Segtext.Filelen += uint64(o)
 	}
 
-	if Debug['d'] == 0 {
+	if Debug['d'] == 0 { /* -d suppresses dynamic loader format */
 		/* interpreter */
 		sh := elfshname(".interp")
 
@@ -1970,7 +1971,7 @@ func Asmbelf(symo int64) {
 
 	pnote = nil
 	if HEADTYPE == Hnetbsd || HEADTYPE == Hopenbsd {
-		sh := (*ElfShdr)(nil)
+		var sh *ElfShdr
 		switch HEADTYPE {
 		case Hnetbsd:
 			sh = elfshname(".note.netbsd.ident")

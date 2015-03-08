@@ -167,6 +167,7 @@ func dumpdata() {
 	Clearp(Pc)
 }
 
+// Fixup instructions after allocauto (formerly compactframe) has moved all autos around.
 func fixautoused(p *obj.Prog) {
 	for lp := &p; ; {
 		p = *lp
@@ -207,7 +208,7 @@ func ggloblnod(nam *Node) {
 	p.To.Sym = nil
 	p.To.Type = obj.TYPE_CONST
 	p.To.Offset = nam.Type.Width
-	if nam.Readonly != 0 {
+	if nam.Readonly {
 		p.From3.Offset = obj.RODATA
 	}
 	if nam.Type != nil && !haspointers(nam.Type) {
@@ -258,6 +259,7 @@ func Isfat(t *Type) bool {
 	return false
 }
 
+// Sweep the prog list to mark any used nodes.
 func markautoused(p *obj.Prog) {
 	for ; p != nil; p = p.Link {
 		if p.As == obj.ATYPE || p.As == obj.AVARDEF || p.As == obj.AVARKILL {
@@ -274,8 +276,7 @@ func markautoused(p *obj.Prog) {
 	}
 }
 
-func Naddr(n *Node, a *obj.Addr, canemitcode int) {
-	*a = obj.Addr{}
+func Naddr(n *Node, canemitcode int) (a obj.Addr) {
 	if n == nil {
 		return
 	}
@@ -294,7 +295,8 @@ func Naddr(n *Node, a *obj.Addr, canemitcode int) {
 
 	switch n.Op {
 	default:
-		Fatal("naddr: bad %v %v", Oconv(int(n.Op), 0), Ctxt.Dconv(a))
+		a := a // copy to let escape into Ctxt.Dconv
+		Fatal("naddr: bad %v %v", Oconv(int(n.Op), 0), Ctxt.Dconv(&a))
 
 	case OREGISTER:
 		a.Type = obj.TYPE_REG
@@ -338,7 +340,7 @@ func Naddr(n *Node, a *obj.Addr, canemitcode int) {
 		a.Offset = n.Xoffset
 
 	case OCFUNC:
-		Naddr(n.Left, a, canemitcode)
+		a = Naddr(n.Left, canemitcode)
 		a.Sym = Linksym(n.Left.Sym)
 
 	case ONAME:
@@ -408,7 +410,7 @@ func Naddr(n *Node, a *obj.Addr, canemitcode int) {
 			a.Offset = Mpgetfix(n.Val.U.Xval)
 
 		case CTSTR:
-			datagostring(n.Val.U.Sval, a)
+			datagostring(n.Val.U.Sval, &a)
 
 		case CTBOOL:
 			a.Sym = nil
@@ -422,19 +424,20 @@ func Naddr(n *Node, a *obj.Addr, canemitcode int) {
 		}
 
 	case OADDR:
-		Naddr(n.Left, a, canemitcode)
+		a = Naddr(n.Left, canemitcode)
 		a.Etype = uint8(Tptr)
 		if Thearch.Thechar != '5' && Thearch.Thechar != '7' && Thearch.Thechar != '9' { // TODO(rsc): Do this even for arm, ppc64.
 			a.Width = int64(Widthptr)
 		}
 		if a.Type != obj.TYPE_MEM {
-			Fatal("naddr: OADDR %v (from %v)", Ctxt.Dconv(a), Oconv(int(n.Left.Op), 0))
+			a := a // copy to let escape into Ctxt.Dconv
+			Fatal("naddr: OADDR %v (from %v)", Ctxt.Dconv(&a), Oconv(int(n.Left.Op), 0))
 		}
 		a.Type = obj.TYPE_ADDR
 
 		// itable of interface value
 	case OITAB:
-		Naddr(n.Left, a, canemitcode)
+		a = Naddr(n.Left, canemitcode)
 
 		if a.Type == obj.TYPE_CONST && a.Offset == 0 {
 			break // itab(nil)
@@ -444,7 +447,7 @@ func Naddr(n *Node, a *obj.Addr, canemitcode int) {
 
 		// pointer in a string or slice
 	case OSPTR:
-		Naddr(n.Left, a, canemitcode)
+		a = Naddr(n.Left, canemitcode)
 
 		if a.Type == obj.TYPE_CONST && a.Offset == 0 {
 			break // ptr(nil)
@@ -455,7 +458,7 @@ func Naddr(n *Node, a *obj.Addr, canemitcode int) {
 
 		// len of string or slice
 	case OLEN:
-		Naddr(n.Left, a, canemitcode)
+		a = Naddr(n.Left, canemitcode)
 
 		if a.Type == obj.TYPE_CONST && a.Offset == 0 {
 			break // len(nil)
@@ -471,7 +474,7 @@ func Naddr(n *Node, a *obj.Addr, canemitcode int) {
 
 		// cap of string or slice
 	case OCAP:
-		Naddr(n.Left, a, canemitcode)
+		a = Naddr(n.Left, canemitcode)
 
 		if a.Type == obj.TYPE_CONST && a.Offset == 0 {
 			break // cap(nil)
@@ -485,6 +488,7 @@ func Naddr(n *Node, a *obj.Addr, canemitcode int) {
 			a.Width = int64(Widthint)
 		}
 	}
+	return
 }
 
 func newplist() *obj.Plist {

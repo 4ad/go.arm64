@@ -266,8 +266,8 @@ type ElfSect struct {
 
 type ElfObj struct {
 	f         *Biobuf
-	base      int64
-	length    int64
+	base      int64 // offset in f where ELF begins
+	length    int64 // length of ELF
 	is64      int
 	name      string
 	e         binary.ByteOrder
@@ -631,7 +631,7 @@ func ldelf(f *Biobuf, pkg string, length int64, pn string) {
 		}
 		sect = &elfobj.sect[sym.shndx:][0]
 		if sect.sym == nil {
-			if strings.HasPrefix(sym.name, ".Linfo_string") {
+			if strings.HasPrefix(sym.name, ".Linfo_string") { // clang does this
 				continue
 			}
 			Diag("%s: sym#%d: ignoring %s in section %d (type %d)", pn, i, sym.name, sym.shndx, sym.type_)
@@ -908,7 +908,7 @@ func readelfsym(elfobj *ElfObj, i int, sym *ElfSym, needSym int) (err error) {
 
 		case ElfSymBindLocal:
 			if Thearch.Thechar == '5' && (strings.HasPrefix(sym.name, "$a") || strings.HasPrefix(sym.name, "$d")) {
-				// binutils for arm generate these elfmapping
+				// binutils for arm generate these mapping
 				// symbols, ignore these
 				break
 			}

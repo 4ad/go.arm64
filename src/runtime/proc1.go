@@ -2490,6 +2490,10 @@ func procresize(nprocs int32) *p {
 			pp = new(p)
 			pp.id = i
 			pp.status = _Pgcstop
+			pp.sudogcache = pp.sudogbuf[:0]
+			for i := range pp.deferpool {
+				pp.deferpool[i] = pp.deferpoolbuf[i][:0]
+			}
 			atomicstorep(unsafe.Pointer(&allp[i]), unsafe.Pointer(pp))
 		}
 		if pp.mcache == nil {
@@ -2527,6 +2531,16 @@ func procresize(nprocs int32) *p {
 				sched.runqtail = gp
 			}
 			sched.runqsize++
+		}
+		for i := range p.sudogbuf {
+			p.sudogbuf[i] = nil
+		}
+		p.sudogcache = p.sudogbuf[:0]
+		for i := range p.deferpool {
+			for j := range p.deferpoolbuf[i] {
+				p.deferpoolbuf[i][j] = nil
+			}
+			p.deferpool[i] = p.deferpoolbuf[i][:0]
 		}
 		freemcache(p.mcache)
 		p.mcache = nil

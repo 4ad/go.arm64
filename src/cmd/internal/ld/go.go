@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"unicode/utf8"
 )
 
 // go-specific code shared across loaders (5l, 6l, 8l).
@@ -38,8 +37,8 @@ func expandpkg(t0 string, pkg string) string {
  *	package import data
  */
 type Import struct {
-	hash   *Import
-	prefix string
+	hash   *Import // next in hash table
+	prefix string  // "type", "var", "func", "const"
 	name   string
 	def    string
 	file   string
@@ -664,7 +663,7 @@ func deadcode() {
 	}
 
 	// remove dead text but keep file information (z symbols).
-	last := (*LSym)(nil)
+	var last *LSym
 
 	for s := Ctxt.Textp; s != nil; s = s.Next {
 		if !s.Reachable {
@@ -695,19 +694,19 @@ func deadcode() {
 	}
 
 	// record field tracking references
-	fmt_ := ""
-
+	var buf bytes.Buffer
 	var p *LSym
 	for s := Ctxt.Allsym; s != nil; s = s.Allsym {
 		if strings.HasPrefix(s.Name, "go.track.") {
 			s.Special = 1 // do not lay out in data segment
 			s.Hide = 1
 			if s.Reachable {
-				fmt_ += fmt.Sprintf("%s", s.Name[9:])
+				buf.WriteString(s.Name[9:])
 				for p = s.Reachparent; p != nil; p = p.Reachparent {
-					fmt_ += fmt.Sprintf("\t%s", p.Name)
+					buf.WriteString("\t")
+					buf.WriteString(p.Name)
 				}
-				fmt_ += fmt.Sprintf("\n")
+				buf.WriteString("\n")
 			}
 
 			s.Type = SCONST
@@ -722,7 +721,7 @@ func deadcode() {
 	if !s.Reachable {
 		return
 	}
-	addstrdata(tracksym, fmt_)
+	addstrdata(tracksym, buf.String())
 }
 
 func doweak() {
@@ -755,49 +754,6 @@ func addexport() {
 	for i := 0; i < len(dynexp); i++ {
 		Thearch.Adddynsym(Ctxt, dynexp[i])
 	}
-}
-
-/* %Z from gc, for quoting import paths */
-func Zconv(s string, flag int) string {
-	// NOTE: Keep in sync with gc Zconv.
-	var n int
-	var fp string
-	for i := 0; i < len(s); i += n {
-		var r rune
-		r, n = utf8.DecodeRuneInString(s[i:])
-		switch r {
-		case utf8.RuneError:
-			if n == 1 {
-				fp += fmt.Sprintf("\\x%02x", s[i])
-				break
-			}
-			fallthrough
-
-			// fall through
-		default:
-			if r < ' ' {
-				fp += fmt.Sprintf("\\x%02x", r)
-				break
-			}
-
-			fp += string(r)
-
-		case '\t':
-			fp += "\\t"
-
-		case '\n':
-			fp += "\\n"
-
-		case '"',
-			'\\':
-			fp += `\` + string(r)
-
-		case 0xFEFF: // BOM, basically disallowed in source code
-			fp += "\\uFEFF"
-		}
-	}
-
-	return fp
 }
 
 type Pkg struct {
@@ -835,7 +791,7 @@ func imported(pkg string, import_ string) {
 		return
 	}
 
-	pkg = fmt.Sprintf("\"%v\"", Zconv(pkg, 0)) // turn pkg path into quoted form, freed below
+	pkg = fmt.Sprintf("%q", pkg) // turn pkg path into quoted form, freed below
 	p := getpkg(pkg)
 	i := getpkg(import_)
 	i.impby = append(i.impby, p)

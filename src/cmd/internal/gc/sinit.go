@@ -260,7 +260,7 @@ func initreorder(l *NodeList, out **NodeList) {
 // declarations and outputs the corresponding list of statements
 // to include in the init() function body.
 func initfix(l *NodeList) *NodeList {
-	lout := (*NodeList)(nil)
+	var lout *NodeList
 	lno := int(lineno)
 	initreorder(l, &lout)
 	lineno = int32(lno)
@@ -285,7 +285,14 @@ func staticinit(n *Node, out **NodeList) bool {
 // like staticassign but we are copying an already
 // initialized value r.
 func staticcopy(l *Node, r *Node, out **NodeList) bool {
-	if r.Op != ONAME || r.Class != PEXTERN || r.Sym.Pkg != localpkg {
+	if r.Op != ONAME {
+		return false
+	}
+	if r.Class == PFUNC {
+		gdata(l, r, Widthptr)
+		return true
+	}
+	if r.Class != PEXTERN || r.Sym.Pkg != localpkg {
 		return false
 	}
 	if r.Defn == nil { // probably zeroed but perhaps supplied externally and of unknown value
@@ -397,9 +404,7 @@ func staticassign(l *Node, r *Node, out **NodeList) bool {
 		break
 
 	case ONAME:
-		if r.Class == PEXTERN && r.Sym.Pkg == localpkg {
-			return staticcopy(l, r, out)
-		}
+		return staticcopy(l, r, out)
 
 	case OLITERAL:
 		if iszero(r) {
@@ -443,7 +448,7 @@ func staticassign(l *Node, r *Node, out **NodeList) bool {
 	case OSTRARRAYBYTE:
 		if l.Class == PEXTERN && r.Left.Op == OLITERAL {
 			sval := r.Left.Val.U.Sval
-			slicebytes(l, sval.S, len(sval.S))
+			slicebytes(l, sval, len(sval))
 			return true
 		}
 
@@ -516,7 +521,7 @@ func staticname(t *Type, ctxt int) *Node {
 	statuniqgen++
 	n := newname(Lookup(namebuf))
 	if ctxt == 0 {
-		n.Readonly = 1
+		n.Readonly = true
 	}
 	addvar(n, t, PEXTERN)
 	return n
@@ -772,7 +777,7 @@ func slicelit(ctxt int, n *Node, var_ *Node, init **NodeList) {
 
 	// if the literal contains constants,
 	// make static initialized array (1),(2)
-	vstat := (*Node)(nil)
+	var vstat *Node
 
 	mode := getdyn(n, 1)
 	if mode&MODECONST != 0 {
@@ -1011,9 +1016,9 @@ func maplit(ctxt int, n *Node, var_ *Node, init **NodeList) {
 	}
 
 	// put in dynamic entries one-at-a-time
-	key := (*Node)(nil)
+	var key *Node
 
-	val := (*Node)(nil)
+	var val *Node
 	for l := n.List; l != nil; l = l.Next {
 		r = l.N
 
@@ -1368,7 +1373,7 @@ func iszero(n *Node) bool {
 			return true
 
 		case CTSTR:
-			return n.Val.U.Sval == nil || len(n.Val.U.Sval.S) == 0
+			return n.Val.U.Sval == ""
 
 		case CTBOOL:
 			return n.Val.U.Bval == 0

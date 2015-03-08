@@ -5,11 +5,11 @@
 package main
 
 import (
+	"cmd/internal/gc"
 	"cmd/internal/obj"
 	"cmd/internal/obj/x86"
 	"fmt"
 )
-import "cmd/internal/gc"
 
 /*
  * reg.c
@@ -374,7 +374,7 @@ func cgen(n *gc.Node, res *gc.Node) {
 			var n1 gc.Node
 			regalloc(&n1, gc.Types[gc.Tptr], res)
 			p1 := gins(x86.ALEAQ, nil, &n1)
-			gc.Datastring(nl.Val.U.Sval.S, &p1.From)
+			gc.Datastring(nl.Val.U.Sval, &p1.From)
 			gmove(&n1, res)
 			regfree(&n1)
 			break
@@ -794,7 +794,7 @@ func agenr(n *gc.Node, a *gc.Node, res *gc.Node) {
 				t = gc.Types[gc.TUINT64]
 			}
 			if gc.Isconst(nl, gc.CTSTR) {
-				gc.Nodconst(&nlen, t, int64(len(nl.Val.U.Sval.S)))
+				gc.Nodconst(&nlen, t, int64(len(nl.Val.U.Sval)))
 			} else if gc.Isslice(nl.Type) || nl.Type.Etype == gc.TSTRING {
 				if gc.Is64(nr.Type) {
 					var n5 gc.Node
@@ -823,7 +823,7 @@ func agenr(n *gc.Node, a *gc.Node, res *gc.Node) {
 		if gc.Isconst(nl, gc.CTSTR) {
 			regalloc(&n3, gc.Types[gc.Tptr], res)
 			p1 := gins(x86.ALEAQ, nil, &n3)
-			gc.Datastring(nl.Val.U.Sval.S, &p1.From)
+			gc.Datastring(nl.Val.U.Sval, &p1.From)
 			gins(x86.AADDQ, &n2, &n3)
 			goto indexdone
 		}
@@ -1114,8 +1114,6 @@ func bgen(n *gc.Node, true_ bool, likely int, to *obj.Prog) {
 		return
 	}
 
-	nr := (*gc.Node)(nil)
-
 	for n.Op == gc.OCONVNOP {
 		n = n.Left
 		if n.Ninit != nil {
@@ -1124,6 +1122,7 @@ func bgen(n *gc.Node, true_ bool, likely int, to *obj.Prog) {
 	}
 
 	var nl *gc.Node
+	var nr *gc.Node
 	switch n.Op {
 	default:
 		goto def

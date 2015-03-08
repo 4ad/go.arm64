@@ -7,6 +7,8 @@ package gc
 import (
 	"bytes"
 	"cmd/internal/obj"
+	"crypto/md5"
+	"encoding/binary"
 	"fmt"
 	"os"
 	"sort"
@@ -275,54 +277,54 @@ func setlineno(n *Node) int32 {
 	return lno
 }
 
-func stringhash(p string) uint32 {
-	var c int
-
-	h := uint32(0)
-	for {
-		c, p = intstarstringplusplus(p)
-		if c == 0 {
-			break
-		}
-		h = h*PRIME1 + uint32(c)
-	}
-
-	if int32(h) < 0 {
-		h = -h
-		if int32(h) < 0 {
-			h = 0
-		}
-	}
-
-	return h
+func Lookup(name string) *Sym {
+	return localpkg.Lookup(name)
 }
 
-func Lookup(name string) *Sym {
-	return Pkglookup(name, localpkg)
+func LookupBytes(name []byte) *Sym {
+	return localpkg.LookupBytes(name)
+}
+
+var initSyms []*Sym
+
+var nopkg = new(Pkg)
+
+func (pkg *Pkg) Lookup(name string) *Sym {
+	if pkg == nil {
+		pkg = nopkg
+	}
+	if s := pkg.Syms[name]; s != nil {
+		return s
+	}
+
+	s := &Sym{
+		Name:    name,
+		Pkg:     pkg,
+		Lexical: LNAME,
+	}
+	if s.Name == "init" {
+		initSyms = append(initSyms, s)
+	}
+	if pkg.Syms == nil {
+		pkg.Syms = make(map[string]*Sym)
+	}
+	pkg.Syms[name] = s
+	return s
+}
+
+func (pkg *Pkg) LookupBytes(name []byte) *Sym {
+	if pkg == nil {
+		pkg = nopkg
+	}
+	if s := pkg.Syms[string(name)]; s != nil {
+		return s
+	}
+	str := internString(name)
+	return pkg.Lookup(str)
 }
 
 func Pkglookup(name string, pkg *Pkg) *Sym {
-	h := stringhash(name) % NHASH
-	c := int(name[0])
-	for s := hash[h]; s != nil; s = s.Link {
-		if int(s.Name[0]) != c || s.Pkg != pkg {
-			continue
-		}
-		if s.Name == name {
-			return s
-		}
-	}
-
-	s := new(Sym)
-	s.Name = name
-
-	s.Pkg = pkg
-
-	s.Link = hash[h]
-	hash[h] = s
-	s.Lexical = LNAME
-
-	return s
+	return pkg.Lookup(name)
 }
 
 func restrictlookup(name string, pkg *Pkg) *Sym {
@@ -335,40 +337,34 @@ func restrictlookup(name string, pkg *Pkg) *Sym {
 // find all the exported symbols in package opkg
 // and make them available in the current package
 func importdot(opkg *Pkg, pack *Node) {
-	var s *Sym
 	var s1 *Sym
 	var pkgerror string
 
 	n := 0
-	for h := uint32(0); h < NHASH; h++ {
-		for s = hash[h]; s != nil; s = s.Link {
-			if s.Pkg != opkg {
-				continue
-			}
-			if s.Def == nil {
-				continue
-			}
-			if !exportname(s.Name) || strings.ContainsRune(s.Name, 0xb7) { // 0xb7 = center dot
-				continue
-			}
-			s1 = Lookup(s.Name)
-			if s1.Def != nil {
-				pkgerror = fmt.Sprintf("during import \"%v\"", Zconv(opkg.Path, 0))
-				redeclare(s1, pkgerror)
-				continue
-			}
-
-			s1.Def = s.Def
-			s1.Block = s.Block
-			s1.Def.Pack = pack
-			s1.Origpkg = opkg
-			n++
+	for _, s := range opkg.Syms {
+		if s.Def == nil {
+			continue
 		}
+		if !exportname(s.Name) || strings.ContainsRune(s.Name, 0xb7) { // 0xb7 = center dot
+			continue
+		}
+		s1 = Lookup(s.Name)
+		if s1.Def != nil {
+			pkgerror = fmt.Sprintf("during import %q", opkg.Path)
+			redeclare(s1, pkgerror)
+			continue
+		}
+
+		s1.Def = s.Def
+		s1.Block = s.Block
+		s1.Def.Pack = pack
+		s1.Origpkg = opkg
+		n++
 	}
 
 	if n == 0 {
 		// can't possibly be used - there were no symbols
-		yyerrorl(int(pack.Lineno), "imported and not used: \"%v\"", Zconv(opkg.Path, 0))
+		yyerrorl(int(pack.Lineno), "imported and not used: %q", opkg.Path)
 	}
 }
 
@@ -642,7 +638,7 @@ func (x methcmp) Less(i, j int) bool {
 		return k < 0
 	}
 	if !exportname(a.Sym.Name) {
-		k := stringsCompare(a.Sym.Pkg.Path.S, b.Sym.Pkg.Path.S)
+		k := stringsCompare(a.Sym.Pkg.Path, b.Sym.Pkg.Path)
 		if k != 0 {
 			return k < 0
 		}
@@ -941,8 +937,8 @@ func cplxsubtype(et int) int {
 	return 0
 }
 
-func eqnote(a, b *Strlit) bool {
-	return a == b || a != nil && b != nil && a.S == b.S
+func eqnote(a, b *string) bool {
+	return a == b || a != nil && b != nil && *a == *b
 }
 
 type TypePairList struct {
@@ -1593,12 +1589,8 @@ func typehash(t *Type) uint32 {
 	}
 
 	//print("typehash: %s\n", p);
-	var d MD5
-	md5reset(&d)
-
-	md5write(&d, []byte(p), len(p))
-
-	return uint32(md5sum(&d, nil))
+	h := md5.Sum([]byte(p))
+	return binary.LittleEndian.Uint32(h[:4])
 }
 
 func Ptrto(t *Type) *Type {
@@ -2002,7 +1994,7 @@ func cheapexpr(n *Node, init **NodeList) *Node {
  * assignment to it.
  */
 func localexpr(n *Node, t *Type, init **NodeList) *Node {
-	if n.Op == ONAME && (n.Addrtaken == 0 || strings.HasPrefix(n.Sym.Name, "autotmp_")) && (n.Class == PAUTO || n.Class == PPARAM || n.Class == PPARAMOUT) && convertop(n.Type, t, nil) == OCONVNOP {
+	if n.Op == ONAME && (!n.Addrtaken || strings.HasPrefix(n.Sym.Name, "autotmp_")) && (n.Class == PAUTO || n.Class == PPARAM || n.Class == PPARAMOUT) && convertop(n.Type, t, nil) == OCONVNOP {
 		return n
 	}
 
@@ -2332,7 +2324,7 @@ func structargs(tl **Type, mustname int) *NodeList {
 	var n *Node
 	var buf string
 
-	args := (*NodeList)(nil)
+	var args *NodeList
 	gen := 0
 	for t := Structfirst(&savet, tl); t != nil; t = structnext(&savet) {
 		n = nil
@@ -2431,7 +2423,7 @@ func genwrapper(rcvr *Type, method *Type, newnam *Sym, iface int) {
 	funchdr(fn)
 
 	// arg list
-	args := (*NodeList)(nil)
+	var args *NodeList
 
 	isddd := 0
 	for l := in; l != nil; l = l.Next {
@@ -2450,15 +2442,15 @@ func genwrapper(rcvr *Type, method *Type, newnam *Sym, iface int) {
 
 		// these strings are already in the reflect tables,
 		// so no space cost to use them here.
-		l := (*NodeList)(nil)
+		var l *NodeList
 
 		var v Val
 		v.Ctype = CTSTR
-		v.U.Sval = newstrlit(rcvr.Type.Sym.Pkg.Name) // package name
+		v.U.Sval = rcvr.Type.Sym.Pkg.Name // package name
 		l = list(l, nodlit(v))
-		v.U.Sval = newstrlit(rcvr.Type.Sym.Name) // type name
+		v.U.Sval = rcvr.Type.Sym.Name // type name
 		l = list(l, nodlit(v))
-		v.U.Sval = newstrlit(method.Sym.Name)
+		v.U.Sval = method.Sym.Name
 		l = list(l, nodlit(v)) // method name
 		call := Nod(OCALL, syslook("panicwrap", 0), nil)
 		call.List = l
@@ -2482,7 +2474,7 @@ func genwrapper(rcvr *Type, method *Type, newnam *Sym, iface int) {
 		n.Left = newname(methodsym(method.Sym, methodrcvr, 0))
 		fn.Nbody = list(fn.Nbody, n)
 	} else {
-		fn.Wrapper = 1 // ignore frame for panic+recover matching
+		fn.Wrapper = true // ignore frame for panic+recover matching
 		call := Nod(OCALL, dot, nil)
 		call.List = args
 		call.Isddd = uint8(isddd)
@@ -2504,7 +2496,7 @@ func genwrapper(rcvr *Type, method *Type, newnam *Sym, iface int) {
 
 	// wrappers where T is anonymous (struct or interface) can be duplicated.
 	if rcvr.Etype == TSTRUCT || rcvr.Etype == TINTER || Isptr[rcvr.Etype] && rcvr.Type.Etype == TSTRUCT {
-		fn.Dupok = 1
+		fn.Dupok = true
 	}
 	typecheck(&fn, Etop)
 	typechecklist(fn.Nbody, Etop)
@@ -2670,7 +2662,7 @@ func genhash(sym *Sym, t *Type) {
 		// Walk the struct using memhash for runs of AMEM
 	// and calling specific hash functions for the others.
 	case TSTRUCT:
-		first := (*Type)(nil)
+		var first *Type
 
 		offend := int64(0)
 		var size int64
@@ -2759,7 +2751,7 @@ func genhash(sym *Sym, t *Type) {
 
 	funcbody(fn)
 	Curfn = fn
-	fn.Dupok = 1
+	fn.Dupok = true
 	typecheck(&fn, Etop)
 	typechecklist(fn.Nbody, Etop)
 	Curfn = nil
@@ -2915,7 +2907,7 @@ func geneq(sym *Sym, t *Type) {
 	// and calling specific equality tests for the others.
 	// Skip blank-named fields.
 	case TSTRUCT:
-		first := (*Type)(nil)
+		var first *Type
 
 		offend := int64(0)
 		var size int64
@@ -2979,7 +2971,7 @@ func geneq(sym *Sym, t *Type) {
 
 	funcbody(fn)
 	Curfn = fn
-	fn.Dupok = 1
+	fn.Dupok = true
 	typecheck(&fn, Etop)
 	typechecklist(fn.Nbody, Etop)
 	Curfn = nil
@@ -3133,105 +3125,8 @@ func Simsimtype(t *Type) int {
 	return et
 }
 
-func concat(a *NodeList, b *NodeList) *NodeList {
-	if a == nil {
-		return b
-	}
-	if b == nil {
-		return a
-	}
-
-	a.End.Next = b
-	a.End = b.End
-	b.End = nil
-	return a
-}
-
-func list1(n *Node) *NodeList {
-	if n == nil {
-		return nil
-	}
-	if n.Op == OBLOCK && n.Ninit == nil {
-		// Flatten list and steal storage.
-		// Poison pointer to catch errant uses.
-		l := n.List
-
-		n.List = nil
-		return l
-	}
-
-	l := new(NodeList)
-	l.N = n
-	l.End = l
-	return l
-}
-
-func list(l *NodeList, n *Node) *NodeList {
-	return concat(l, list1(n))
-}
-
-func listsort(l **NodeList, f func(*Node, *Node) int) {
-	if *l == nil || (*l).Next == nil {
-		return
-	}
-
-	l1 := *l
-	l2 := *l
-	for {
-		l2 = l2.Next
-		if l2 == nil {
-			break
-		}
-		l2 = l2.Next
-		if l2 == nil {
-			break
-		}
-		l1 = l1.Next
-	}
-
-	l2 = l1.Next
-	l1.Next = nil
-	l2.End = (*l).End
-	(*l).End = l1
-
-	l1 = *l
-	listsort(&l1, f)
-	listsort(&l2, f)
-
-	if f(l1.N, l2.N) < 0 {
-		*l = l1
-	} else {
-		*l = l2
-		l2 = l1
-		l1 = *l
-	}
-
-	// now l1 == *l; and l1 < l2
-
-	var le *NodeList
-	for (l1 != nil) && (l2 != nil) {
-		for (l1.Next != nil) && f(l1.Next.N, l2.N) < 0 {
-			l1 = l1.Next
-		}
-
-		// l1 is last one from l1 that is < l2
-		le = l1.Next // le is the rest of l1, first one that is >= l2
-		if le != nil {
-			le.End = (*l).End
-		}
-
-		(*l).End = l1       // cut *l at l1
-		*l = concat(*l, l2) // glue l2 to *l's tail
-
-		l1 = l2 // l1 is the first element of *l that is < the new l2
-		l2 = le // ... because l2 now is the old tail of l1
-	}
-
-	*l = concat(*l, l2) // any remainder
-}
-
 func listtreecopy(l *NodeList) *NodeList {
-	out := (*NodeList)(nil)
+	var out *NodeList
 	for ; l != nil; l = l.Next {
 		out = list(out, treecopy(l.N))
 	}
@@ -3245,21 +3140,6 @@ func liststmt(l *NodeList) *Node {
 		n.Lineno = l.N.Lineno
 	}
 	return n
-}
-
-/*
- * return nelem of list
- */
-func count(l *NodeList) int {
-	n := int64(0)
-	for ; l != nil; l = l.Next {
-		n++
-	}
-	if int64(int(n)) != n { // Overflow.
-		Yyerror("too many elements in list")
-	}
-
-	return int(n)
 }
 
 /*
@@ -3583,26 +3463,20 @@ func pathtoprefix(s string) string {
 	return s
 }
 
-func mkpkg(path_ *Strlit) *Pkg {
-	h := int(stringhash(path_.S) & uint32(len(phash)-1))
-	for p := phash[h]; p != nil; p = p.Link {
-		if p.Path.S == path_.S {
-			return p
-		}
+var pkgMap = make(map[string]*Pkg)
+var pkgs []*Pkg
+
+func mkpkg(path string) *Pkg {
+	if p := pkgMap[path]; p != nil {
+		return p
 	}
 
 	p := new(Pkg)
-	p.Path = path_
-	p.Prefix = pathtoprefix(path_.S)
-	p.Link = phash[h]
-	phash[h] = p
+	p.Path = path
+	p.Prefix = pathtoprefix(path)
+	pkgMap[path] = p
+	pkgs = append(pkgs, p)
 	return p
-}
-
-func newstrlit(s string) *Strlit {
-	return &Strlit{
-		S: s,
-	}
 }
 
 func addinit(np **Node, init *NodeList) {
@@ -3632,15 +3506,15 @@ var reservedimports = []string{
 	"type",
 }
 
-func isbadimport(path_ *Strlit) bool {
-	if len(path_.S) != len(path_.S) {
+func isbadimport(path string) bool {
+	if strings.Contains(path, "\x00") {
 		Yyerror("import path contains NUL")
 		return true
 	}
 
 	for i := 0; i < len(reservedimports); i++ {
-		if path_.S == reservedimports[i] {
-			Yyerror("import path \"%s\" is reserved and cannot be used", path_.S)
+		if path == reservedimports[i] {
+			Yyerror("import path %q is reserved and cannot be used", path)
 			return true
 		}
 	}
@@ -3649,29 +3523,29 @@ func isbadimport(path_ *Strlit) bool {
 	_ = s
 	var r uint
 	_ = r
-	for _, r := range path_.S {
+	for _, r := range path {
 		if r == utf8.RuneError {
-			Yyerror("import path contains invalid UTF-8 sequence: \"%v\"", Zconv(path_, 0))
+			Yyerror("import path contains invalid UTF-8 sequence: %q", path)
 			return true
 		}
 
 		if r < 0x20 || r == 0x7f {
-			Yyerror("import path contains control character: \"%v\"", Zconv(path_, 0))
+			Yyerror("import path contains control character: %q", path)
 			return true
 		}
 
 		if r == '\\' {
-			Yyerror("import path contains backslash; use slash: \"%v\"", Zconv(path_, 0))
+			Yyerror("import path contains backslash; use slash: %q", path)
 			return true
 		}
 
 		if unicode.IsSpace(rune(r)) {
-			Yyerror("import path contains space character: \"%v\"", Zconv(path_, 0))
+			Yyerror("import path contains space character: %q", path)
 			return true
 		}
 
 		if strings.ContainsRune("!\"#$%&'()*,:;<=>?[]^`{|}", r) {
-			Yyerror("import path contains invalid character '%c': \"%v\"", r, Zconv(path_, 0))
+			Yyerror("import path contains invalid character '%c': %q", r, path)
 			return true
 		}
 	}

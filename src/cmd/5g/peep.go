@@ -31,11 +31,11 @@
 package main
 
 import (
+	"cmd/internal/gc"
 	"cmd/internal/obj"
 	"cmd/internal/obj/arm"
 	"fmt"
 )
-import "cmd/internal/gc"
 
 var gactive uint32
 
@@ -266,7 +266,7 @@ func subprop(r0 *gc.Flow) bool {
 		if p.As == obj.AVARDEF || p.As == obj.AVARKILL {
 			continue
 		}
-		proginfo(&info, p)
+		info = proginfo(p)
 		if info.Flags&gc.Call != 0 {
 			return false
 		}
@@ -544,7 +544,7 @@ gotit:
 	}
 
 	if gc.Debug['P'] != 0 {
-		fmt.Printf(" => %v\n", arm.Aconv(int(p.As)))
+		fmt.Printf(" => %v\n", obj.Aconv(int(p.As)))
 	}
 	return true
 }
@@ -1043,7 +1043,7 @@ func xtramodes(g *gc.Graph, r *gc.Flow, a *obj.Addr) bool {
 func copyu(p *obj.Prog, v *obj.Addr, s *obj.Addr) int {
 	switch p.As {
 	default:
-		fmt.Printf("copyu: can't find %v\n", arm.Aconv(int(p.As)))
+		fmt.Printf("copyu: can't find %v\n", obj.Aconv(int(p.As)))
 		return 2
 
 	case arm.AMOVM:

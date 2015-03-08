@@ -129,15 +129,15 @@ var Symsize int32
 
 const (
 	MAXIO   = 8192
-	MINFUNC = 16
+	MINFUNC = 16 // minimum size for a function
 )
 
 type Segment struct {
-	Rwx     uint8
-	Vaddr   uint64
-	Length  uint64
-	Fileoff uint64
-	Filelen uint64
+	Rwx     uint8  // permission as usual unix bits (5 = r-x etc)
+	Vaddr   uint64 // virtual address
+	Length  uint64 // length in memory
+	Fileoff uint64 // file offset
+	Filelen uint64 // length on disk
 	Sect    *Section
 }
 
@@ -253,12 +253,15 @@ var Bso Biobuf
 var coutbuf Biobuf
 
 const (
+	// Whether to assume that the external linker is "gold"
+	// (http://sourceware.org/ml/binutils/2008-03/msg00162.html).
 	AssumeGoldLinker = 0
 )
 
-var symname string = "__.GOSYMDEF"
-
-var pkgname string = "__.PKGDEF"
+const (
+	symname = "__.GOSYMDEF"
+	pkgname = "__.PKGDEF"
+)
 
 var cout *os.File
 
@@ -266,7 +269,7 @@ var version int
 
 // Set if we see an object compiled by the host compiler that is not
 // from a package that is known to support internal linking mode.
-var externalobj int = 0
+var externalobj = false
 
 var goroot string
 
@@ -394,7 +397,7 @@ func loadlib() {
 	}
 
 	if Linkmode == LinkAuto {
-		if iscgo && externalobj != 0 {
+		if iscgo && externalobj {
 			Linkmode = LinkExternal
 		} else {
 			Linkmode = LinkInternal
@@ -670,10 +673,10 @@ var internalpkg = []string{
 }
 
 func ldhostobj(ld func(*Biobuf, string, int64, string), f *Biobuf, pkg string, length int64, pn string, file string) {
-	isinternal := 0
+	isinternal := false
 	for i := 0; i < len(internalpkg); i++ {
 		if pkg == internalpkg[i] {
-			isinternal = 1
+			isinternal = true
 			break
 		}
 	}
@@ -686,12 +689,12 @@ func ldhostobj(ld func(*Biobuf, string, int64, string), f *Biobuf, pkg string, l
 	// these relocation types.
 	if HEADTYPE == Hdragonfly {
 		if pkg == "net" || pkg == "os/user" {
-			isinternal = 0
+			isinternal = false
 		}
 	}
 
-	if isinternal == 0 {
-		externalobj = 1
+	if !isinternal {
+		externalobj = true
 	}
 
 	hostobj = append(hostobj, Hostobj{})
@@ -1137,7 +1140,7 @@ var le = Endian{Le16, Le32, Le64}
 type Chain struct {
 	sym   *LSym
 	up    *Chain
-	limit int
+	limit int // limit on entry to sym
 }
 
 var morestack *LSym
