@@ -261,8 +261,13 @@ func archArm64() *Arch {
 	}
 
 	instructions := make(map[string]int)
-	for i, s := range arm64.Anames {
+	for i, s := range obj.Anames {
 		instructions[s] = i
+	}
+	for i, s := range arm64.Anames {
+		if i >= obj.A_ARCHSPECIFIC {
+			instructions[s] = i + obj.ABaseARM64
+		}
 	}
 	// Annoying aliases.
 	instructions["B"] = arm64.AB

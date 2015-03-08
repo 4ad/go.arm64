@@ -1,26 +1,9 @@
 package arm64
 
+import "cmd/internal/obj"
+
 var Anames = []string{
-	"XXX",
-	"CALL",
-	"CHECKNIL",
-	"DATA",
-	"DUFFCOPY",
-	"DUFFZERO",
-	"END",
-	"FUNCDATA",
-	"GLOBL",
-	"JMP",
-	"NOP",
-	"PCDATA",
-	"RET",
-	"TEXT",
-	"TYPE",
-	"UNDEF",
-	"USEFIELD",
-	"VARDEF",
-	"VARKILL",
-	"ADC",
+	obj.A_ARCHSPECIFIC: "ADC",
 	"ADCS",
 	"ADCSW",
 	"ADCW",

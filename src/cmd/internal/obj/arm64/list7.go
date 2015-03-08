@@ -91,16 +91,16 @@ func Pconv(p *obj.Prog) (s string) {
 	a := int(p.As)
 	switch a {
 	case obj.ATEXT, obj.AGLOBL:
-		return fmt.Sprintf("%.5d (%v)\t%v\t%v,%d,%v", p.Pc, p.Line(), Aconv(a), obj.Dconv(p, &p.From), p.From3.Offset, obj.Dconv(p, &p.To))
+		return fmt.Sprintf("%.5d (%v)\t%v\t%v,%d,%v", p.Pc, p.Line(), obj.Aconv(a), obj.Dconv(p, &p.From), p.From3.Offset, obj.Dconv(p, &p.To))
 
 	case obj.ADATA:
-		return fmt.Sprintf("%.5d (%v)\t%v\t%v/%d,%v", p.Pc, p.Line(), Aconv(a), obj.Dconv(p, &p.From), p.From3.Offset, obj.Dconv(p, &p.To))
+		return fmt.Sprintf("%.5d (%v)\t%v\t%v/%d,%v", p.Pc, p.Line(), obj.Aconv(a), obj.Dconv(p, &p.From), p.From3.Offset, obj.Dconv(p, &p.To))
 	}
 
 	if p.Reg == 0 && p.From3.Type == obj.TYPE_NONE && p.To3.Type == obj.TYPE_NONE {
-		return fmt.Sprintf("%.5d (%v)\t%v%s\t%v,%v", p.Pc, p.Line(), Aconv(a), suffix, obj.Dconv(p, &p.From), obj.Dconv(p, &p.To))
+		return fmt.Sprintf("%.5d (%v)\t%v%s\t%v,%v", p.Pc, p.Line(), obj.Aconv(a), suffix, obj.Dconv(p, &p.From), obj.Dconv(p, &p.To))
 	}
-	s = fmt.Sprintf("%.5d (%v)\t%v%s\t%v", p.Pc, p.Line(), Aconv(a), suffix, obj.Dconv(p, &p.From))
+	s = fmt.Sprintf("%.5d (%v)\t%v%s\t%v", p.Pc, p.Line(), obj.Aconv(a), suffix, obj.Dconv(p, &p.From))
 	if p.From3.Type != obj.TYPE_NONE {
 		s += fmt.Sprintf(",%v", obj.Dconv(p, &p.From3))
 	}
@@ -115,15 +115,9 @@ func Pconv(p *obj.Prog) (s string) {
 	return s
 }
 
-func Aconv(a int) string {
-	if a >= obj.AXXX && a < ALAST {
-		return Anames[a]
-	}
-	return "???"
-}
-
 func init() {
 	obj.RegisterRegister(obj.RBaseARM64, REG_SPECIAL+1024, Rconv)
+	obj.RegisterOpcode(obj.ABaseARM64, Anames)
 }
 
 func Rconv(r int) string {

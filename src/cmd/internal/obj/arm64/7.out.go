@@ -325,7 +325,7 @@ const (
 )
 
 const (
-	AADC = obj.A_ARCHSPECIFIC + iota
+	AADC = obj.ABaseARM64 + obj.A_ARCHSPECIFIC + iota
 	AADCS
 	AADCSW
 	AADCW

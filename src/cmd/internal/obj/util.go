@@ -587,6 +587,7 @@ const (
 	ABaseARM
 	ABaseAMD64
 	ABasePPC64
+	ABaseARM64
 	AMask = 1<<12 - 1 // AND with this to use the opcode as an array index.
 )
 
