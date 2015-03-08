@@ -619,10 +619,10 @@ func gins(as int, f *gc.Node, t *gc.Node) *obj.Prog {
 
 	at := obj.Addr(obj.Addr{})
 	if f != nil {
-		gc.Naddr(f, &af, 1)
+		af = gc.Naddr(f, 1)
 	}
 	if t != nil {
-		gc.Naddr(t, &at, 1)
+		at = gc.Naddr(t, 1)
 	}
 	p := (*obj.Prog)(gc.Prog(as))
 	if f != nil {
@@ -690,7 +690,7 @@ func fixlargeoffset(n *gc.Node) {
 func raddr(n *gc.Node, p *obj.Prog) {
 	var a obj.Addr
 
-	gc.Naddr(n, &a, 1)
+	a = gc.Naddr(n, 1)
 	if a.Type != obj.TYPE_REG {
 		if n != nil {
 			gc.Fatal("bad in raddr: %v", gc.Oconv(int(n.Op), 0))

@@ -32,7 +32,7 @@ func defframe(ptxt *obj.Prog) {
 	// iterate through declarations - they are sorted in decreasing xoffset order.
 	for l := gc.Curfn.Dcl; l != nil; l = l.Next {
 		n = l.N
-		if n.Needzero == 0 {
+		if !n.Needzero {
 			continue
 		}
 		if n.Class != gc.PAUTO {
@@ -77,7 +77,7 @@ func zerorange(p *obj.Prog, frame int64, lo int64, hi int64) *obj.Prog {
 		p.Reg = arm64.REGRT1
 		p = appendpp(p, obj.ADUFFZERO, obj.TYPE_NONE, 0, 0, obj.TYPE_MEM, 0, 0)
 		f := gc.Sysfunc("duffzero")
-		gc.Naddr(f, &p.To, 1)
+		p.To = gc.Naddr(f, 1)
 		gc.Afunclit(&p.To, f)
 		p.To.Offset = 4 * (128 - cnt/int64(gc.Widthptr))
 	} else {

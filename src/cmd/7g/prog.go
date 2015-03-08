@@ -126,10 +126,10 @@ var progtable = [arm64.ALAST]gc.ProgInfo{
 	obj.ADUFFCOPY: gc.ProgInfo{gc.Call, 0, 0, 0},
 }
 
-func proginfo(info *gc.ProgInfo, p *obj.Prog) {
-	*info = progtable[p.As]
+func proginfo(p *obj.Prog) (info gc.ProgInfo) {
+	info = progtable[p.As]
 	if info.Flags == 0 {
-		*info = progtable[arm64.AADD]
+		info = progtable[arm64.AADD]
 		gc.Fatal("proginfo: unknown instruction %v", p)
 	}
 
@@ -168,4 +168,6 @@ func proginfo(info *gc.ProgInfo, p *obj.Prog) {
 
 		info.Regset |= RtoB(arm64.REGRT1) | RtoB(arm64.REGRT2)
 	}
+
+	return
 }
