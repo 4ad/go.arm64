@@ -332,6 +332,9 @@ func (p *Prog) String() string {
 	if p.To.Type != TYPE_NONE {
 		fmt.Fprintf(&buf, "%s%v", sep, Dconv(p, &p.To))
 	}
+	if p.To3.Type != TYPE_NONE {
+		fmt.Fprintf(&buf, "%s%v", sep, Dconv(p, &p.To3))
+	}
 	return buf.String()
 }
 
