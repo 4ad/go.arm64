@@ -5375,13 +5375,11 @@ var bitmasks = []Mask{
 }
 
 func findmask(v uint64) *Mask {
-	var top int
-	var bot int
 	var mid int
 	var m *Mask
 
-	bot = 0
-	top = len(bitmasks)
+	bot := 0
+	top := len(bitmasks)
 	for bot < top {
 		mid = (bot + top) / 2
 		m = &bitmasks[mid]
@@ -5391,7 +5389,6 @@ func findmask(v uint64) *Mask {
 		if v < m.v {
 			top = mid
 		} else {
-
 			bot = mid + 1
 		}
 	}

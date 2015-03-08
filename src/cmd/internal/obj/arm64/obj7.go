@@ -50,9 +50,6 @@ var complements = []int16{
 }
 
 func stacksplit(ctxt *obj.Link, p *obj.Prog, framesize int32, noctxt int) *obj.Prog {
-	var q *obj.Prog
-	var q1 *obj.Prog
-
 	// MOV	g_stackguard(g), R1
 	p = obj.Appendp(ctxt, p)
 
@@ -66,7 +63,7 @@ func stacksplit(ctxt *obj.Link, p *obj.Prog, framesize int32, noctxt int) *obj.P
 	p.To.Type = obj.TYPE_REG
 	p.To.Reg = REG_R1
 
-	q = nil
+	q := (*obj.Prog)(nil)
 	if framesize <= obj.StackSmall {
 		// small stack: SP < stackguard
 		//	MOV	SP, R2
@@ -103,7 +100,6 @@ func stacksplit(ctxt *obj.Link, p *obj.Prog, framesize int32, noctxt int) *obj.P
 		p.From.Reg = REG_R1
 		p.Reg = REG_R2
 	} else {
-
 		// Such a large stack we need to protect against wraparound
 		// if SP is close to zero.
 		//	SP-stackguard+StackGuard < framesize + (StackGuard-StackSmall)
@@ -158,7 +154,7 @@ func stacksplit(ctxt *obj.Link, p *obj.Prog, framesize int32, noctxt int) *obj.P
 
 	// BHI	done
 	p = obj.Appendp(ctxt, p)
-	q1 = p
+	q1 := p
 
 	p.As = ABHI
 	p.To.Type = obj.TYPE_BRANCH
@@ -192,7 +188,6 @@ func stacksplit(ctxt *obj.Link, p *obj.Prog, framesize int32, noctxt int) *obj.P
 	if ctxt.Cursym.Cfunc != 0 {
 		p.To.Sym = obj.Linklookup(ctxt, "runtime.morestackc", 0)
 	} else {
-
 		p.To.Sym = ctxt.Symmorestack[noctxt]
 	}
 
@@ -213,9 +208,6 @@ func stacksplit(ctxt *obj.Link, p *obj.Prog, framesize int32, noctxt int) *obj.P
 }
 
 func progedit(ctxt *obj.Link, p *obj.Prog) {
-	var literal string
-	var s *obj.LSym
-
 	p.From.Class = 0
 	p.To.Class = 0
 
@@ -249,12 +241,10 @@ func progedit(ctxt *obj.Link, p *obj.Prog) {
 	switch p.As {
 	case AFMOVS:
 		if p.From.Type == obj.TYPE_FCONST {
-			var i32 uint32
-			var f32 float32
-			f32 = float32(p.From.U.Dval)
-			i32 = math.Float32bits(f32)
-			literal = fmt.Sprintf("$f32.%08x", uint32(i32))
-			s = obj.Linklookup(ctxt, literal, 0)
+			f32 := float32(p.From.U.Dval)
+			i32 := math.Float32bits(f32)
+			literal := fmt.Sprintf("$f32.%08x", uint32(i32))
+			s := obj.Linklookup(ctxt, literal, 0)
 			s.Size = 4
 			p.From.Type = obj.TYPE_MEM
 			p.From.Sym = s
@@ -264,10 +254,9 @@ func progedit(ctxt *obj.Link, p *obj.Prog) {
 
 	case AFMOVD:
 		if p.From.Type == obj.TYPE_FCONST {
-			var i64 uint64
-			i64 = math.Float64bits(p.From.U.Dval)
-			literal = fmt.Sprintf("$f64.%016x", uint64(i64))
-			s = obj.Linklookup(ctxt, literal, 0)
+			i64 := math.Float64bits(p.From.U.Dval)
+			literal := fmt.Sprintf("$f64.%016x", uint64(i64))
+			s := obj.Linklookup(ctxt, literal, 0)
 			s.Size = 8
 			p.From.Type = obj.TYPE_MEM
 			p.From.Sym = s
@@ -299,13 +288,10 @@ func progedit(ctxt *obj.Link, p *obj.Prog) {
 }
 
 func follow(ctxt *obj.Link, s *obj.LSym) {
-	var firstp *obj.Prog
-	var lastp *obj.Prog
-
 	ctxt.Cursym = s
 
-	firstp = ctxt.NewProg()
-	lastp = firstp
+	firstp := ctxt.NewProg()
+	lastp := firstp
 	xfol(ctxt, s.Text, &lastp)
 	lastp.Link = nil
 	s.Text = firstp.Link
@@ -419,7 +405,6 @@ loop:
 				if a == ABNE {
 					r.As = ABEQ
 				} else {
-
 					r.As = ABNE
 				}
 				r.Pcond = p.Link
@@ -481,16 +466,6 @@ loop:
 }
 
 func preprocess(ctxt *obj.Link, cursym *obj.LSym) {
-	var p *obj.Prog
-	var q *obj.Prog
-	var q1 *obj.Prog
-	var q2 *obj.Prog
-	var retjmp *obj.LSym
-	var o int
-	var textstksiz int64
-	var stkadj int64
-	var aoffset int32
-
 	if ctxt.Symmorestack[0] == nil {
 		ctxt.Symmorestack[0] = obj.Linklookup(ctxt, "runtime.morestack", 0)
 		ctxt.Symmorestack[1] = obj.Linklookup(ctxt, "runtime.morestack_noctxt", 0)
@@ -502,12 +477,9 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym) {
 		return
 	}
 
-	p = cursym.Text
-	textstksiz = p.To.Offset
-	aoffset = int32(textstksiz)
-	if aoffset < 0 {
-		aoffset = 0
-	}
+	p := cursym.Text
+	textstksiz := p.To.Offset
+	aoffset := int32(textstksiz)
 
 	cursym.Args = p.To.U.Argsize
 	cursym.Locals = int32(textstksiz)
@@ -518,12 +490,12 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym) {
 	 * expand RET
 	 */
 	if ctxt.Debugvlog != 0 {
-
 		fmt.Fprintf(ctxt.Bso, "%5.2f noops\n", obj.Cputime())
 	}
 	obj.Bflush(ctxt.Bso)
-	q = nil
-	for p = cursym.Text; p != nil; p = p.Link {
+	q := (*obj.Prog)(nil)
+	var q1 *obj.Prog
+	for p := cursym.Text; p != nil; p = p.Link {
 		switch p.As {
 		case obj.ATEXT:
 			p.Mark |= LEAF
@@ -584,7 +556,11 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym) {
 		q = p
 	}
 
-	for p = cursym.Text; p != nil; p = p.Link {
+	var o int
+	var q2 *obj.Prog
+	var retjmp *obj.LSym
+	var stkadj int64
+	for p := cursym.Text; p != nil; p = p.Link {
 		o = int(p.As)
 		switch o {
 		case obj.ATEXT:
@@ -763,7 +739,6 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym) {
 					p.Spadj = -ctxt.Autosize
 				}
 			} else {
-
 				/* want write-back pre-indexed SP+autosize -> SP, loading REGLINK*/
 				aoffset = ctxt.Autosize
 
