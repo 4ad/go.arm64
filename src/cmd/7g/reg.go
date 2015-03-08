@@ -30,8 +30,10 @@
 
 package main
 
-import "cmd/internal/obj/arm64"
-import "cmd/internal/gc"
+import (
+	"cmd/internal/gc"
+	"cmd/internal/obj/arm64"
+)
 
 const (
 	NREGVAR = 64
