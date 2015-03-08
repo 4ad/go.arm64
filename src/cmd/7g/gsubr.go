@@ -340,7 +340,7 @@ func gmove(f *gc.Node, t *gc.Node) {
 	// value -> value copy, first operand in memory.
 	// any floating point operand requires register
 	// src, so goto hard to copy to register first.
-	if (gc.Ismem(f) && ft != tt && (gc.Isfloat[ft] || gc.Isfloat[tt])) {
+	if gc.Ismem(f) && ft != tt && (gc.Isfloat[ft] || gc.Isfloat[tt]) {
 		cvt = gc.Types[ft]
 		goto hard
 	}
@@ -775,7 +775,7 @@ func optoas(op int, t *gc.Type) int {
 		gc.OLE<<16 | gc.TINT32,
 		gc.OLE<<16 | gc.TINT64:
 		a = arm64.ABLE
-	
+
 	case gc.OLE<<16 | gc.TUINT8,
 		gc.OLE<<16 | gc.TUINT16,
 		gc.OLE<<16 | gc.TUINT32,
@@ -1015,7 +1015,7 @@ func optoas(op int, t *gc.Type) int {
 		gc.OMUL<<16 | gc.TINT16,
 		gc.OMUL<<16 | gc.TINT32:
 		a = arm64.ASMULL
-	
+
 	case gc.OMUL<<16 | gc.TINT64:
 		a = arm64.AMUL
 
