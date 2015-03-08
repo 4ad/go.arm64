@@ -35,10 +35,6 @@ import (
 	"fmt"
 )
 
-const (
-	STRINGSZ = 1000
-)
-
 var strcond = [16]string{
 	"EQ",
 	"NE",
@@ -56,63 +52,6 @@ var strcond = [16]string{
 	"LE",
 	"AL",
 	"NV",
-}
-
-//
-// Format conversions
-//	%A int		Opcodes (instruction mnemonics)
-//
-//	%D Addr*	Addresses (instruction operands)
-//		Flags: "%lD": seperate the high and low words of a constant by "-"
-//
-//	%P Prog*	Instructions
-//
-//	%R int		Registers
-//
-//	%$ char*	String constant addresses (for internal use only)
-//      %^ int          C_* classes (for liblink internal use)
-
-var bigP *obj.Prog
-
-func Pconv(p *obj.Prog) (s string) {
-	defer func() {
-		if p.Spadj != 0 {
-			s = fmt.Sprintf("%s # spadj=%d", s, p.Spadj)
-		}
-	}()
-
-	suffix := ""
-	switch p.Scond {
-	case C_XPOST:
-		suffix = ".P"
-	case C_XPRE:
-		suffix = ".W"
-	}
-	a := int(p.As)
-	switch a {
-	case obj.ATEXT, obj.AGLOBL:
-		return fmt.Sprintf("%.5d (%v)\t%v\t%v,%d,%v", p.Pc, p.Line(), obj.Aconv(a), obj.Dconv(p, &p.From), p.From3.Offset, obj.Dconv(p, &p.To))
-
-	case obj.ADATA:
-		return fmt.Sprintf("%.5d (%v)\t%v\t%v/%d,%v", p.Pc, p.Line(), obj.Aconv(a), obj.Dconv(p, &p.From), p.From3.Offset, obj.Dconv(p, &p.To))
-	}
-
-	if p.Reg == 0 && p.From3.Type == obj.TYPE_NONE && p.To3.Type == obj.TYPE_NONE {
-		return fmt.Sprintf("%.5d (%v)\t%v%s\t%v,%v", p.Pc, p.Line(), obj.Aconv(a), suffix, obj.Dconv(p, &p.From), obj.Dconv(p, &p.To))
-	}
-	s = fmt.Sprintf("%.5d (%v)\t%v%s\t%v", p.Pc, p.Line(), obj.Aconv(a), suffix, obj.Dconv(p, &p.From))
-	if p.From3.Type != obj.TYPE_NONE {
-		s += fmt.Sprintf(",%v", obj.Dconv(p, &p.From3))
-	}
-	if p.Reg != 0 {
-		s += fmt.Sprintf(",%v", Rconv(int(p.Reg)))
-	}
-	if p.To3.Type != obj.TYPE_NONE {
-		s += fmt.Sprintf(",%v,%v", obj.Dconv(p, &p.To), obj.Dconv(p, &p.To3))
-	} else {
-		s += fmt.Sprintf(",%v", obj.Dconv(p, &p.To))
-	}
-	return s
 }
 
 func init() {

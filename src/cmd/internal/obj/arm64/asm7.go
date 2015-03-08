@@ -55,7 +55,7 @@ type Optab struct {
 	size  int8
 	param int16
 	flag  int8
-	scond uint8
+	scond uint16
 }
 
 type Oprang struct {
@@ -1163,10 +1163,10 @@ func oplook(ctxt *obj.Link, p *obj.Prog) *Optab {
 	c1 = xcmp[a1][:]
 	c2 = xcmp[a2][:]
 	c3 = xcmp[a3][:]
-	c4 = xcmp[p.Scond][:]
+	c4 = xcmp[p.Scond>>5][:]
 	for ; -cap(o) < -cap(e); o = o[1:] {
 		if int(o[0].a2) == a2 || c2[o[0].a2] != 0 {
-			if c4[o[0].scond] != 0 {
+			if c4[o[0].scond>>5] != 0 {
 				if c1[o[0].a1] != 0 {
 					if c3[o[0].a3] != 0 {
 						p.Optab = uint16((-cap(o) + cap(optab)) + 1)

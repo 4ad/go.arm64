@@ -317,11 +317,14 @@ const (
 	C_ADDR // TODO(aram): explain difference from C_VCONADDR
 	C_ROFF // register offset (including register extended)
 
-	C_XPRE
-	C_XPOST
 	C_GOK
 	C_TEXTSIZE
 	C_NCLASS // must be last
+)
+
+const (
+	C_XPRE  = 1 << 6 // match arm.C_WBIT, so Prog.String know how to print it
+	C_XPOST = 1 << 5 // match arm.C_PBIT, so Prog.String know how to print it
 )
 
 const (
