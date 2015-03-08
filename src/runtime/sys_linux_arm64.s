@@ -61,6 +61,10 @@ TEXT runtime·open(SB),NOSPLIT,$-8-20
 	MOVW	perm+12(FP), R3
 	MOVD	$SYS_openat, R8
 	SVC
+	CMN	$4095, R0
+	BCC	done
+	MOVW	$-1, R0
+done:
 	MOVW	R0, ret+16(FP)
 	RET
 
@@ -68,6 +72,9 @@ TEXT runtime·close(SB),NOSPLIT,$-8-12
 	MOVW	fd+0(FP), R0 
 	MOVD	$SYS_close, R8
 	SVC
+	BCC	done
+	MOVW	$-1, R0
+done:
 	MOVW	R0, ret+8(FP)
 	RET
 
@@ -77,6 +84,9 @@ TEXT runtime·write(SB),NOSPLIT,$-8-28
 	MOVW	n+16(FP), R2
 	MOVD	$SYS_write, R8
 	SVC
+	BCC	done
+	MOVW	$-1, R0
+done:
 	MOVW	R0, ret+24(FP)
 	RET
 
@@ -86,6 +96,9 @@ TEXT runtime·read(SB),NOSPLIT,$-8-28
 	MOVW	n+16(FP), R2
 	MOVD	$SYS_read, R8
 	SVC
+	BCC	done
+	MOVW	$-1, R0
+done:
 	MOVW	R0, ret+24(FP)
 	RET
 
