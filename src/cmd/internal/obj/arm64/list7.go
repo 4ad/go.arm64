@@ -121,6 +121,9 @@ func init() {
 }
 
 func Rconv(r int) string {
+	if r == REGG {
+		return "g"
+	}
 	switch {
 	case REG_R0 <= r && r <= REG_R30:
 		return fmt.Sprintf("R%d", r-REG_R0)
