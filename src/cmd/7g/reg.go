@@ -36,7 +36,7 @@ import (
 )
 
 const (
-	NREGVAR = 64
+	NREGVAR = 64 /* 32 general + 32 floating */
 )
 
 var regname = []string{
