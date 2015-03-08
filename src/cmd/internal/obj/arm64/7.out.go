@@ -696,7 +696,7 @@ const (
 	ASHA256SU0
 	ASHA256SU1
 	ALAST
-	AB = obj.AJMP
-	ABL = obj.ACALL
+	AB      = obj.AJMP
+	ABL     = obj.ACALL
 	ARETURN = obj.ARET
 )

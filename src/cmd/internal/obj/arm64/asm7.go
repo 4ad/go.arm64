@@ -2102,11 +2102,11 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 		}
 		if p.To.Type != obj.TYPE_NONE && (p.To.Reg == REGSP || r == REGSP) {
 			o2 = opxrrr(ctxt, int(p.As))
-			o2 |= REGTMP&31 << 16
+			o2 |= REGTMP & 31 << 16
 			o2 |= LSL0_64
 		} else {
 			o2 = oprrr(ctxt, int(p.As))
-			o2 |= REGTMP&31 << 16 /* shift is 0 */
+			o2 |= REGTMP & 31 << 16 /* shift is 0 */
 		}
 
 		o2 |= uint32(r&31) << 5
@@ -2322,7 +2322,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 	case 27: /* op Rm<<n[,Rn],Rd (extended register) */
 		o1 = opxrrr(ctxt, int(p.As))
 
-		if (p.From.Reg - obj.RBaseARM64) & REG_EXT != 0 {
+		if (p.From.Reg-obj.RBaseARM64)&REG_EXT != 0 {
 			ctxt.Diag("extended register not implemented\n%v", p)
 			// o1 |= uint32(p.From.Offset) /* includes reg, op, etc */
 		} else {
@@ -2473,7 +2473,7 @@ func asmout(ctxt *obj.Link, p *obj.Prog, o *Optab, out []uint32) {
 			break
 		}
 		o2 = opxrrr(ctxt, AADD)
-		o2 |= REGTMP&31 << 16
+		o2 |= REGTMP & 31 << 16
 		o2 |= LSL0_64
 		r = int(p.From.Reg)
 		if r == 0 {
