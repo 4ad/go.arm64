@@ -104,7 +104,7 @@ const (
 )
 
 const (
-	_PageShift = 13
+	_PageShift = 13 * (1 - goarch_arm64) + 16 * goarch_arm64
 	_PageSize  = 1 << _PageShift
 	_PageMask  = _PageSize - 1
 )
@@ -118,7 +118,7 @@ const (
 	// size classes.  NumSizeClasses is that number.  It's needed here
 	// because there are static arrays of this length; when msize runs its
 	// size choosing algorithm it double-checks that NumSizeClasses agrees.
-	_NumSizeClasses = 67
+	_NumSizeClasses = 67 * (1 - goarch_arm64) + 73 * goarch_arm64
 
 	// Tunable constants.
 	_MaxSmallSize = 32 << 10
@@ -132,7 +132,7 @@ const (
 	_HeapAllocChunk = 1 << 20                // Chunk size for heap growth
 
 	// Per-P, per order stack segment cache size.
-	_StackCacheSize = 32 * 1024
+	_StackCacheSize = 32 * 1024 * (1 - goarch_arm64) + _PageSize * goarch_arm64
 
 	// Number of orders that get caching.  Order 0 is FixedStack
 	// and each successive order is twice as large.
