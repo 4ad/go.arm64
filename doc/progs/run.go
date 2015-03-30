@@ -222,7 +222,7 @@ func fixcgo() {
 		// cgo3 and cgo4 don't run on netbsd, since cgo cannot handle stdout correctly
 		skipTest("cgo3")
 		skipTest("cgo4")
-	case "openbsd":
+	case "openbsd", "solaris":
 		// cgo3 and cgo4 don't run on openbsd and solaris, since cgo cannot handle stdout correctly
 		skipTest("cgo3")
 		skipTest("cgo4")
