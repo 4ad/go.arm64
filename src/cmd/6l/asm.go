@@ -271,6 +271,12 @@ func adddynrel(s *ld.LSym, r *ld.Reloc) {
 
 	case ld.R_ADDR:
 		if s.Type == ld.STEXT && ld.Iself {
+			if ld.HEADTYPE == ld.Hsolaris {
+				addpltsym(targ)
+				r.Sym = ld.Linklookup(ld.Ctxt, ".plt", 0)
+				r.Add += int64(targ.Plt)
+				return
+			}
 			// The code is asking for the address of an external
 			// function.  We provide it with the address of the
 			// correspondent GOT symbol.
